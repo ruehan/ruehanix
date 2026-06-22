@@ -48,7 +48,7 @@ const INITIAL: CoreState = {
   bootN: 0,
   ws: 1,
   focused: null,
-  selected: "p1",
+  selected: "",
   finderCat: "all",
   showLauncher: false,
   showKeys: false,

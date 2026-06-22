@@ -1,5 +1,17 @@
 # 작업 로그
 
+## 2026-06-22 — 첫 방문 힌트 제거 · 독 호버 이름 라벨
+- 브랜치: feat/dock-tooltip-remove-hint
+- 한 일: 사용자 피드백 반영 2건. (1) 첫 방문 힌트(튜토리얼 말풍선) 완전 제거 — AppsHint·hint 상태/
+  9초 타이머/localStorage·onboarding 로직·rh-pulse 삭제. (2) 데스크톱 독 아이콘 호버 시 위에 앱 이름
+  라벨 표시(순수 CSS, .rh-dock-label). title→aria-label. 독·버튼 강화는 유지.
+- 검증: verify.sh 통과(typecheck·lint 무경고·vitest 22/22), build 4/4, smoke 11/11(호버 라벨 가시성
+  히트테스트 시나리오 포함).
+- 리뷰: 통과 2라운드(1R P1: 호버 라벨이 overflowX 클리핑으로 안 보임 → overflowX/maxWidth 제거+
+  z-index, 스모크를 elementFromPoint 가시성 검사로 강화; P3 라벨색 var(--text)) — 상세: docs/reviews/2026-06-22-힌트제거-독호버라벨.md
+- 가정: 호버 표시는 순수 CSS(:hover)로, React state 불필요. ADR 0005(0004 힌트 부분 폐기).
+- 관련 결정: docs/decisions/0005-remove-hint-dock-tooltip.md
+
 ## 2026-06-22 — 앱 발견성 (데스크톱 독·버튼 강화·첫 방문 힌트)
 - 브랜치: feat/app-discoverability
 - 한 일: 데스크톱(≥768) 앱 실행 발견성 3종. (1) 하단 중앙 floating 독 — 8앱 클릭 실행·활성 강조·호버,

@@ -55,23 +55,23 @@ try {
   await page.getByText('login:').waitFor({ state: 'hidden', timeout: 8000 });
   ok('boot 완료', true);
 
-  // 2. waybar 위젯
-  ok('waybar 런처 버튼', await page.getByText('ruehanix').first().isVisible());
+  // 2. waybar 위젯 (data-testid로 안정 매칭)
+  ok('waybar 런처 버튼', await page.getByTestId('launcher').isVisible());
 
   // 3. 워크스페이스 2 → 타일링
-  await page.getByText('2', { exact: true }).click();
+  await page.getByTestId('ws-2').click();
   await page.getByText('React 서버 컴포넌트', { exact: false }).first().waitFor({ timeout: 4000 });
   ok('ws2 타일링', true);
 
   // 4. 런처 → Foto 앱 열기
-  await page.getByText('ruehanix').nth(2).click();
+  await page.getByTestId('launcher').click();
   await page.getByText('사진', { exact: true }).waitFor({ timeout: 3000 }); // 런처 hint
   await page.getByText('Foto사진').click();
   await page.getByText('~/Pictures').waitFor({ timeout: 3000 });
   ok('런처에서 앱 오픈', true);
 
   // 5. Settings 열고 Light 모드
-  await page.getByText('ruehanix').nth(2).click();
+  await page.getByTestId('launcher').click();
   await page.getByText('Settings설정').click();
   await page.getByText('Light').click();
   await page.waitForFunction(() => document.documentElement.classList.contains('rh-light'), { timeout: 3000 });

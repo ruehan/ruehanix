@@ -7,15 +7,14 @@ import {
   CATS,
   LAPS,
   PHOTOS,
-  POSTS,
   THEME_MODES,
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
 import { filterApps } from "@/lib/ruehanix/search";
-import { slugForId } from "@/lib/posts/source";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
+import type { BlogPost } from "@/lib/posts/types";
 import type { RuehanixApi } from "./useRuehanix";
 
 const C = {
@@ -38,7 +37,7 @@ export interface RowPost {
 }
 
 export function buildVm(api: RuehanixApi) {
-  const { st, sys, vp, prefersLight, handlers } = api;
+  const { st, sys, vp, posts, prefersLight, handlers } = api;
   const ui = st.ui;
   const accent = accentEff(ui.mode, ui.accent, prefersLight);
   const lightMode = effMode(ui.mode, prefersLight) === "light";
@@ -183,23 +182,24 @@ export function buildVm(api: RuehanixApi) {
   // --- 블로그 데이터 ---
   const catC = catColors(lightMode);
   const catOf = (id: CatKey) => ({ label: CATS[id].label, color: catC[id] || CATS[id].color });
-  const decorate = (p: (typeof POSTS)[number]): RowPost => {
-    const c = catOf(p.cat);
+  const decorate = (p: BlogPost): RowPost => {
+    const c = catOf(p.category);
     return {
-      id: p.id,
+      id: p.slug,
       title: p.title,
       date: p.date,
-      read: p.read,
+      read: p.readingTime,
       excerpt: p.excerpt,
       catLabel: c.label,
       catColor: c.color,
-      rowBg: p.id === st.selected ? hexA(accent, 0.14) : "transparent",
-      open: () => handlers.openPost(p.id),
+      rowBg: p.slug === st.selected ? hexA(accent, 0.14) : "transparent",
+      open: () => handlers.openPost(p.slug),
     };
   };
   const fc = st.finderCat;
-  const finderPosts = POSTS.filter((p) => fc === "all" || p.cat === fc).map(decorate);
-  const finderCount = finderPosts.length + " items · " + POSTS.length + " total";
+  const finderPosts = posts.filter((p) => fc === "all" || p.category === fc).map(decorate);
+  const finderCount = finderPosts.length + " items · " + posts.length + " total";
+  const noPosts = posts.length === 0;
   const catList: { key: "all" | CatKey; label: string }[] = [
     { key: "all", label: "all" },
     ...(Object.keys(CATS) as CatKey[]).map((k) => ({ key: k, label: CATS[k].label })),
@@ -220,27 +220,28 @@ export function buildVm(api: RuehanixApi) {
     } as CSSProperties,
   }));
 
-  const selP = POSTS.find((p) => p.id === st.selected) || POSTS[0];
-  const selC = catOf(selP.cat);
-  const post = {
-    slug: slugForId(selP.id),
-    title: selP.title,
-    date: selP.date,
-    read: selP.read,
-    catLabel: selC.label,
-    catColor: selC.color,
-    paras: selP.body.map((t, i) => ({ id: i, text: t })),
-  };
+  const selP = posts.find((p) => p.slug === st.selected) ?? posts[0] ?? null;
+  const post = selP
+    ? {
+        slug: selP.slug,
+        title: selP.title,
+        date: selP.date,
+        read: selP.readingTime,
+        catLabel: catOf(selP.category).label,
+        catColor: catOf(selP.category).color,
+        paras: selP.body.map((t, i) => ({ id: i, text: t })),
+      }
+    : null;
 
-  const readerList = POSTS.map((p) => {
-    const c = catOf(p.cat);
+  const readerList = posts.map((p) => {
+    const c = catOf(p.category);
     return {
-      id: p.id,
+      id: p.slug,
       title: p.title,
       catColor: c.color,
       date: p.date,
-      bg: p.id === st.selected ? hexA(accent, 0.14) : "transparent",
-      open: () => handlers.setReaderSel(p.id),
+      bg: p.slug === st.selected ? hexA(accent, 0.14) : "transparent",
+      open: () => handlers.setReaderSel(p.slug),
     };
   });
 
@@ -270,7 +271,7 @@ export function buildVm(api: RuehanixApi) {
     rowBg: l.best ? "rgba(243,139,168,.08)" : "transparent",
   }));
 
-  const allPosts = POSTS.map(decorate);
+  const allPosts = posts.map(decorate);
 
   // --- 설정 (라이브) ---
   const togTrack = (on: boolean): CSSProperties => ({
@@ -397,6 +398,7 @@ export function buildVm(api: RuehanixApi) {
     stop: (e: React.MouseEvent) => e.stopPropagation(),
     finderPosts,
     finderCount,
+    noPosts,
     finderCats,
     post,
     readerList,

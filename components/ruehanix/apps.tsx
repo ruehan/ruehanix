@@ -6,6 +6,17 @@ import type { Vm } from "./viewModel";
 
 const mono = "'JetBrains Mono',monospace";
 
+function EmptyPosts({ compact }: { compact?: boolean }) {
+  return (
+    <div style={{ height: "100%", minHeight: compact ? 120 : 240, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--sub1)" }}>아직 글이 없습니다</div>
+      <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>
+        <code style={{ color: "var(--accent)", fontFamily: mono }}>/studio</code> 에서 첫 글을 작성해 보세요
+      </div>
+    </div>
+  );
+}
+
 export function FilesApp({ vm }: { vm: Vm }) {
   const folders: [string, boolean][] = [
     ["posts", true],
@@ -43,6 +54,7 @@ export function FilesApp({ vm }: { vm: Vm }) {
           ))}
         </div>
         <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+          {vm.finderPosts.length === 0 && <EmptyPosts compact />}
           {vm.finderPosts.map((p) => (
             <div key={p.id} {...clickable(p.open, `${p.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 14px", borderBottom: "1px solid var(--surf0)", cursor: "pointer", background: p.rowBg }}>
               <span style={{ flex: "none", width: 8, height: 8, borderRadius: 2, background: p.catColor }} />
@@ -67,43 +79,51 @@ export function ReaderApp({ vm }: { vm: Vm }) {
     <div style={{ display: "flex", height: "100%" }}>
       <div style={{ flex: "none", width: 188, background: "var(--mantle)", borderRight: "1px solid var(--surf0)", overflow: "auto", padding: "12px 8px" }}>
         <div style={{ color: "var(--ov0)", fontSize: 11, padding: "0 6px 8px" }}>posts/</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {vm.readerList.map((it) => (
-            <div key={it.id} {...clickable(it.open, it.title)} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "8px 10px", borderRadius: 7, cursor: "pointer", background: it.bg }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", flex: "none", background: it.catColor }} />
-                <span style={{ fontSize: 11.5, color: "var(--text)", lineHeight: 1.35 }}>{it.title}</span>
+        {vm.readerList.length === 0 ? (
+          <div style={{ fontSize: 11.5, color: "var(--ov0)", padding: "8px 6px" }}>아직 글 없음</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {vm.readerList.map((it) => (
+              <div key={it.id} {...clickable(it.open, it.title)} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "8px 10px", borderRadius: 7, cursor: "pointer", background: it.bg }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", flex: "none", background: it.catColor }} />
+                  <span style={{ fontSize: 11.5, color: "var(--text)", lineHeight: 1.35 }}>{it.title}</span>
+                </div>
+                <span style={{ fontSize: 10.5, color: "var(--ov0)", paddingLeft: 13 }}>{it.date}</span>
               </div>
-              <span style={{ fontSize: 10.5, color: "var(--ov0)", paddingLeft: 13 }}>{it.date}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
       <div style={{ flex: 1, minWidth: 0, overflow: "auto", background: "var(--base)" }}>
-        <div className="rh-sans" style={{ maxWidth: 580, margin: "0 auto", padding: "46px 50px 64px" }}>
-          <div style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, marginBottom: 18, fontFamily: mono, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: p.catColor }}>#{p.catLabel}</div>
-          <h1 style={{ margin: "0 0 14px", fontSize: 27, lineHeight: 1.28, fontWeight: 800, letterSpacing: "-.02em", color: "var(--text)", textWrap: "balance" }}>{p.title}</h1>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: "var(--ov0)", fontFamily: mono, paddingBottom: 24, marginBottom: 28, borderBottom: "1px solid var(--surf0)" }}>
-            <span style={{ color: "var(--sub0)" }}>ruehan</span>
-            <span>·</span>
-            <span>{p.date}</span>
-            <span>·</span>
-            <span>{p.read}</span>
-          </div>
-          {p.paras.map((para) => (
-            <p key={para.id} style={{ margin: "0 0 20px", fontSize: 16, lineHeight: 1.82, color: "var(--sub1)" }}>{para.text}</p>
-          ))}
-          <Link href={`/posts/${p.slug}`} style={{ display: "inline-block", marginTop: 8, fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none", fontFamily: mono }}>
-            전체 페이지로 보기 →
-          </Link>
-          <div style={{ marginTop: 40, paddingTop: 22, borderTop: "1px solid var(--surf0)", display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", flex: "none", background: "linear-gradient(135deg,#cba6f7,#89b4fa)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-accent)", fontWeight: 800, fontSize: 15, fontFamily: mono }}>한</div>
-            <div style={{ fontFamily: mono }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text)" }}>한규 · ruehan</div>
-              <div style={{ fontSize: 11.5, color: "var(--ov0)" }}>full-stack dev · sim racing · bass</div>
+        {!p ? (
+          <EmptyPosts />
+        ) : (
+          <div className="rh-sans" style={{ maxWidth: 580, margin: "0 auto", padding: "46px 50px 64px" }}>
+            <div style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, marginBottom: 18, fontFamily: mono, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: p.catColor }}>#{p.catLabel}</div>
+            <h1 style={{ margin: "0 0 14px", fontSize: 27, lineHeight: 1.28, fontWeight: 800, letterSpacing: "-.02em", color: "var(--text)", textWrap: "balance" }}>{p.title}</h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: "var(--ov0)", fontFamily: mono, paddingBottom: 24, marginBottom: 28, borderBottom: "1px solid var(--surf0)" }}>
+              <span style={{ color: "var(--sub0)" }}>ruehan</span>
+              <span>·</span>
+              <span>{p.date}</span>
+              <span>·</span>
+              <span>{p.read}</span>
+            </div>
+            {p.paras.map((para) => (
+              <p key={para.id} style={{ margin: "0 0 20px", fontSize: 16, lineHeight: 1.82, color: "var(--sub1)" }}>{para.text}</p>
+            ))}
+            <Link href={`/posts/${p.slug}`} style={{ display: "inline-block", marginTop: 8, fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none", fontFamily: mono }}>
+              전체 페이지로 보기 →
+            </Link>
+            <div style={{ marginTop: 40, paddingTop: 22, borderTop: "1px solid var(--surf0)", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", flex: "none", background: "linear-gradient(135deg,#cba6f7,#89b4fa)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-accent)", fontWeight: 800, fontSize: 15, fontFamily: mono }}>한</div>
+              <div style={{ fontFamily: mono }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text)" }}>한규 · ruehan</div>
+                <div style={{ fontSize: 11.5, color: "var(--ov0)" }}>full-stack dev · sim racing · bass</div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -268,6 +288,7 @@ export function WebApp({ vm }: { vm: Vm }) {
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--text)" }}>최근 글</h2>
             <span style={{ fontSize: 12, color: "var(--ov0)" }}>all posts →</span>
           </div>
+          {vm.allPosts.length === 0 && <EmptyPosts compact />}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
             {vm.allPosts.map((p) => (
               <div key={p.id} className="rh-webcard" {...clickable(p.open, `${p.title} 열기`)} style={{ border: "1px solid var(--surf0)", borderRadius: 13, padding: "18px 20px", cursor: "pointer", background: "var(--mantle)" }}>

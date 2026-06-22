@@ -26,6 +26,14 @@ export default async function PostsPage() {
 
       <div className="rh-sans" style={{ maxWidth: 760, margin: "0 auto", padding: "40px 24px 80px" }}>
         <h1 style={{ margin: "0 0 24px", fontSize: 26, fontWeight: 800, letterSpacing: "-.02em", fontFamily: mono }}>모든 글</h1>
+        {posts.length === 0 && (
+          <div style={{ padding: "48px 0", textAlign: "center", color: "var(--ov0)" }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--sub1)", marginBottom: 8 }}>아직 글이 없습니다</div>
+            <div style={{ fontSize: 13 }}>
+              <code style={{ color: "var(--accent)", fontFamily: mono }}>/studio</code> 에서 첫 글을 작성해 보세요
+            </div>
+          </div>
+        )}
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {posts.map((p) => (
             <Link

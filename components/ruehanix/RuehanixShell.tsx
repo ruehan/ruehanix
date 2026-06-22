@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { APP_META } from "@/lib/ruehanix/data";
 import { DESKTOP_DOCK, MOBILE_DOCK, MOBILE_TOPBAR } from "@/lib/ruehanix/responsive";
 import type { AppKey } from "@/lib/ruehanix/types";
+import type { BlogPost } from "@/lib/posts/types";
 import { useRuehanix } from "./useRuehanix";
 import { clickable } from "./clickable";
 import { buildVm, type Vm } from "./viewModel";
@@ -112,8 +113,8 @@ function DesktopDock({ vm }: { vm: Vm }) {
 }
 
 
-export function RuehanixShell() {
-  const api = useRuehanix();
+export function RuehanixShell({ posts }: { posts: BlogPost[] }) {
+  const api = useRuehanix(posts);
   const vm = buildVm(api);
 
   return (

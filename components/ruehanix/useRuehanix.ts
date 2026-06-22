@@ -69,6 +69,7 @@ export function useRuehanix() {
   stRef.current = st;
   const dragRef = useRef<Drag>(null);
   const prefersLightRef = useRef(false);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // --- 테마 적용 ---
   const applyTheme = useCallback((s: CoreState) => {
@@ -165,11 +166,10 @@ export function useRuehanix() {
     }
 
     // 첫 방문 힌트: 본 적 없으면 표시하고, 9초 뒤 자동으로 본 것으로 처리한다.
-    let hintTimer: ReturnType<typeof setTimeout> | undefined;
     try {
       if (!window.localStorage.getItem(HINT_STORAGE_KEY)) {
         setHintSeen(false);
-        hintTimer = setTimeout(() => {
+        hintTimerRef.current = setTimeout(() => {
           setHintSeen(true);
           try {
             window.localStorage.setItem(HINT_STORAGE_KEY, "1");
@@ -201,7 +201,7 @@ export function useRuehanix() {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", onResize);
       if (mq && mqh) mq.removeEventListener("change", mqh);
-      if (hintTimer) clearTimeout(hintTimer);
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       clearInterval(bt);
       clearInterval(clockT);
     };
@@ -253,6 +253,10 @@ export function useRuehanix() {
   );
   const reboot = useCallback(() => runBoot(), [runBoot]);
   const markHintSeen = useCallback(() => {
+    if (hintTimerRef.current) {
+      clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = undefined;
+    }
     setHintSeen(true);
     try {
       window.localStorage.setItem(HINT_STORAGE_KEY, "1");

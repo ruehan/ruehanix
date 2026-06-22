@@ -17,6 +17,11 @@ function toIso(displayDate: string): string {
   return displayDate.replaceAll(".", "-") + "T00:00:00.000Z";
 }
 
+/** 셸(id 기반 POSTS)에서 글 라우트로 연결할 때 쓰는 id→슬러그 조회. */
+export function slugForId(id: string): string {
+  return SLUGS[id] ?? id;
+}
+
 const ALL: BlogPost[] = POSTS.map((p) => ({
   slug: SLUGS[p.id] ?? p.id,
   title: p.title,

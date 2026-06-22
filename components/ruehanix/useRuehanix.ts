@@ -77,8 +77,8 @@ export function useRuehanix() {
   }, []);
 
   useEffect(() => {
-    applyTheme(st);
-  }, [st.ui.mode, st.ui.accent, applyTheme, st]);
+    applyTheme(stRef.current);
+  }, [st.ui.mode, st.ui.accent, applyTheme]);
 
   // --- 부팅 ---
   const runBoot = useCallback(() => {

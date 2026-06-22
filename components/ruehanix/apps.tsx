@@ -2,7 +2,6 @@ import type { CSSProperties } from "react";
 import { ART_TERM, Folder } from "./icons";
 import type { Vm } from "./viewModel";
 
-const sans = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif";
 const mono = "'JetBrains Mono',monospace";
 
 export function FilesApp({ vm }: { vm: Vm }) {

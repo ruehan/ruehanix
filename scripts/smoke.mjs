@@ -78,8 +78,24 @@ try {
   await page.waitForFunction(() => document.documentElement.classList.contains("rh-light"), { timeout: 3000 });
   ok("Light 테마 전환", true);
 
-  // 7. 데스크톱 독 — 항상 보이는 하단 독으로 앱을 연다
+  // 7. 데스크톱 독 — 항상 보이는 하단 독으로 앱을 연다 + 호버 시 이름 라벨
   ok("데스크톱 독 표시", await page.getByTestId("desktop-dock").isVisible());
+  await page.getByTestId("ddock-terminal").hover();
+  let labelShown = false;
+  try {
+    // opacity transition(.12s)이 끝나 라벨이 완전히 드러날 때까지 기다린다.
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector('[data-testid="ddock-terminal"] .rh-dock-label');
+        return el && getComputedStyle(el).opacity === "1";
+      },
+      { timeout: 2000 },
+    );
+    labelShown = true;
+  } catch {
+    /* 라벨이 끝내 안 뜸 */
+  }
+  ok("독 호버 이름 라벨", labelShown);
   await page.getByTestId("ddock-web").click();
   await page.getByText("https://ruehan.dev").first().waitFor({ timeout: 3000 });
   ok("데스크톱 독 앱 오픈", true);

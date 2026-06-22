@@ -2,6 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { APP_META } from "@/lib/ruehanix/data";
+import { MOBILE_DOCK, MOBILE_TOPBAR } from "@/lib/ruehanix/responsive";
 import type { AppKey } from "@/lib/ruehanix/types";
 import { useRuehanix } from "./useRuehanix";
 import { buildVm, type Vm } from "./viewModel";
@@ -49,6 +50,53 @@ function BarChip({ bg, color, children }: { bg: string; color: string; children:
   );
 }
 
+function MobileTopbar({ vm }: { vm: Vm }) {
+  return (
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: MOBILE_TOPBAR, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px", background: "color-mix(in srgb, var(--mantle) 90%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid var(--surf0)", fontSize: 12.5 }}>
+      <div onClick={vm.homeClick} style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--accent)", cursor: "pointer", fontWeight: 700 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="5" />
+          <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
+          <circle cx="9" cy="7.5" r="0.6" fill="currentColor" />
+          <circle cx="15" cy="7.5" r="0.6" fill="currentColor" />
+        </svg>
+        ruehanix
+      </div>
+      <span style={{ color: "var(--sub1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "45%" }}>{vm.focusTitle}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--sub0)" }}>
+        <span>{vm.mod.batt}</span>
+        <span style={{ padding: "2px 9px", borderRadius: 6, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", fontWeight: 700 }}>{vm.mod.clock}</span>
+      </div>
+    </div>
+  );
+}
+
+function MobileDock({ vm }: { vm: Vm }) {
+  return (
+    <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: MOBILE_DOCK, zIndex: 500, display: "flex", alignItems: "center", gap: 6, padding: "0 10px", overflowX: "auto", background: "color-mix(in srgb, var(--mantle) 90%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: "1px solid var(--surf0)" }}>
+      {vm.dock.map((d) => (
+        <div key={d.key} data-testid={"dock-" + d.key} onClick={d.onClick} style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, width: 56, padding: "6px 0", borderRadius: 10, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 16%, transparent)" : "transparent" }}>
+          <LineIcon app={d.key} size={22} />
+          <span style={{ fontSize: 9.5, color: d.active ? "var(--text)" : "var(--ov0)", maxWidth: 52, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MobileHome() {
+  return (
+    <div style={{ position: "absolute", left: 0, right: 0, top: MOBILE_TOPBAR, bottom: MOBILE_DOCK, zIndex: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24, pointerEvents: "none" }}>
+      <div style={{ width: 84, height: 84, borderRadius: 22, background: "linear-gradient(135deg,#cba6f7,#89b4fa)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-accent)", fontWeight: 800, fontSize: 34, boxShadow: "0 12px 36px rgba(203,166,247,.35)" }}>한</div>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text)", letterSpacing: "-.02em" }}>ruehanix</div>
+        <div style={{ fontSize: 12.5, color: "var(--sub0)", marginTop: 4 }}>한규 · full-stack dev</div>
+        <div style={{ fontSize: 11.5, color: "var(--ov0)", marginTop: 2 }}>아래 독에서 앱을 열어보세요</div>
+      </div>
+    </div>
+  );
+}
+
 export function RuehanixShell() {
   const api = useRuehanix();
   const vm = buildVm(api);
@@ -59,7 +107,9 @@ export function RuehanixShell() {
       <div style={{ position: "absolute", inset: 0, background: vm.wallpaper }} />
       <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(205,214,244,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(205,214,244,.025) 1px,transparent 1px)", backgroundSize: "42px 42px", pointerEvents: "none" }} />
 
-      {/* DESKTOP WIDGETS */}
+      {/* DESKTOP WIDGETS (데스크톱 전용) */}
+      {!vm.isMobile && (
+        <>
       <div style={{ position: "absolute", left: 46, top: 90, zIndex: 30, display: "flex", gap: 22, alignItems: "flex-start", textShadow: "0 1px 8px rgba(0,0,0,.4)" }}>
         <pre style={{ margin: 0, color: "#cba6f7", fontSize: 13, lineHeight: 1.3 }}>{ART_DESK}</pre>
         <div style={{ fontSize: 13, lineHeight: 1.65, color: "var(--sub0)" }}>
@@ -103,8 +153,12 @@ export function RuehanixShell() {
         <div><span style={{ color: "#cba6f7" }}>Super</span> + <span style={{ color: "#89b4fa" }}>1-6</span>  워크스페이스</div>
         <div><span style={{ color: "#cba6f7" }}>Super</span> + <span style={{ color: "#89b4fa" }}>/</span>  단축키 전체보기</div>
       </div>
+        </>
+      )}
 
-      {/* WAYBAR */}
+      {/* WAYBAR (데스크톱) / MOBILE TOPBAR */}
+      {vm.isMobile && <MobileTopbar vm={vm} />}
+      {!vm.isMobile && (
       <div style={{ position: "absolute", top: 8, left: 8, right: 8, height: 34, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px", borderRadius: 11, background: "color-mix(in srgb, var(--mantle) 86%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", fontSize: 12.5 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <div data-testid="launcher" onClick={vm.toggleLauncher} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", cursor: "pointer", fontWeight: 700 }}>
@@ -155,6 +209,11 @@ export function RuehanixShell() {
           </div>
         </div>
       </div>
+      )}
+
+      {/* MOBILE HOME / DOCK */}
+      {vm.mobileHome && <MobileHome />}
+      {vm.isMobile && <MobileDock vm={vm} />}
 
       {/* WINDOWS */}
       <div style={{ position: "absolute", inset: 0, zIndex: 100 }}>
@@ -172,7 +231,7 @@ export function RuehanixShell() {
       </div>
 
       {/* LAUNCHER */}
-      {vm.showLauncher && (
+      {!vm.isMobile && vm.showLauncher && (
         <div onClick={vm.toggleLauncher} style={{ position: "absolute", inset: 0, zIndex: 9000, background: "rgba(17,17,27,.55)", backdropFilter: "blur(3px)", display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 118 }}>
           <div onClick={vm.stop} style={{ width: 420, background: "color-mix(in srgb, var(--mantle) 97%, transparent)", border: "1px solid var(--surf1)", borderRadius: 14, overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,.55)", animation: "rh-fadeup .16s ease" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "13px 16px", borderBottom: "1px solid var(--surf0)", color: "var(--ov0)" }}>
@@ -196,7 +255,7 @@ export function RuehanixShell() {
       )}
 
       {/* KEYBIND OVERLAY */}
-      {vm.showKeys && (
+      {!vm.isMobile && vm.showKeys && (
         <div onClick={vm.toggleKeys} style={{ position: "absolute", inset: 0, zIndex: 9100, background: "rgba(17,17,27,.62)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div onClick={vm.stop} style={{ width: 560, background: "color-mix(in srgb, var(--mantle) 98%, transparent)", border: "1px solid var(--surf1)", borderRadius: 16, padding: "26px 30px", boxShadow: "0 30px 80px rgba(0,0,0,.55)", animation: "rh-fadeup .16s ease" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>

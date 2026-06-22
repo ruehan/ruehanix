@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useSyncExternalStore } from "react";
 import {
   ACCENT_PALETTE,
   APP_KEYS,
@@ -58,40 +58,131 @@ const INITIAL: CoreState = {
   ui: { mode: "dark", accent: "#cba6f7", gap: 10, rounded: true, glow: true, transp: false },
 };
 
+// --- 외부 스토어: 뷰포트 크기 (resize 구독) ---
+const VP_SERVER = { W: 1280, H: 800 };
+let vpCache = { W: 1280, H: 800 };
+function subscribeViewport(cb: () => void) {
+  window.addEventListener("resize", cb);
+  return () => window.removeEventListener("resize", cb);
+}
+function getViewport() {
+  if (vpCache.W !== window.innerWidth || vpCache.H !== window.innerHeight) {
+    vpCache = { W: window.innerWidth, H: window.innerHeight };
+  }
+  return vpCache;
+}
+
+// --- 외부 스토어: OS 라이트 선호 (matchMedia 구독) ---
+function subscribePrefersLight(cb: () => void) {
+  const mq = window.matchMedia("(prefers-color-scheme: light)");
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+function getPrefersLight() {
+  return typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+}
+
+// --- 외부 스토어: 시계/리소스 (1.4초 틱) ---
+const SYS_SERVER = { clock: "00:00", cpu: 14, ram: 47 };
+let sysCache = { clock: "00:00", cpu: 14, ram: 47 };
+function subscribeSys(cb: () => void) {
+  const t = setInterval(() => {
+    sysCache = {
+      clock: fmtClock(),
+      cpu: 8 + Math.floor(Math.random() * 26),
+      ram: 44 + Math.floor(Math.random() * 12),
+    };
+    cb();
+  }, 1400);
+  return () => clearInterval(t);
+}
+function getSys() {
+  return sysCache;
+}
+
 export function useRuehanix() {
   const [st, setSt] = useState<CoreState>(INITIAL);
-  const [vp, setVp] = useState({ W: 1280, H: 800 });
-  const [sys, setSys] = useState({ clock: "00:00", cpu: 14, ram: 47 });
   const [launcherQuery, setLauncherQuery] = useState("");
 
-  const stRef = useRef(st);
-  stRef.current = st;
+  const vp = useSyncExternalStore(subscribeViewport, getViewport, () => VP_SERVER);
+  const prefersLight = useSyncExternalStore(subscribePrefersLight, getPrefersLight, () => false);
+  const sys = useSyncExternalStore(subscribeSys, getSys, () => SYS_SERVER);
+
   const dragRef = useRef<Drag>(null);
-  const prefersLightRef = useRef(false);
+  const bootTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
-  // --- 테마 적용 ---
-  const applyTheme = useCallback((s: CoreState) => {
-    const light = effMode(s.ui.mode, prefersLightRef.current) === "light";
-    document.documentElement.classList.toggle("rh-light", light);
-    document.documentElement.style.setProperty(
-      "--accent",
-      accentEff(s.ui.mode, s.ui.accent, prefersLightRef.current),
-    );
-  }, []);
+  // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
+  const toggleLauncher = () => {
+    setLauncherQuery("");
+    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false }));
+  };
+  const toggleKeys = () => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false }));
+  const gotoWs = (n: number) =>
+    setSt((s) => {
+      const ids = s.order.filter((k) => s.open[k] && s.open[k]!.ws === n);
+      return { ...s, ws: n, focused: ids[0] || null, showLauncher: false };
+    });
+  const openApp = (k: AppKey) => {
+    setLauncherQuery("");
+    setSt((s) => {
+      const open = { ...s.open };
+      let order = s.order;
+      open[k] = { ws: s.ws };
+      if (!order.includes(k)) order = [...order, k];
+      return { ...s, open, order, focused: k, showLauncher: false };
+    });
+  };
+  const close = (k: AppKey) =>
+    setSt((s) => {
+      const open = { ...s.open };
+      delete open[k];
+      const ids = s.order.filter((x) => open[x] && open[x]!.ws === s.ws);
+      return { ...s, open, focused: s.focused === k ? ids[ids.length - 1] || null : s.focused };
+    });
+  const focusApp = (k: AppKey) => setSt((s) => ({ ...s, focused: k }));
+  const openPost = (id: string) =>
+    setSt((s) => {
+      const open = { ...s.open, reader: { ws: s.ws } };
+      const order = s.order.includes("reader") ? s.order : [...s.order, "reader" as AppKey];
+      return { ...s, open, order, selected: id, focused: "reader" };
+    });
+  const setReaderSel = (id: string) => setSt((s) => ({ ...s, selected: id }));
+  const setFinderCat = (c: "all" | CatKey) => setSt((s) => ({ ...s, finderCat: c }));
+  const setMode = (mode: ThemeMode) => setSt((s) => ({ ...s, ui: { ...s.ui, mode } }));
+  const setAccent = (accent: string) => setSt((s) => ({ ...s, ui: { ...s.ui, accent } }));
+  const toggleUi = (key: "transp" | "rounded" | "glow") => setSt((s) => ({ ...s, ui: { ...s.ui, [key]: !s.ui[key] } }));
+  const setGap = (gap: number) => setSt((s) => ({ ...s, ui: { ...s.ui, gap } }));
+  const setRatio = (key: string, r: number) => setSt((s) => ({ ...s, ratios: { ...s.ratios, [key]: r } }));
 
-  useEffect(() => {
-    applyTheme(stRef.current);
-  }, [st.ui.mode, st.ui.accent, applyTheme]);
+  const startSlider = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    dragRef.current = { type: "slider", left: rect.left, width: rect.width };
+    let pct = (e.clientX - rect.left) / rect.width;
+    pct = Math.max(0, Math.min(1, pct));
+    setGap(Math.round(pct * 28));
+  };
+  const startGutter = (g: { key: string; dir: "v" | "h"; total: number }, e: React.MouseEvent) => {
+    e.preventDefault();
+    dragRef.current = {
+      type: "gutter",
+      key: g.key,
+      dir: g.dir,
+      total: g.total,
+      sx: e.clientX,
+      sy: e.clientY,
+      start: st.ratios[g.key] ?? 0.5,
+    };
+  };
 
-  // --- 부팅 ---
-  const runBoot = useCallback(() => {
-    setSt((s) => ({ ...s, booting: true, bootN: 0 }));
+  const startBootTimer = () => {
+    clearInterval(bootTimerRef.current);
     let n = 0;
-    const bt = setInterval(() => {
+    bootTimerRef.current = setInterval(() => {
       n++;
       setSt((s) => ({ ...s, bootN: Math.min(n, BOOT_SEQ.length) }));
       if (n >= BOOT_SEQ.length) {
-        clearInterval(bt);
+        clearInterval(bootTimerRef.current);
         setTimeout(() => {
           setSt((s) => ({ ...s, booting: false }));
           try {
@@ -102,80 +193,77 @@ export function useRuehanix() {
         }, 700);
       }
     }, 200);
-    return bt;
-  }, []);
+  };
+  const reboot = () => {
+    setSt((s) => ({ ...s, booting: true, bootN: 0 }));
+    startBootTimer();
+  };
 
-  // --- 마운트: 리스너 / 인터벌 / 부팅 ---
+  // 키보드 단축키 — useEffectEvent로 최신 상태/핸들러를 읽되 effect 재실행은 막는다.
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    if (st.booting) return;
+    if (isMobileWidth(window.innerWidth)) return; // 모바일엔 워크스페이스/런처 개념 없음
+    const k = e.key;
+    if (e.metaKey || e.altKey) {
+      if (k === "d" || k === "D") {
+        e.preventDefault();
+        toggleLauncher();
+      }
+      if (k === "/") {
+        e.preventDefault();
+        toggleKeys();
+      }
+      if (k >= "1" && k <= "6") {
+        e.preventDefault();
+        gotoWs(+k);
+      }
+      if ((k === "q" || k === "Q") && st.focused) close(st.focused);
+    }
+    if (k === "Escape") {
+      setLauncherQuery("");
+      setSt((p) => ({ ...p, showLauncher: false, showKeys: false }));
+    }
+  });
+
+  // --- 테마 적용 (DOM 쓰기, setState 아님) ---
   useEffect(() => {
-    setVp({ W: window.innerWidth, H: window.innerHeight });
-    const onResize = () => setVp({ W: window.innerWidth, H: window.innerHeight });
+    const light = effMode(st.ui.mode, prefersLight) === "light";
+    document.documentElement.classList.toggle("rh-light", light);
+    document.documentElement.style.setProperty("--accent", accentEff(st.ui.mode, st.ui.accent, prefersLight));
+  }, [st.ui.mode, st.ui.accent, prefersLight]);
 
+  // --- 마우스 드래그 / 키보드 리스너 (마운트 1회) ---
+  useEffect(() => {
     const onMove = (e: MouseEvent) => {
       const d = dragRef.current;
       if (!d) return;
       if (d.type === "slider") {
         let pct = (e.clientX - d.left) / d.width;
         pct = Math.max(0, Math.min(1, pct));
-        setSt((s) => ({ ...s, ui: { ...s.ui, gap: Math.round(pct * 28) } }));
+        setGap(Math.round(pct * 28));
         return;
       }
       const delta = d.dir === "v" ? e.clientX - d.sx : e.clientY - d.sy;
       let r = d.start + delta / d.total;
       r = Math.max(0.18, Math.min(0.82, r));
-      setSt((s) => ({ ...s, ratios: { ...s.ratios, [d.key]: r } }));
+      setRatio(d.key, r);
     };
     const onUp = () => {
       dragRef.current = null;
     };
-    const onKey = (e: KeyboardEvent) => {
-      const s = stRef.current;
-      if (s.booting) return;
-      // 모바일 모드에는 워크스페이스·런처 개념이 없으므로 Super 단축키를 무시한다.
-      if (isMobileWidth(window.innerWidth)) return;
-      const k = e.key;
-      if (e.metaKey || e.altKey) {
-        if (k === "d" || k === "D") {
-          e.preventDefault();
-          toggleLauncher();
-        }
-        if (k === "/") {
-          e.preventDefault();
-          toggleKeys();
-        }
-        if (k >= "1" && k <= "6") {
-          e.preventDefault();
-          gotoWs(+k);
-        }
-        if (k === "q" || k === "Q") {
-          if (s.focused) close(s.focused);
-        }
-      }
-      if (k === "Escape") {
-        setLauncherQuery("");
-        setSt((p) => ({ ...p, showLauncher: false, showKeys: false }));
-      }
-    };
-
+    const onKeyDown = (e: KeyboardEvent) => onKey(e);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
-    window.addEventListener("keydown", onKey);
-    window.addEventListener("resize", onResize);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
 
-    let mq: MediaQueryList | undefined;
-    let mqh: ((e: MediaQueryListEvent) => void) | undefined;
-    if (window.matchMedia) {
-      mq = window.matchMedia("(prefers-color-scheme: light)");
-      prefersLightRef.current = mq.matches;
-      mqh = (e) => {
-        prefersLightRef.current = e.matches;
-        if (stRef.current.ui.mode === "auto") applyTheme(stRef.current);
-      };
-      mq.addEventListener("change", mqh);
-    }
-
-    applyTheme(stRef.current);
-    setSys((p) => ({ ...p, clock: fmtClock() }));
-    // 부팅 애니메이션은 세션당 1회 + 모션 최소화 선호 시 건너뛴다.
+  // --- 부팅 (마운트 1회): 세션 1회 + reduced-motion이면 스킵 ---
+  useEffect(() => {
     let booted = false;
     try {
       booted = !!window.sessionStorage.getItem(BOOT_SESSION_KEY);
@@ -183,112 +271,21 @@ export function useRuehanix() {
       /* 무시 */
     }
     const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    let bt: ReturnType<typeof setInterval> | undefined;
-    if (shouldPlayBoot(booted, reduced)) {
-      bt = runBoot();
-    } else {
+    if (!shouldPlayBoot(booted, reduced)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 마운트 1회: 브라우저 전용 상태(세션·모션 선호)로만 결정 가능. 렌더/SSR 단계에서 불가.
       setSt((s) => ({ ...s, booting: false }));
+      return;
     }
-    const clockT = setInterval(
-      () =>
-        setSys({
-          clock: fmtClock(),
-          cpu: 8 + Math.floor(Math.random() * 26),
-          ram: 44 + Math.floor(Math.random() * 12),
-        }),
-      1400,
-    );
-
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-      window.removeEventListener("keydown", onKey);
-      window.removeEventListener("resize", onResize);
-      if (mq && mqh) mq.removeEventListener("change", mqh);
-      clearInterval(bt);
-      clearInterval(clockT);
-    };
-    // 마운트 시 1회만 — 핸들러는 ref/함수형 업데이트로 최신 상태를 읽는다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    startBootTimer();
+    return () => clearInterval(bootTimerRef.current);
   }, []);
-
-  // --- 핸들러 ---
-  const toggleLauncher = useCallback(() => {
-    setLauncherQuery("");
-    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false }));
-  }, []);
-  const toggleKeys = useCallback(() => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false })), []);
-  const gotoWs = useCallback((n: number) => {
-    setSt((s) => {
-      const ids = s.order.filter((k) => s.open[k] && s.open[k]!.ws === n);
-      return { ...s, ws: n, focused: ids[0] || null, showLauncher: false };
-    });
-  }, []);
-  const openApp = useCallback((k: AppKey) => {
-    setSt((s) => {
-      const open = { ...s.open };
-      let order = s.order;
-      open[k] = { ws: s.ws };
-      if (!order.includes(k)) order = [...order, k];
-      return { ...s, open, order, focused: k, showLauncher: false };
-    });
-    setLauncherQuery("");
-  }, []);
-  const close = useCallback((k: AppKey) => {
-    setSt((s) => {
-      const open = { ...s.open };
-      delete open[k];
-      const ids = s.order.filter((x) => open[x] && open[x]!.ws === s.ws);
-      return { ...s, open, focused: s.focused === k ? ids[ids.length - 1] || null : s.focused };
-    });
-  }, []);
-  const focusApp = useCallback((k: AppKey) => setSt((s) => ({ ...s, focused: k })), []);
-  const openPost = useCallback((id: string) => {
-    setSt((s) => {
-      const open = { ...s.open, reader: { ws: s.ws } };
-      const order = s.order.includes("reader") ? s.order : [...s.order, "reader" as AppKey];
-      return { ...s, open, order, selected: id, focused: "reader" };
-    });
-  }, []);
-  const setReaderSel = useCallback((id: string) => setSt((s) => ({ ...s, selected: id })), []);
-  const setFinderCat = useCallback((c: "all" | CatKey) => setSt((s) => ({ ...s, finderCat: c })), []);
-  const setMode = useCallback((mode: ThemeMode) => setSt((s) => ({ ...s, ui: { ...s.ui, mode } })), []);
-  const setAccent = useCallback((accent: string) => setSt((s) => ({ ...s, ui: { ...s.ui, accent } })), []);
-  const toggleUi = useCallback(
-    (key: "transp" | "rounded" | "glow") => setSt((s) => ({ ...s, ui: { ...s.ui, [key]: !s.ui[key] } })),
-    [],
-  );
-  const reboot = useCallback(() => runBoot(), [runBoot]);
-  const startSlider = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    dragRef.current = { type: "slider", left: rect.left, width: rect.width };
-    let pct = (e.clientX - rect.left) / rect.width;
-    pct = Math.max(0, Math.min(1, pct));
-    setSt((s) => ({ ...s, ui: { ...s.ui, gap: Math.round(pct * 28) } }));
-  }, []);
-  const startGutter = useCallback(
-    (g: { key: string; dir: "v" | "h"; total: number }, e: React.MouseEvent) => {
-      e.preventDefault();
-      dragRef.current = {
-        type: "gutter",
-        key: g.key,
-        dir: g.dir,
-        total: g.total,
-        sx: e.clientX,
-        sy: e.clientY,
-        start: stRef.current.ratios[g.key] ?? 0.5,
-      };
-    },
-    [],
-  );
 
   return {
     st,
     sys,
     vp,
     launcherQuery,
-    prefersLight: prefersLightRef.current,
+    prefersLight,
     handlers: {
       setLauncherQuery,
       toggleLauncher,

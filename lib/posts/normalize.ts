@@ -15,6 +15,23 @@ export function formatDate(iso: string | undefined): string {
   return `${y}.${m}.${day}`;
 }
 
+interface PtBlock {
+  _type?: string;
+  children?: { text?: string }[];
+}
+
+/** Portable Text 블록 배열 → 문단 텍스트 배열. block이 아닌 항목·빈 문단은 건너뛴다. */
+export function portableTextToParagraphs(blocks: unknown[] | undefined): string[] {
+  if (!Array.isArray(blocks)) return [];
+  const out: string[] = [];
+  for (const b of blocks as PtBlock[]) {
+    if (!b || b._type !== "block" || !Array.isArray(b.children)) continue;
+    const text = b.children.map((c) => c?.text ?? "").join("").trim();
+    if (text) out.push(text);
+  }
+  return out;
+}
+
 /** Sanity 문서 → BlogPost. 누락 필드는 안전한 기본값으로 채운다. */
 export function normalizePost(doc: SanityPostDoc): BlogPost {
   const category = (CATS as string[]).includes(doc.category ?? "") ? (doc.category as CatKey) : "dev";
@@ -26,6 +43,6 @@ export function normalizePost(doc: SanityPostDoc): BlogPost {
     date: formatDate(doc.publishedAt),
     excerpt: doc.excerpt ?? "",
     readingTime: doc.readingTime ?? "",
-    body: Array.isArray(doc.body) ? doc.body : [],
+    body: portableTextToParagraphs(doc.body),
   };
 }

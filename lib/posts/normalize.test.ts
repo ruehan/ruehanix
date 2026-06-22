@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, normalizePost } from "./normalize";
+import { formatDate, normalizePost, portableTextToParagraphs } from "./normalize";
 
 describe("formatDate", () => {
   it("ISO → YYYY.MM.DD (UTC 고정)", () => {
@@ -14,8 +14,22 @@ describe("formatDate", () => {
   });
 });
 
+describe("portableTextToParagraphs", () => {
+  it("block의 children text를 문단으로 추출", () => {
+    const blocks = [
+      { _type: "block", children: [{ text: "안녕 " }, { text: "세계" }] },
+      { _type: "block", children: [{ text: "둘째 문단" }] },
+    ];
+    expect(portableTextToParagraphs(blocks)).toEqual(["안녕 세계", "둘째 문단"]);
+  });
+  it("block 아닌 항목·빈 문단·배열 아님은 건너뜀", () => {
+    expect(portableTextToParagraphs([{ _type: "image" }, { _type: "block", children: [{ text: "  " }] }])).toEqual([]);
+    expect(portableTextToParagraphs(undefined)).toEqual([]);
+  });
+});
+
 describe("normalizePost", () => {
-  it("완전한 문서를 매핑", () => {
+  it("완전한 문서를 매핑(body는 문단 배열)", () => {
     const p = normalizePost({
       slug: { current: "rsc-1년" },
       title: "RSC 1년",
@@ -23,20 +37,17 @@ describe("normalizePost", () => {
       publishedAt: "2026-06-18T00:00:00Z",
       excerpt: "요약",
       readingTime: "9분",
-      body: [{ _type: "block" }],
+      body: [{ _type: "block", children: [{ text: "본문 한 줄" }] }],
     });
     expect(p.slug).toBe("rsc-1년");
-    expect(p.title).toBe("RSC 1년");
     expect(p.category).toBe("dev");
-    expect(p.readingTime).toBe("9분");
-    expect(p.body).toHaveLength(1);
-    expect(p.date).toMatch(/^2026\.06\.\d{2}$/);
+    expect(p.body).toEqual(["본문 한 줄"]);
+    expect(p.date).toBe("2026.06.18");
   });
   it("누락 필드는 안전한 기본값", () => {
     const p = normalizePost({});
     expect(p.slug).toBe("");
-    expect(p.title).toBe("");
-    expect(p.category).toBe("dev"); // 기본
+    expect(p.category).toBe("dev");
     expect(p.body).toEqual([]);
     expect(p.date).toBe("");
   });

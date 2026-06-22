@@ -17,16 +17,6 @@ export interface AppMeta {
   hint: string;
 }
 
-export interface Post {
-  id: string;
-  cat: CatKey;
-  title: string;
-  date: string;
-  read: string;
-  excerpt: string;
-  body: string[];
-}
-
 export interface Photo {
   t: string;
   c1: string;

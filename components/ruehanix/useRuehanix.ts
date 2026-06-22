@@ -9,7 +9,6 @@ import {
   CATS,
   LAPS,
   PHOTOS,
-  POSTS,
   THEME_MODES,
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
@@ -17,6 +16,7 @@ import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import type { AppKey, CatKey, ThemeMode, UiState } from "@/lib/ruehanix/types";
+import type { BlogPost } from "@/lib/posts/types";
 
 interface CoreState {
   booting: boolean;
@@ -48,7 +48,7 @@ const INITIAL: CoreState = {
   bootN: 0,
   ws: 1,
   focused: null,
-  selected: "p1",
+  selected: "",
   finderCat: "all",
   showLauncher: false,
   showKeys: false,
@@ -103,8 +103,8 @@ function getSys() {
   return sysCache;
 }
 
-export function useRuehanix() {
-  const [st, setSt] = useState<CoreState>(INITIAL);
+export function useRuehanix(posts: BlogPost[]) {
+  const [st, setSt] = useState<CoreState>(() => ({ ...INITIAL, selected: posts[0]?.slug ?? "" }));
   const [launcherQuery, setLauncherQuery] = useState("");
 
   const vp = useSyncExternalStore(subscribeViewport, getViewport, () => VP_SERVER);
@@ -287,6 +287,7 @@ export function useRuehanix() {
     st,
     sys,
     vp,
+    posts,
     launcherQuery,
     prefersLight,
     handlers: {
@@ -309,7 +310,7 @@ export function useRuehanix() {
     },
     // 파생 헬퍼 — 뷰모델 빌더가 사용
     derive: { area, computeLayout, accentEff, catColors, effMode, hexA, wallpaper },
-    data: { APP_KEYS, APP_META, CATS, POSTS, PHOTOS, LAPS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
+    data: { APP_KEYS, APP_META, CATS, PHOTOS, LAPS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
   };
 }
 

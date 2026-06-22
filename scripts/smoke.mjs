@@ -64,7 +64,7 @@ try {
   ok("waybar 런처 버튼", await page.getByTestId("launcher").isVisible());
 
   await page.getByTestId("ws-2").click();
-  await page.getByText("React 서버 컴포넌트", { exact: false }).first().waitFor({ timeout: 4000 });
+  await page.getByText("~/blog").first().waitFor({ timeout: 4000 }); // Files 사이드바(글 유무 무관)
   ok("ws2 타일링", true);
 
   await page.getByTestId("launcher").click();
@@ -141,13 +141,13 @@ try {
   });
   ok("재로드 후 시계 즉시 시드(00:00 아님)", clockText !== "" && clockText !== "00:00");
 
-  // 11. 글 라우트(/posts/[slug]) + sitemap
-  await page.goto(`${BASE}/posts/iracing-nordschleife-sub-7`);
-  await page.getByRole("heading", { name: /뉘르부르크링/ }).waitFor({ timeout: 3000 });
-  ok("글 라우트 렌더", true);
+  // 11. 글 목록 라우트(/posts) + sitemap (글 유무 무관)
+  await page.goto(`${BASE}/posts`);
+  await page.getByRole("heading", { name: "모든 글" }).waitFor({ timeout: 3000 });
+  ok("글 목록 라우트 렌더", true);
   const sm = await page.goto(`${BASE}/sitemap.xml`);
   const smText = (await sm.text()) || "";
-  ok("sitemap 글 슬러그 포함", smText.includes("/posts/iracing-nordschleife-sub-7"));
+  ok("sitemap 정적 경로 포함", smText.includes("/posts"));
 
   ok("콘솔 앱 에러 0", appErrors.length === 0);
   if (appErrors.length) console.error("앱 에러:", appErrors);

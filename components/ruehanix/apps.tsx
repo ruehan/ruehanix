@@ -96,7 +96,7 @@ export function ReaderApp({ vm }: { vm: Vm }) {
         {!p ? (
           <EmptyPosts />
         ) : (
-          <div className="rh-sans" style={{ maxWidth: 580, margin: "0 auto", padding: "46px 50px 64px" }}>
+          <div className="rh-sans" style={{ maxWidth: 760, margin: "0 auto", padding: "46px 56px 64px" }}>
             <div style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, marginBottom: 18, fontFamily: mono, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: p.catColor }}>#{p.catLabel}</div>
             <h1 style={{ margin: "0 0 14px", fontSize: 27, lineHeight: 1.28, fontWeight: 800, letterSpacing: "-.02em", color: "var(--text)", textWrap: "balance" }}>{p.title}</h1>
             <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: "var(--ov0)", fontFamily: mono, paddingBottom: 24, marginBottom: 28, borderBottom: "1px solid var(--surf0)" }}>

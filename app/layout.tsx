@@ -1,9 +1,36 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ruehan.dev";
+const TITLE = "ruehanix — 한규 / ruehan";
+const DESCRIPTION = "한규(ruehan)의 기술 블로그/포트폴리오 — Hyprland 스타일 데스크톱 셸. 서버 컴포넌트와 모노레포, 그리고 트랙 위의 0.1초에 대한 기록.";
+
 export const metadata: Metadata = {
-  title: "ruehanix — 한규 / ruehan",
-  description: "한규(ruehan)의 기술 블로그/포트폴리오 — Hyprland 스타일 데스크톱 셸",
+  metadataBase: new URL(SITE_URL),
+  title: { default: TITLE, template: "%s · ruehanix" },
+  description: DESCRIPTION,
+  applicationName: "ruehanix",
+  authors: [{ name: "한규", url: SITE_URL }],
+  creator: "한규",
+  keywords: ["ruehan", "ruehanix", "기술 블로그", "full-stack", "Next.js", "sim racing", "Hyprland"],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "ruehanix",
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
+    locale: "ko_KR",
+  },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#11111b" },
+    { media: "(prefers-color-scheme: light)", color: "#dce0e8" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,18 @@
 # 작업 로그
 
+## 2026-06-22 — 반응형 / 모바일 모드
+- 브랜치: feat/responsive-mobile
+- 한 일: RueHanix에 768px 경계 반응형 추가. <768px에서 폰 OS 메타포(포커스 앱 풀스크린 +
+  하단 독 8앱 전환 + 상단바 간소화 + 홈 아바타 카드)로 전환, 데스크톱 위젯·런처·키바인드·
+  드래그 거터·Super 단축키 비활성. ≥768px 타일링 WM은 무변경. 순수 로직(isMobileWidth·
+  mobileAppRect)을 lib로 분리해 vitest 테스트.
+- 검증: verify.sh 통과(typecheck·lint 무경고·vitest 21/21), build 4/4(/ 17.5kB),
+  smoke 8/8(모바일 독 전환 시나리오 포함). Playwright 시각 확인(390x844) 정상.
+- 리뷰: 통과 1라운드(P3 보완: 기록·모바일 키보드 가드·음수높이 방어) — 상세: docs/reviews/2026-06-22-반응형-모바일.md
+- 가정: 단일 경계 768px, 폭 기준 판정(포인터 무관) — 사용자 선택, ADR 0003 기록.
+- 백로그: 모바일 스와이프 제스처, safe-area-inset, 독 길게 눌러 닫기.
+- 관련 결정: docs/decisions/0003-responsive-mobile-strategy.md
+
 ## 2026-06-22 — RueHanix Next.js 변환
 - 브랜치: feat/nextjs-conversion
 - 한 일: 단일 `index.html`(React CDN, ADR 0001)을 Next.js 15 App Router + TypeScript로 변환.

@@ -1,0 +1,12 @@
+{
+  "name": "ruehanix",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ruehanix 데스크톱 셸 — 한규(ruehan)의 기술 블로그/포트폴리오 (HTML-first 프로토타입)",
+  "scripts": {
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.0"
+  }
+}

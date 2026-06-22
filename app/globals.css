@@ -24,3 +24,8 @@ body {
 .rh-launch-item:hover { background: var(--surf0); }
 .rh-webcard { transition: border-color .15s, transform .15s; }
 .rh-webcard:hover { border-color: #cba6f7 !important; transform: translateY(-2px); }
+.rh-launcher-btn { transition: background .15s, filter .15s; }
+.rh-launcher-btn:hover { filter: brightness(1.15); background: color-mix(in srgb, var(--accent) 30%, transparent) !important; }
+.rh-dock-item { transition: background .15s, transform .12s; }
+.rh-dock-item:hover { background: var(--surf0) !important; transform: translateY(-3px); }
+@keyframes rh-pulse { 0% { transform: scale(.85); opacity: .9; } 100% { transform: scale(1.5); opacity: 0; } }

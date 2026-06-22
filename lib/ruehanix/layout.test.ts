@@ -15,6 +15,12 @@ describe("area", () => {
   it("갭이 작으면 최소 마진 6 적용", () => {
     expect(area(VP, 0).x).toBe(6);
   });
+  it("bottomReserve만큼 하단 영역을 줄인다(독 자리 확보)", () => {
+    const base = area(VP, 10);
+    const reserved = area(VP, 10, 70);
+    expect(reserved.h).toBe(base.h - 70);
+    expect(reserved.y).toBe(base.y); // 상단은 그대로
+  });
 });
 
 describe("computeLayout", () => {

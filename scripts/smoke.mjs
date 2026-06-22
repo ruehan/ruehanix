@@ -78,7 +78,13 @@ try {
   await page.waitForFunction(() => document.documentElement.classList.contains("rh-light"), { timeout: 3000 });
   ok("Light 테마 전환", true);
 
-  // 7. 모바일 모드 — 폭을 좁히면 하단 독이 뜨고, 독으로 앱을 풀스크린 전환
+  // 7. 데스크톱 독 — 항상 보이는 하단 독으로 앱을 연다
+  ok("데스크톱 독 표시", await page.getByTestId("desktop-dock").isVisible());
+  await page.getByTestId("ddock-web").click();
+  await page.getByText("https://ruehan.dev").first().waitFor({ timeout: 3000 });
+  ok("데스크톱 독 앱 오픈", true);
+
+  // 8. 모바일 모드 — 폭을 좁히면 하단 독이 뜨고, 독으로 앱을 풀스크린 전환
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByTestId("dock-terminal").click();
   await page.getByText("fastfetch").waitFor({ timeout: 3000 });

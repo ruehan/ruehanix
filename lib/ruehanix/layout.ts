@@ -5,11 +5,14 @@ export interface Viewport {
   H: number;
 }
 
-/** waybar/갭을 제외한 타일 배치 가능 영역. */
-export function area({ W, H }: Viewport, gap: number): Rect {
+/**
+ * waybar/갭을 제외한 타일 배치 가능 영역.
+ * bottomReserve: 하단에 비워둘 공간(px). 데스크톱 독이 타일 창을 가리지 않도록 자리를 확보한다.
+ */
+export function area({ W, H }: Viewport, gap: number, bottomReserve = 0): Rect {
   const m = Math.max(6, gap + 2);
   const top = 8 + 34 + 8;
-  return { x: m, y: top, w: W - m * 2, h: H - top - m };
+  return { x: m, y: top, w: W - m * 2, h: H - top - m - bottomReserve };
 }
 
 /**

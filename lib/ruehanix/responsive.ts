@@ -8,6 +8,10 @@ export const MOBILE_BREAKPOINT = 768;
 export const MOBILE_TOPBAR = 40;
 export const MOBILE_DOCK = 64;
 
+/** 데스크톱 독 높이(px)와, 타일 영역 하단에 비워둘 자리(독 높이 + 하단 마진). */
+export const DESKTOP_DOCK = 56;
+export const DESKTOP_DOCK_RESERVE = DESKTOP_DOCK + 16;
+
 /** 폭 기준으로 모바일 여부를 판정한다(포인터 종류와 무관). */
 export function isMobileWidth(W: number): boolean {
   return W < MOBILE_BREAKPOINT;

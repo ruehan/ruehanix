@@ -12,7 +12,8 @@ import {
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
-import { MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
+import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
+import { shouldShowHint } from "@/lib/ruehanix/onboarding";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
 import type { RuehanixApi } from "./useRuehanix";
 
@@ -43,8 +44,10 @@ export function buildVm(api: RuehanixApi) {
   const rad = ui.rounded ? 11 : 2;
 
   const mobile = isMobileWidth(vp.W);
+  // 데스크톱은 항상 보이는 독이 타일 창을 가리지 않게 하단 자리를 비운다.
+  const reserve = mobile ? 0 : DESKTOP_DOCK_RESERVE;
   const curIds = st.order.filter((k) => st.open[k] && st.open[k]!.ws === st.ws);
-  const lay = computeLayout(curIds, area(vp, ui.gap), st.ratios, st.ws, ui.gap);
+  const lay = computeLayout(curIds, area(vp, ui.gap, reserve), st.ratios, st.ws, ui.gap);
 
   // --- 창 타일 스타일 ---
   const tiles = {} as Record<AppKey, CSSProperties>;
@@ -151,12 +154,17 @@ export function buildVm(api: RuehanixApi) {
   const focusTitle = fm ? fm.name : "ruehanix · Hyprland";
   const focusDot = fm ? fm.color : "var(--ov0)";
 
+  // UI에서 앱을 열 때(독·런처) 첫 방문 힌트를 함께 닫는다.
+  const openFromUi = (k: AppKey) => {
+    handlers.markHintSeen();
+    handlers.openApp(k);
+  };
   const appList = APP_KEYS.map((k) => ({
     key: k,
     name: APP_META[k].name,
     color: APP_META[k].color,
     hint: APP_META[k].hint,
-    onClick: () => handlers.openApp(k),
+    onClick: () => openFromUi(k),
   }));
 
   // 모바일 하단 독(앱 전환) + 홈(포커스 닫기).
@@ -165,7 +173,7 @@ export function buildVm(api: RuehanixApi) {
     name: APP_META[k].name,
     color: APP_META[k].color,
     active: st.focused === k,
-    onClick: () => handlers.openApp(k),
+    onClick: () => openFromUi(k),
   }));
   const homeClick = () => {
     if (st.focused) handlers.close(st.focused);
@@ -376,9 +384,14 @@ export function buildVm(api: RuehanixApi) {
     mobileHome: mobile && !st.booting && !st.focused,
     dock,
     homeClick,
+    showHint: shouldShowHint({ seen: api.hintSeen, booting: st.booting, isMobile: mobile }),
+    dismissHint: handlers.markHintSeen,
     showLauncher: st.showLauncher,
     showKeys: st.showKeys,
-    toggleLauncher: handlers.toggleLauncher,
+    toggleLauncher: () => {
+      handlers.markHintSeen();
+      handlers.toggleLauncher();
+    },
     toggleKeys: handlers.toggleKeys,
     reboot: handlers.reboot,
     stop: (e: React.MouseEvent) => e.stopPropagation(),

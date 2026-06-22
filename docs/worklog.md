@@ -1,5 +1,17 @@
 # 작업 로그
 
+## 2026-06-22 — useRuehanix React Compiler 리팩터링
+- 브랜치: refactor/usereuhanix-react-compiler
+- 한 일: useRuehanix를 React 19.2 권장 패턴으로 재작성 — useSyncExternalStore(뷰포트·OS 선호·시계),
+  useEffectEvent(키보드), useCallback·ref 미러 전면 제거. eslint.config의 react-hooks v6 완화 4종
+  삭제(규칙 error 복귀). 부팅 스킵 1줄만 정당한 disable. 품질 빚(12 warn) 청산.
+- 검증: verify EXIT 0(typecheck·eslint 0 error/0 warn·vitest 48/48), build OK, smoke 17/17
+  (시계 즉시 시드 단언 추가). 재방문 경로 시계 즉시 표시 수동 확인.
+- 리뷰: 통과 2라운드(1R P2: 재방문 시 시계 ~1.4초 "00:00" 회귀 → subscribeSys 즉시 시드 + 스모크 박제) — 상세: docs/reviews/2026-06-22-usereuhanix-react-compiler.md
+- 가정: React Compiler 정식 활성화는 보류(useCallback 제거로 경고는 이미 해소). 후속 후보.
+- 백로그: reboot 타이머 정리(선존·비회귀), React Compiler babel-plugin 활성화.
+- 관련 결정: docs/decisions/0009-usereuhanix-react-compiler-refactor.md
+
 ## 2026-06-22 — 글 라우트(/posts) + SEO
 - 브랜치: feat/posts-routes-seo
 - 한 일: 콘텐츠 소스 추상화(source.ts 단일 진입점=하드코딩 어댑터, BlogPost.body 문단 통일,

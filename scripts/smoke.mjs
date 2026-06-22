@@ -149,6 +149,19 @@ try {
   const smText = (await sm.text()) || "";
   ok("sitemap 정적 경로 포함", smText.includes("/posts"));
 
+  // 12. UI 설정 영속화 — localStorage 설정이 재로드 후 복원
+  await page.goto(BASE); // 직전 시나리오가 sitemap.xml에 있으므로 앱으로 복귀
+  await page.evaluate(() => {
+    localStorage.setItem("rh-ui", JSON.stringify({ mode: "light", accent: "#a6e3a1", gap: 20, rounded: false, glow: false, transp: false }));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  const restored = await page.evaluate(() => ({
+    light: document.documentElement.classList.contains("rh-light"),
+    accent: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(),
+  }));
+  ok("UI 설정 재접속 복원", restored.light === true && restored.accent === "#40a02b");
+
   ok("콘솔 앱 에러 0", appErrors.length === 0);
   if (appErrors.length) console.error("앱 에러:", appErrors);
 } catch (e) {

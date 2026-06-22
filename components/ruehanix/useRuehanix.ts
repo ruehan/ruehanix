@@ -15,6 +15,7 @@ import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/t
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
+import { UI_STORAGE_KEY, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
 import type { AppKey, CatKey, ThemeMode, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
@@ -113,6 +114,7 @@ export function useRuehanix(posts: BlogPost[]) {
 
   const dragRef = useRef<Drag>(null);
   const bootTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const uiSavedRef = useRef(false);
 
   // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
   const toggleLauncher = () => {
@@ -265,8 +267,15 @@ export function useRuehanix(posts: BlogPost[]) {
     };
   }, []);
 
-  // --- 부팅 (마운트 1회): 세션 1회 + reduced-motion이면 스킵 ---
+  // --- 마운트 1회: UI 설정 복원 + 부팅 결정 ---
   useEffect(() => {
+    let rawUi: string | null = null;
+    try {
+      rawUi = window.localStorage.getItem(UI_STORAGE_KEY);
+    } catch {
+      /* 무시 */
+    }
+    const savedUi = parseUiState(rawUi);
     let booted = false;
     try {
       booted = !!window.sessionStorage.getItem(BOOT_SESSION_KEY);
@@ -274,14 +283,27 @@ export function useRuehanix(posts: BlogPost[]) {
       /* 무시 */
     }
     const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    if (!shouldPlayBoot(booted, reduced)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- 마운트 1회: 브라우저 전용 상태(세션·모션 선호)로만 결정 가능. 렌더/SSR 단계에서 불가.
-      setSt((s) => ({ ...s, booting: false }));
-      return;
+    const skipBoot = !shouldPlayBoot(booted, reduced);
+    if (savedUi || skipBoot) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 마운트 1회: 브라우저 전용 상태(설정 복원·부팅 결정) 초기화. 렌더/SSR 단계에서 불가.
+      setSt((s) => ({ ...s, ...(savedUi ? { ui: savedUi } : {}), ...(skipBoot ? { booting: false } : {}) }));
     }
-    startBootTimer();
+    if (!skipBoot) startBootTimer();
     return () => clearInterval(bootTimerRef.current);
   }, []);
+
+  // --- UI 설정 영속화 (마운트 첫 실행은 복원 전이라 저장 건너뜀) ---
+  useEffect(() => {
+    if (!uiSavedRef.current) {
+      uiSavedRef.current = true;
+      return;
+    }
+    try {
+      window.localStorage.setItem(UI_STORAGE_KEY, serializeUiState(st.ui));
+    } catch {
+      /* 무시 */
+    }
+  }, [st.ui]);
 
   return {
     st,

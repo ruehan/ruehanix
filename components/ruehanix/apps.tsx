@@ -10,9 +10,6 @@ function EmptyPosts({ compact }: { compact?: boolean }) {
   return (
     <div style={{ height: "100%", minHeight: compact ? 120 : 240, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
       <div style={{ fontSize: 14, fontWeight: 700, color: "var(--sub1)" }}>아직 글이 없습니다</div>
-      <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>
-        <code style={{ color: "var(--accent)", fontFamily: mono }}>/studio</code> 에서 첫 글을 작성해 보세요
-      </div>
     </div>
   );
 }

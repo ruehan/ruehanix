@@ -78,8 +78,35 @@ try {
   await page.waitForFunction(() => document.documentElement.classList.contains("rh-light"), { timeout: 3000 });
   ok("Light 테마 전환", true);
 
-  // 7. 데스크톱 독 — 항상 보이는 하단 독으로 앱을 연다
+  // 7. 데스크톱 독 — 항상 보이는 하단 독으로 앱을 연다 + 호버 시 이름 라벨
   ok("데스크톱 독 표시", await page.getByTestId("desktop-dock").isVisible());
+  await page.getByTestId("ddock-terminal").hover();
+  let labelShown = false;
+  try {
+    // opacity뿐 아니라 라벨이 실제로 화면 최상단에 보이는지(클리핑/가림 없음) 검사한다.
+    // 라벨은 pointer-events:none이라 hit-test 동안만 임시로 auto로 바꿔 elementFromPoint로 확인.
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector('[data-testid="ddock-terminal"] .rh-dock-label');
+        if (!el || getComputedStyle(el).opacity !== "1") return false;
+        const prev = el.style.pointerEvents;
+        el.style.pointerEvents = "auto";
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.top < 0) {
+          el.style.pointerEvents = prev;
+          return false;
+        }
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        el.style.pointerEvents = prev;
+        return !!hit && el.contains(hit);
+      },
+      { timeout: 2000 },
+    );
+    labelShown = true;
+  } catch {
+    /* 라벨이 끝내 안 보임(클리핑/가림) */
+  }
+  ok("독 호버 이름 라벨", labelShown);
   await page.getByTestId("ddock-web").click();
   await page.getByText("https://ruehan.dev").first().waitFor({ timeout: 3000 });
   ok("데스크톱 독 앱 오픈", true);

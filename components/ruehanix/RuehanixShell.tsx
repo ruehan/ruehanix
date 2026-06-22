@@ -99,27 +99,17 @@ function MobileHome() {
 
 function DesktopDock({ vm }: { vm: Vm }) {
   return (
-    <div data-testid="desktop-dock" style={{ position: "absolute", left: "50%", bottom: 14, transform: "translateX(-50%)", height: DESKTOP_DOCK, zIndex: 400, display: "flex", alignItems: "center", gap: 4, padding: "0 8px", borderRadius: 16, background: "color-mix(in srgb, var(--mantle) 80%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", boxShadow: "0 12px 36px rgba(0,0,0,.4)", maxWidth: "calc(100% - 24px)", overflowX: "auto" }}>
+    <div data-testid="desktop-dock" style={{ position: "absolute", left: "50%", bottom: 14, transform: "translateX(-50%)", height: DESKTOP_DOCK, zIndex: 400, display: "flex", alignItems: "center", gap: 4, padding: "0 8px", borderRadius: 16, background: "color-mix(in srgb, var(--mantle) 80%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", boxShadow: "0 12px 36px rgba(0,0,0,.4)" }}>
       {vm.dock.map((d) => (
-        <div key={d.key} data-testid={"ddock-" + d.key} onClick={d.onClick} title={d.name} className="rh-dock-item" style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 42, borderRadius: 11, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "transparent" }}>
+        <div key={d.key} data-testid={"ddock-" + d.key} onClick={d.onClick} aria-label={d.name} className="rh-dock-item" style={{ position: "relative", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 42, borderRadius: 11, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "transparent" }}>
           <LineIcon app={d.key} size={22} />
+          <span className="rh-dock-label">{d.name}</span>
         </div>
       ))}
     </div>
   );
 }
 
-function AppsHint({ vm }: { vm: Vm }) {
-  return (
-    <div onClick={vm.dismissHint} style={{ position: "absolute", left: "50%", bottom: 14 + DESKTOP_DOCK + 12, transform: "translateX(-50%)", zIndex: 450, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", animation: "rh-fadeup .25s ease" }}>
-      <div style={{ padding: "8px 14px", borderRadius: 10, background: "var(--accent)", color: "var(--on-accent)", fontSize: 12.5, fontWeight: 700, boxShadow: "0 8px 24px rgba(0,0,0,.35)", whiteSpace: "nowrap" }}>
-        여기서 앱을 열어보세요 · Super + D
-      </div>
-      <div style={{ width: 10, height: 10, background: "var(--accent)", transform: "rotate(45deg)", marginTop: -11, borderRadius: 2 }} />
-      <div style={{ width: 46, height: 46, borderRadius: 14, border: "2px solid var(--accent)", animation: "rh-pulse 1.4s ease-out infinite" }} />
-    </div>
-  );
-}
 
 export function RuehanixShell() {
   const api = useRuehanix();
@@ -238,9 +228,8 @@ export function RuehanixShell() {
       {vm.mobileHome && <MobileHome />}
       {vm.isMobile && <MobileDock vm={vm} />}
 
-      {/* DESKTOP DOCK + 첫 방문 힌트 */}
+      {/* DESKTOP DOCK */}
       {!vm.isMobile && <DesktopDock vm={vm} />}
-      {!vm.isMobile && vm.showHint && <AppsHint vm={vm} />}
 
       {/* WINDOWS */}
       <div style={{ position: "absolute", inset: 0, zIndex: 100 }}>

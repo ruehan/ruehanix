@@ -15,7 +15,6 @@ import {
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
-import { HINT_STORAGE_KEY } from "@/lib/ruehanix/onboarding";
 import type { AppKey, CatKey, ThemeMode, UiState } from "@/lib/ruehanix/types";
 
 interface CoreState {
@@ -62,14 +61,11 @@ export function useRuehanix() {
   const [st, setSt] = useState<CoreState>(INITIAL);
   const [vp, setVp] = useState({ W: 1280, H: 800 });
   const [sys, setSys] = useState({ clock: "00:00", cpu: 14, ram: 47 });
-  // 첫 방문 힌트: SSR/하이드레이션 안전을 위해 기본 true(숨김), 마운트에서 localStorage로 갱신.
-  const [hintSeen, setHintSeen] = useState(true);
 
   const stRef = useRef(st);
   stRef.current = st;
   const dragRef = useRef<Drag>(null);
   const prefersLightRef = useRef(false);
-  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // --- 테마 적용 ---
   const applyTheme = useCallback((s: CoreState) => {
@@ -165,23 +161,6 @@ export function useRuehanix() {
       mq.addEventListener("change", mqh);
     }
 
-    // 첫 방문 힌트: 본 적 없으면 표시하고, 9초 뒤 자동으로 본 것으로 처리한다.
-    try {
-      if (!window.localStorage.getItem(HINT_STORAGE_KEY)) {
-        setHintSeen(false);
-        hintTimerRef.current = setTimeout(() => {
-          setHintSeen(true);
-          try {
-            window.localStorage.setItem(HINT_STORAGE_KEY, "1");
-          } catch {
-            /* 무시 */
-          }
-        }, 9000);
-      }
-    } catch {
-      /* localStorage 불가 환경: 힌트 비표시 유지 */
-    }
-
     applyTheme(stRef.current);
     setSys((p) => ({ ...p, clock: fmtClock() }));
     const bt = runBoot();
@@ -201,7 +180,6 @@ export function useRuehanix() {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", onResize);
       if (mq && mqh) mq.removeEventListener("change", mqh);
-      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       clearInterval(bt);
       clearInterval(clockT);
     };
@@ -252,18 +230,6 @@ export function useRuehanix() {
     [],
   );
   const reboot = useCallback(() => runBoot(), [runBoot]);
-  const markHintSeen = useCallback(() => {
-    if (hintTimerRef.current) {
-      clearTimeout(hintTimerRef.current);
-      hintTimerRef.current = undefined;
-    }
-    setHintSeen(true);
-    try {
-      window.localStorage.setItem(HINT_STORAGE_KEY, "1");
-    } catch {
-      /* localStorage 불가 환경 무시 */
-    }
-  }, []);
   const startSlider = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
@@ -292,10 +258,8 @@ export function useRuehanix() {
     st,
     sys,
     vp,
-    hintSeen,
     prefersLight: prefersLightRef.current,
     handlers: {
-      markHintSeen,
       toggleLauncher,
       toggleKeys,
       gotoWs,

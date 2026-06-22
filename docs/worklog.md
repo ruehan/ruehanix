@@ -1,5 +1,18 @@
 # 작업 로그
 
+## 2026-06-22 — 글 라우트(/posts) + SEO
+- 브랜치: feat/posts-routes-seo
+- 한 일: 콘텐츠 소스 추상화(source.ts 단일 진입점=하드코딩 어댑터, BlogPost.body 문단 통일,
+  영문 slug·ISO 발행일) + `/posts/[slug]`(RSC·SSG·generateMetadata·JSON-LD BlogPosting)·`/posts`(목록)
+  + sitemap·robots(/studio 차단)·RSS(feed.xml). 셸 Reader에 "전체 페이지로 보기" 링크.
+  Sanity CORS 대기라 하드코딩 소스로 먼저 완성(나중 어댑터 한 줄 교체).
+- 검증: verify EXIT 0(typecheck·lint 0 error/12 warn·vitest 48/48), build(/posts·[slug] SSG 8글·
+  sitemap·robots·feed 생성), smoke 16/16(글 라우트·sitemap 시나리오 추가). curl로 메타·sitemap·RSS 확인.
+- 리뷰: 통과 1라운드(P3: slugForId source 경유·RSS 빈 발행일 가드) — 상세: docs/reviews/2026-06-22-글라우트-seo.md
+- 가정: slug 영문 수동(한글 제목→slug 모호함 회피), body 문단 배열 통일. ADR 0008.
+- 백로그: 하드코딩→Sanity 어댑터 교체(CORS 후), Portable Text 리치 렌더, 글별 동적 OG, 카테고리 필터.
+- 관련 결정: docs/decisions/0008-post-routes-and-seo.md
+
 ## 2026-06-22 — Sanity 임베드 스튜디오 (+ 강제 Next 16 업그레이드)
 - 브랜치: feat/sanity-embedded-studio
 - 한 일: `/studio` 임베드 Sanity 스튜디오(클라이언트 전용 ssr:false) + post 스키마 +

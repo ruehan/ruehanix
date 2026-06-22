@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import Link from "next/link";
 import { ART_TERM, Folder } from "./icons";
 import { clickable } from "./clickable";
 import type { Vm } from "./viewModel";
@@ -92,6 +93,9 @@ export function ReaderApp({ vm }: { vm: Vm }) {
           {p.paras.map((para) => (
             <p key={para.id} style={{ margin: "0 0 20px", fontSize: 16, lineHeight: 1.82, color: "var(--sub1)" }}>{para.text}</p>
           ))}
+          <Link href={`/posts/${p.slug}`} style={{ display: "inline-block", marginTop: 8, fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none", fontFamily: mono }}>
+            전체 페이지로 보기 →
+          </Link>
           <div style={{ marginTop: 40, paddingTop: 22, borderTop: "1px solid var(--surf0)", display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ width: 40, height: 40, borderRadius: "50%", flex: "none", background: "linear-gradient(135deg,#cba6f7,#89b4fa)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-accent)", fontWeight: 800, fontSize: 15, fontFamily: mono }}>한</div>
             <div style={{ fontFamily: mono }}>

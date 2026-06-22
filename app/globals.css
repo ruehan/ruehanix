@@ -21,6 +21,15 @@ body {
 @keyframes rh-spin { to { transform: rotate(360deg); } }
 @keyframes rh-fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .rh-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 5px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 .rh-launch-item:hover { background: var(--surf0); }
 .rh-webcard { transition: border-color .15s, transform .15s; }
 .rh-webcard:hover { border-color: #cba6f7 !important; transform: translateY(-2px); }

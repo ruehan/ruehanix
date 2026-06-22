@@ -1,5 +1,19 @@
 # 작업 로그
 
+## 2026-06-22 — 완성도 패스(메타·부팅·검색·접근성) + 콘텐츠/SEO 계획
+- 브랜치: feat/polish-and-content-plan
+- 한 일: (1) 메타데이터 확장·9-dot favicon·터미널 스타일 404·브랜딩 OG 이미지(next/og).
+  (2) 부팅 세션 1회(sessionStorage)+prefers-reduced-motion 건너뜀. (3) 런처 실제 검색
+  (filterApps·Enter 첫 결과·결과없음·query 초기화). (4) 핵심+콘텐츠 클릭 요소 키보드 접근성
+  (clickable: role/tabIndex/Enter·Space/aria-label), :focus-visible, reduced-motion 애니 비활성.
+  (5) 콘텐츠 관리·SEO 운영 계획 ADR 수립(구현은 후속 분리).
+- 검증: verify.sh 통과(typecheck·lint 무경고·vitest 32/32), build 5/5(og·icon·404),
+  smoke 14/14(검색 필터·a11y role·부팅 1회 시나리오 추가).
+- 리뷰: 통과 1라운드(P2: summary_large_image인데 og:image 없음 → 브랜딩 OG 이미지 추가) — 상세: docs/reviews/2026-06-22-완성도패스-접근성-계획.md
+- 가정: 콘텐츠/SEO는 계획만, 구현은 후속. gap 슬라이더 키보드 미지원은 비차단(나머지 설정은 접근 가능).
+- 백로그: 콘텐츠 소스(Sanity 등) 도입+/posts/[slug]+sitemap/RSS/동적 OG(ADR 0006 순서), 슬라이더 키보드.
+- 관련 결정: docs/decisions/0006-content-seo-strategy.md
+
 ## 2026-06-22 — 첫 방문 힌트 제거 · 독 호버 이름 라벨
 - 브랜치: feat/dock-tooltip-remove-hint
 - 한 일: 사용자 피드백 반영 2건. (1) 첫 방문 힌트(튜토리얼 말풍선) 완전 제거 — AppsHint·hint 상태/

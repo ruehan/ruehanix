@@ -15,6 +15,7 @@ import {
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
+import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import type { AppKey, CatKey, ThemeMode, UiState } from "@/lib/ruehanix/types";
 
 interface CoreState {
@@ -61,6 +62,7 @@ export function useRuehanix() {
   const [st, setSt] = useState<CoreState>(INITIAL);
   const [vp, setVp] = useState({ W: 1280, H: 800 });
   const [sys, setSys] = useState({ clock: "00:00", cpu: 14, ram: 47 });
+  const [launcherQuery, setLauncherQuery] = useState("");
 
   const stRef = useRef(st);
   stRef.current = st;
@@ -90,7 +92,14 @@ export function useRuehanix() {
       setSt((s) => ({ ...s, bootN: Math.min(n, BOOT_SEQ.length) }));
       if (n >= BOOT_SEQ.length) {
         clearInterval(bt);
-        setTimeout(() => setSt((s) => ({ ...s, booting: false })), 700);
+        setTimeout(() => {
+          setSt((s) => ({ ...s, booting: false }));
+          try {
+            window.sessionStorage.setItem(BOOT_SESSION_KEY, "1");
+          } catch {
+            /* sessionStorage 불가 환경 무시 */
+          }
+        }, 700);
       }
     }, 200);
     return bt;
@@ -141,7 +150,10 @@ export function useRuehanix() {
           if (s.focused) close(s.focused);
         }
       }
-      if (k === "Escape") setSt((p) => ({ ...p, showLauncher: false, showKeys: false }));
+      if (k === "Escape") {
+        setLauncherQuery("");
+        setSt((p) => ({ ...p, showLauncher: false, showKeys: false }));
+      }
     };
 
     window.addEventListener("mousemove", onMove);
@@ -163,7 +175,20 @@ export function useRuehanix() {
 
     applyTheme(stRef.current);
     setSys((p) => ({ ...p, clock: fmtClock() }));
-    const bt = runBoot();
+    // 부팅 애니메이션은 세션당 1회 + 모션 최소화 선호 시 건너뛴다.
+    let booted = false;
+    try {
+      booted = !!window.sessionStorage.getItem(BOOT_SESSION_KEY);
+    } catch {
+      /* 무시 */
+    }
+    const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    let bt: ReturnType<typeof setInterval> | undefined;
+    if (shouldPlayBoot(booted, reduced)) {
+      bt = runBoot();
+    } else {
+      setSt((s) => ({ ...s, booting: false }));
+    }
     const clockT = setInterval(
       () =>
         setSys({
@@ -188,7 +213,10 @@ export function useRuehanix() {
   }, []);
 
   // --- 핸들러 ---
-  const toggleLauncher = useCallback(() => setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false })), []);
+  const toggleLauncher = useCallback(() => {
+    setLauncherQuery("");
+    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false }));
+  }, []);
   const toggleKeys = useCallback(() => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false })), []);
   const gotoWs = useCallback((n: number) => {
     setSt((s) => {
@@ -204,6 +232,7 @@ export function useRuehanix() {
       if (!order.includes(k)) order = [...order, k];
       return { ...s, open, order, focused: k, showLauncher: false };
     });
+    setLauncherQuery("");
   }, []);
   const close = useCallback((k: AppKey) => {
     setSt((s) => {
@@ -258,8 +287,10 @@ export function useRuehanix() {
     st,
     sys,
     vp,
+    launcherQuery,
     prefersLight: prefersLightRef.current,
     handlers: {
+      setLauncherQuery,
       toggleLauncher,
       toggleKeys,
       gotoWs,

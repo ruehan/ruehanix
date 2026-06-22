@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { ART_TERM, Folder } from "./icons";
+import { clickable } from "./clickable";
 import type { Vm } from "./viewModel";
 
 const mono = "'JetBrains Mono',monospace";
@@ -35,14 +36,14 @@ export function FilesApp({ vm }: { vm: Vm }) {
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         <div onMouseDown={vm.stop} style={{ flex: "none", display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderBottom: "1px solid var(--surf0)" }}>
           {vm.finderCats.map((c) => (
-            <div key={c.key} onClick={c.onClick} style={c.chipStyle}>
+            <div key={c.key} {...clickable(c.onClick, `${c.label} 필터`)} style={c.chipStyle}>
               {c.label}
             </div>
           ))}
         </div>
         <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           {vm.finderPosts.map((p) => (
-            <div key={p.id} onClick={p.open} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 14px", borderBottom: "1px solid var(--surf0)", cursor: "pointer", background: p.rowBg }}>
+            <div key={p.id} {...clickable(p.open, `${p.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 14px", borderBottom: "1px solid var(--surf0)", cursor: "pointer", background: p.rowBg }}>
               <span style={{ flex: "none", width: 8, height: 8, borderRadius: 2, background: p.catColor }} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--text)" }}>{p.title}.md</div>
@@ -67,7 +68,7 @@ export function ReaderApp({ vm }: { vm: Vm }) {
         <div style={{ color: "var(--ov0)", fontSize: 11, padding: "0 6px 8px" }}>posts/</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {vm.readerList.map((it) => (
-            <div key={it.id} onClick={it.open} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "8px 10px", borderRadius: 7, cursor: "pointer", background: it.bg }}>
+            <div key={it.id} {...clickable(it.open, it.title)} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "8px 10px", borderRadius: 7, cursor: "pointer", background: it.bg }}>
               <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", flex: "none", background: it.catColor }} />
                 <span style={{ fontSize: 11.5, color: "var(--text)", lineHeight: 1.35 }}>{it.title}</span>
@@ -265,7 +266,7 @@ export function WebApp({ vm }: { vm: Vm }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
             {vm.allPosts.map((p) => (
-              <div key={p.id} className="rh-webcard" onClick={p.open} style={{ border: "1px solid var(--surf0)", borderRadius: 13, padding: "18px 20px", cursor: "pointer", background: "var(--mantle)" }}>
+              <div key={p.id} className="rh-webcard" {...clickable(p.open, `${p.title} 열기`)} style={{ border: "1px solid var(--surf0)", borderRadius: 13, padding: "18px 20px", cursor: "pointer", background: "var(--mantle)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 11, fontFamily: mono }}>
                   <span style={{ padding: "2px 9px", borderRadius: 6, fontSize: 10.5, fontWeight: 700, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: p.catColor }}>#{p.catLabel}</span>
                   <span style={{ fontSize: 11, color: "var(--ov0)" }}>{p.date}</span>
@@ -313,7 +314,7 @@ export function SettingsApp({ vm }: { vm: Vm }) {
         <div style={{ fontSize: 11, color: "var(--ov0)", marginBottom: 11, letterSpacing: ".04em" }}>APPEARANCE</div>
         <div style={{ display: "flex", gap: 11, marginBottom: 24 }}>
           {s.modeOpts.map((m) => (
-            <div key={m.key} onClick={m.onClick} style={{ textAlign: "center", cursor: "pointer" }}>
+            <div key={m.key} {...clickable(m.onClick, `${m.label} 모드`)} style={{ textAlign: "center", cursor: "pointer" }}>
               <div style={m.swatchStyle} />
               <div style={m.labelStyle}>{m.label}</div>
             </div>
@@ -323,7 +324,7 @@ export function SettingsApp({ vm }: { vm: Vm }) {
           <span>Accent color</span>
           <div style={{ display: "flex", gap: 8 }}>
             {s.accentOpts.map((a) => (
-              <div key={a.key} onClick={a.onClick} style={a.style} />
+              <div key={a.key} {...clickable(a.onClick, "강조색 변경")} style={a.style} />
             ))}
           </div>
         </div>
@@ -341,7 +342,7 @@ export function SettingsApp({ vm }: { vm: Vm }) {
         {s.toggles.map((t) => (
           <div key={t.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderTop: "1px solid var(--surf0)" }}>
             <span>{t.label}</span>
-            <div onClick={t.onClick} style={t.track as CSSProperties}>
+            <div {...clickable(t.onClick, t.label)} style={t.track as CSSProperties}>
               <span style={t.knob as CSSProperties} />
             </div>
           </div>

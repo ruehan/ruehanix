@@ -1,5 +1,17 @@
 # 작업 로그
 
+## 2026-06-22 — UI 설정 영속화 + 빈 상태 문구 정리
+- 브랜치: feat/persist-ui-settings
+- 한 일: 셸 UI 설정(테마 모드·accent·gap·rounded·glow·transp)을 localStorage에 영속화해 재접속 복원.
+  parseUiState/serializeUiState 순수 함수(검증 포함). 마운트 복원을 부팅 결정과 한 setState로 합쳐
+  disable 1줄 유지, [st.ui] 변경 저장(uiSavedRef로 첫 실행 스킵). 빈 상태에서 "/studio 작성" 문구 제거.
+- 검증: verify exit 0(typecheck·eslint 0 error/0 warn·vitest 49/49), build OK, smoke 18/18
+  (UI 재접속 복원 단언 추가). 시각 확인: 저장 설정이 재로드 후 복원(rh-light + accent 매핑).
+- 리뷰: 통과 1라운드(P3 dev StrictMode 관찰 — prod 무영향·수정 불요) — 상세: docs/reviews/2026-06-22-ui-설정-영속화.md
+- 가정: 재방문 theme flash는 수용(완전 제거는 백로그). ADR 0011.
+- 백로그: theme flash 제거(layout head 인라인 스크립트).
+- 관련 결정: docs/decisions/0011-persist-ui-settings.md
+
 ## 2026-06-22 — 블로그 글 Sanity 소스 전환 (하드코딩 제거)
 - 브랜치: feat/sanity-posts-source
 - 한 일: 블로그 글 소스를 하드코딩 → Sanity로 교체("처음부터"). source.ts를 queries(Sanity)로,

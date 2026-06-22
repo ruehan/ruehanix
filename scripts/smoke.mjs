@@ -135,6 +135,14 @@ try {
     .catch(() => false);
   ok("부팅 세션 1회(재로드 스킵)", reBoot === false);
 
+  // 11. 글 라우트(/posts/[slug]) + sitemap
+  await page.goto(`${BASE}/posts/iracing-nordschleife-sub-7`);
+  await page.getByRole("heading", { name: /뉘르부르크링/ }).waitFor({ timeout: 3000 });
+  ok("글 라우트 렌더", true);
+  const sm = await page.goto(`${BASE}/sitemap.xml`);
+  const smText = (await sm.text()) || "";
+  ok("sitemap 글 슬러그 포함", smText.includes("/posts/iracing-nordschleife-sub-7"));
+
   ok("콘솔 앱 에러 0", appErrors.length === 0);
   if (appErrors.length) console.error("앱 에러:", appErrors);
 } catch (e) {

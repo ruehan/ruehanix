@@ -23,4 +23,12 @@ describe("buildRssXml", () => {
     const xml = buildRssXml(posts, "https://ruehan.dev");
     expect(xml.match(/<item>/g)).toHaveLength(1);
   });
+  it("발행일 빈 값/유효하지 않으면 pubDate 생략(Invalid Date 미출력)", () => {
+    const xml = buildRssXml(
+      [{ slug: "x", title: "t", category: "dev", publishedAt: "", date: "", excerpt: "e", readingTime: "", body: [] }],
+      "https://ruehan.dev",
+    );
+    expect(xml).not.toContain("Invalid Date");
+    expect(xml).not.toContain("<pubDate>");
+  });
 });

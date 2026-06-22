@@ -21,15 +21,16 @@ export function escapeXml(s: string): string {
 /** 글 목록 → RSS 2.0 XML. */
 export function buildRssXml(posts: BlogPost[], site: string): string {
   const items = posts
-    .map(
-      (p) => `    <item>
+    .map((p) => {
+      const d = p.publishedAt ? new Date(p.publishedAt) : null;
+      const pubDate = d && !Number.isNaN(d.getTime()) ? `\n      <pubDate>${d.toUTCString()}</pubDate>` : "";
+      return `    <item>
       <title>${escapeXml(p.title)}</title>
       <link>${site}/posts/${p.slug}</link>
-      <guid>${site}/posts/${p.slug}</guid>
-      <pubDate>${new Date(p.publishedAt).toUTCString()}</pubDate>
+      <guid>${site}/posts/${p.slug}</guid>${pubDate}
       <description>${escapeXml(p.excerpt)}</description>
-    </item>`,
-    )
+    </item>`;
+    })
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">

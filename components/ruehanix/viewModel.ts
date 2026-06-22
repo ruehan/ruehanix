@@ -14,7 +14,7 @@ import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/t
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
 import { filterApps } from "@/lib/ruehanix/search";
-import { slugForId } from "@/lib/posts/hardcoded";
+import { slugForId } from "@/lib/posts/source";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
 import type { RuehanixApi } from "./useRuehanix";
 

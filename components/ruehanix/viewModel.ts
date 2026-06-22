@@ -118,10 +118,10 @@ export function buildVm(api: RuehanixApi) {
   }));
 
   const focus = {} as Record<AppKey, () => void>;
-  const close = {} as Record<AppKey, (e?: React.MouseEvent) => void>;
+  const close = {} as Record<AppKey, (e?: React.SyntheticEvent) => void>;
   for (const k of APP_KEYS) {
     focus[k] = () => handlers.focusApp(k);
-    close[k] = (e?: React.MouseEvent) => {
+    close[k] = (e?: React.SyntheticEvent) => {
       e?.stopPropagation();
       handlers.close(k);
     };

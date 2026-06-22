@@ -5,6 +5,7 @@ import { APP_META } from "@/lib/ruehanix/data";
 import { DESKTOP_DOCK, MOBILE_DOCK, MOBILE_TOPBAR } from "@/lib/ruehanix/responsive";
 import type { AppKey } from "@/lib/ruehanix/types";
 import { useRuehanix } from "./useRuehanix";
+import { clickable } from "./clickable";
 import { buildVm, type Vm } from "./viewModel";
 import { ART_DESK, LineIcon } from "./icons";
 import { AboutApp, FilesApp, FotoApp, HotlapApp, ReaderApp, SettingsApp, TerminalApp, WebApp } from "./apps";
@@ -32,7 +33,7 @@ function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }
             <LineIcon app={app} size={14} />
             <span style={{ color: "var(--text)" }}>{meta.name}</span>
           </span>
-          <div onClick={vm.close[app]} style={vm.xbtn}>
+          <div {...clickable(vm.close[app], `${meta.name} 닫기`)} style={vm.xbtn}>
             ✕
           </div>
         </div>
@@ -53,7 +54,7 @@ function BarChip({ bg, color, children }: { bg: string; color: string; children:
 function MobileTopbar({ vm }: { vm: Vm }) {
   return (
     <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: MOBILE_TOPBAR, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px", background: "color-mix(in srgb, var(--mantle) 90%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid var(--surf0)", fontSize: 12.5 }}>
-      <div onClick={vm.homeClick} style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--accent)", cursor: "pointer", fontWeight: 700 }}>
+      <div {...clickable(vm.homeClick, "홈")} style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--accent)", cursor: "pointer", fontWeight: 700 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="8" r="5" />
           <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
@@ -75,7 +76,7 @@ function MobileDock({ vm }: { vm: Vm }) {
   return (
     <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: MOBILE_DOCK, zIndex: 500, display: "flex", alignItems: "center", gap: 6, padding: "0 10px", overflowX: "auto", background: "color-mix(in srgb, var(--mantle) 90%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: "1px solid var(--surf0)" }}>
       {vm.dock.map((d) => (
-        <div key={d.key} data-testid={"dock-" + d.key} onClick={d.onClick} style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, width: 56, padding: "6px 0", borderRadius: 10, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 16%, transparent)" : "transparent" }}>
+        <div key={d.key} data-testid={"dock-" + d.key} {...clickable(d.onClick, d.name)} style={{ flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, width: 56, padding: "6px 0", borderRadius: 10, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 16%, transparent)" : "transparent" }}>
           <LineIcon app={d.key} size={22} />
           <span style={{ fontSize: 9.5, color: d.active ? "var(--text)" : "var(--ov0)", maxWidth: 52, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.name}</span>
         </div>
@@ -101,7 +102,7 @@ function DesktopDock({ vm }: { vm: Vm }) {
   return (
     <div data-testid="desktop-dock" style={{ position: "absolute", left: "50%", bottom: 14, transform: "translateX(-50%)", height: DESKTOP_DOCK, zIndex: 400, display: "flex", alignItems: "center", gap: 4, padding: "0 8px", borderRadius: 16, background: "color-mix(in srgb, var(--mantle) 80%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", boxShadow: "0 12px 36px rgba(0,0,0,.4)" }}>
       {vm.dock.map((d) => (
-        <div key={d.key} data-testid={"ddock-" + d.key} onClick={d.onClick} aria-label={d.name} className="rh-dock-item" style={{ position: "relative", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 42, borderRadius: 11, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "transparent" }}>
+        <div key={d.key} data-testid={"ddock-" + d.key} {...clickable(d.onClick, d.name)} className="rh-dock-item" style={{ position: "relative", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 42, borderRadius: 11, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "transparent" }}>
           <LineIcon app={d.key} size={22} />
           <span className="rh-dock-label">{d.name}</span>
         </div>
@@ -175,7 +176,7 @@ export function RuehanixShell() {
       {!vm.isMobile && (
       <div style={{ position: "absolute", top: 8, left: 8, right: 8, height: 34, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px", borderRadius: 11, background: "color-mix(in srgb, var(--mantle) 86%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", fontSize: 12.5 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <div data-testid="launcher" onClick={vm.toggleLauncher} title="앱 실행기 (Super + D)" className="rh-launcher-btn" style={{ display: "flex", alignItems: "center", gap: 7, padding: "3px 11px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", cursor: "pointer", fontWeight: 700 }}>
+          <div data-testid="launcher" {...clickable(vm.toggleLauncher, "앱 실행기")} title="앱 실행기 (Super + D)" className="rh-launcher-btn" style={{ display: "flex", alignItems: "center", gap: 7, padding: "3px 11px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", cursor: "pointer", fontWeight: 700 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <circle cx="5" cy="5" r="2" /><circle cx="12" cy="5" r="2" /><circle cx="19" cy="5" r="2" />
               <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
@@ -185,7 +186,7 @@ export function RuehanixShell() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
             {vm.wsList.map((w) => (
-              <div key={w.n} data-testid={"ws-" + w.n} onClick={w.onClick} style={w.style}>
+              <div key={w.n} data-testid={"ws-" + w.n} {...clickable(w.onClick, `워크스페이스 ${w.n}`)} style={w.style}>
                 {w.n}
               </div>
             ))}
@@ -217,7 +218,7 @@ export function RuehanixShell() {
             {vm.mod.batt}
           </BarChip>
           <div style={{ padding: "3px 11px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", fontWeight: 700 }}>{vm.mod.clock}</div>
-          <div onClick={vm.reboot} title="reboot" style={{ display: "flex", alignItems: "center", padding: "3px 8px", borderRadius: 7, background: "rgba(243,139,168,.14)", color: "#f38ba8", cursor: "pointer" }}>
+          <div {...clickable(vm.reboot, "재부팅")} title="reboot" style={{ display: "flex", alignItems: "center", padding: "3px 8px", borderRadius: 7, background: "rgba(243,139,168,.14)", color: "#f38ba8", cursor: "pointer" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 3v9" /><path d="M6.5 7a8 8 0 1 0 11 0" /></svg>
           </div>
         </div>
@@ -269,7 +270,7 @@ export function RuehanixShell() {
                 <div style={{ padding: "12px", fontSize: 12.5, color: "var(--ov0)", textAlign: "center" }}>결과 없음</div>
               )}
               {vm.appList.map((a) => (
-                <div key={a.key} className="rh-launch-item" onClick={a.onClick} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
+                <div key={a.key} className="rh-launch-item" {...clickable(a.onClick, a.name)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
                   <span style={{ color: a.color, display: "flex" }}>
                     <LineIcon app={a.key} size={20} />
                   </span>

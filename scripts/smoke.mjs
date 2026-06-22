@@ -118,6 +118,23 @@ try {
   ok("모바일 독 앱 전환", true);
   ok("모바일 하단 독 표시", await page.getByTestId("dock-files").isVisible());
 
+  // 9. 런처 검색 필터 + 키보드 접근성
+  await page.setViewportSize({ width: 1280, height: 820 });
+  await page.getByTestId("launcher").click();
+  await page.locator('input[aria-label="앱 검색"]').fill("ter");
+  ok("런처 검색 필터", (await page.locator(".rh-launch-item").count()) === 1);
+  ok("a11y 키보드 활성화(role/tabindex)", (await page.getByTestId("launcher").getAttribute("role")) === "button" && (await page.getByTestId("launcher").getAttribute("tabindex")) === "0");
+  await page.keyboard.press("Escape");
+
+  // 10. 부팅 세션 1회 — 재로드 시 부팅 애니메이션 건너뜀
+  await page.reload();
+  await page.waitForTimeout(800);
+  const reBoot = await page
+    .getByText("login:")
+    .isVisible()
+    .catch(() => false);
+  ok("부팅 세션 1회(재로드 스킵)", reBoot === false);
+
   ok("콘솔 앱 에러 0", appErrors.length === 0);
   if (appErrors.length) console.error("앱 에러:", appErrors);
 } catch (e) {

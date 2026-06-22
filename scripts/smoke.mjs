@@ -83,17 +83,28 @@ try {
   await page.getByTestId("ddock-terminal").hover();
   let labelShown = false;
   try {
-    // opacity transition(.12s)이 끝나 라벨이 완전히 드러날 때까지 기다린다.
+    // opacity뿐 아니라 라벨이 실제로 화면 최상단에 보이는지(클리핑/가림 없음) 검사한다.
+    // 라벨은 pointer-events:none이라 hit-test 동안만 임시로 auto로 바꿔 elementFromPoint로 확인.
     await page.waitForFunction(
       () => {
         const el = document.querySelector('[data-testid="ddock-terminal"] .rh-dock-label');
-        return el && getComputedStyle(el).opacity === "1";
+        if (!el || getComputedStyle(el).opacity !== "1") return false;
+        const prev = el.style.pointerEvents;
+        el.style.pointerEvents = "auto";
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.top < 0) {
+          el.style.pointerEvents = prev;
+          return false;
+        }
+        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        el.style.pointerEvents = prev;
+        return !!hit && el.contains(hit);
       },
       { timeout: 2000 },
     );
     labelShown = true;
   } catch {
-    /* 라벨이 끝내 안 뜸 */
+    /* 라벨이 끝내 안 보임(클리핑/가림) */
   }
   ok("독 호버 이름 라벨", labelShown);
   await page.getByTestId("ddock-web").click();

@@ -99,11 +99,11 @@ function MobileHome() {
 
 function DesktopDock({ vm }: { vm: Vm }) {
   return (
-    <div data-testid="desktop-dock" style={{ position: "absolute", left: "50%", bottom: 14, transform: "translateX(-50%)", height: DESKTOP_DOCK, zIndex: 400, display: "flex", alignItems: "center", gap: 4, padding: "0 8px", borderRadius: 16, background: "color-mix(in srgb, var(--mantle) 80%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", boxShadow: "0 12px 36px rgba(0,0,0,.4)", maxWidth: "calc(100% - 24px)", overflowX: "auto" }}>
+    <div data-testid="desktop-dock" style={{ position: "absolute", left: "50%", bottom: 14, transform: "translateX(-50%)", height: DESKTOP_DOCK, zIndex: 400, display: "flex", alignItems: "center", gap: 4, padding: "0 8px", borderRadius: 16, background: "color-mix(in srgb, var(--mantle) 80%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", boxShadow: "0 12px 36px rgba(0,0,0,.4)" }}>
       {vm.dock.map((d) => (
         <div key={d.key} data-testid={"ddock-" + d.key} onClick={d.onClick} aria-label={d.name} className="rh-dock-item" style={{ position: "relative", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 42, borderRadius: 11, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "transparent" }}>
           <LineIcon app={d.key} size={22} />
-          <span className="rh-dock-label" style={{ color: d.color }}>{d.name}</span>
+          <span className="rh-dock-label">{d.name}</span>
         </div>
       ))}
     </div>

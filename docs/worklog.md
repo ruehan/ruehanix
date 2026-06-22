@@ -1,5 +1,21 @@
 # 작업 로그
 
+## 2026-06-22 — RueHanix Next.js 변환
+- 브랜치: feat/nextjs-conversion
+- 한 일: 단일 `index.html`(React CDN, ADR 0001)을 Next.js 15 App Router + TypeScript로 변환.
+  App 클래스를 `useRuehanix` 훅 + `viewModel.ts` 순수 빌더로 재작성, 8개 앱·waybar·타일링 WM·
+  드래그·런처·키보드 단축키·라이브 테마 엔진을 함수형+훅으로 이식. 타일링/테마 로직을
+  `lib/ruehanix`의 순수 함수로 분리(vitest 16개). 스타일은 globals.css + 인라인 객체.
+  기능·UI·스타일 원본과 동치(시각 확인 포함).
+- 검증: verify.sh 통과(typecheck·lint 무경고·vitest 16/16), `npm run build` 정적 프리렌더 4/4,
+  `npm run smoke` 6/6.
+- 리뷰: 통과 1라운드(병합 전 기록 보완) — 상세: docs/reviews/2026-06-22-nextjs-변환.md
+- 가정: 구조는 사용자 선택대로 실용적 분해(풀 FSD 아님) — ADR 0002로 예외 기록.
+  index.html은 참조용 보관(미삭제).
+- 백로그(비차단): smoke에 키보드 단축키·드래그 거터 시나리오 추가, index.html 제거,
+  콘텐츠 MDX/CMS 분리, 접근성(div→role/키보드).
+- 관련 결정: docs/decisions/0002-nextjs-conversion.md
+
 ## 2026-06-22 — ruehanix 데스크톱 셸 구현
 - 브랜치: feat/ruehanix-desktop
 - 한 일: Claude Design 프로토타입 `RueHanix.dc.html`(Design Composer 런타임 의존, 단독 실행 불가)을

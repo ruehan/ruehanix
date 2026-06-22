@@ -1,5 +1,19 @@
 # 작업 로그
 
+## 2026-06-22 — Sanity 임베드 스튜디오 (+ 강제 Next 16 업그레이드)
+- 브랜치: feat/sanity-embedded-studio
+- 한 일: `/studio` 임베드 Sanity 스튜디오(클라이언트 전용 ssr:false) + post 스키마 +
+  env 클라이언트(읽기토큰 서버 전용) + post 정규화·GROQ 어댑터(normalizePost 순수 TDD).
+  Sanity 6/next-sanity 13 호환 위해 react 19.2·**Next 16(major)** 강제 업그레이드, next lint 제거로
+  ESLint flat config 이전, react-hooks v6 신규 규칙 4종 warn 완화. `.env*` gitignore + `.env.example`.
+- 검증: verify exit 0(typecheck·lint 0 error/12 warn·vitest 38/38), 빌드 OK(/studio=ƒ),
+  smoke 14/14(Next 16에서 앱 회귀 없음). /studio mount·프로젝트 접속 확인(CORS는 포트 미등록 환경 이슈).
+- 리뷰: 통과 1라운드(P2: formatDate UTC 고정·readToken 백로그 주석; P3: ADR 보강·.env.example·cover 백로그) — 상세: docs/reviews/2026-06-22-sanity-임베드-스튜디오.md
+- 시크릿 안전: 토큰값이 git·클라이언트 번들 어디에도 없음(리뷰어 스캔 확인).
+- 백로그: /posts/[slug]·sitemap·RSS·동적 OG·8글 마이그레이션(ADR 0006 순서), readToken 배선,
+  cover 매핑, useRuehanix react-compiler 리팩터링.
+- 관련 결정: docs/decisions/0007-sanity-embedded-studio.md
+
 ## 2026-06-22 — 완성도 패스(메타·부팅·검색·접근성) + 콘텐츠/SEO 계획
 - 브랜치: feat/polish-and-content-plan
 - 한 일: (1) 메타데이터 확장·9-dot favicon·터미널 스타일 404·브랜딩 OG 이미지(next/og).

@@ -28,4 +28,21 @@ body {
 .rh-launcher-btn:hover { filter: brightness(1.15); background: color-mix(in srgb, var(--accent) 30%, transparent) !important; }
 .rh-dock-item { transition: background .15s, transform .12s; }
 .rh-dock-item:hover { background: var(--surf0) !important; transform: translateY(-3px); }
-@keyframes rh-pulse { 0% { transform: scale(.85); opacity: .9; } 100% { transform: scale(1.5); opacity: 0; } }
+.rh-dock-label {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 9px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--mantle) 96%, transparent);
+  border: 1px solid var(--surf0);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+}
+.rh-dock-item:hover .rh-dock-label { opacity: 1; }

@@ -1,5 +1,18 @@
 # 작업 로그
 
+## 2026-06-22 — 앱 발견성 (데스크톱 독·버튼 강화·첫 방문 힌트)
+- 브랜치: feat/app-discoverability
+- 한 일: 데스크톱(≥768) 앱 실행 발견성 3종. (1) 하단 중앙 floating 독 — 8앱 클릭 실행·활성 강조·호버,
+  타일 영역에 독 자리 확보(area bottomReserve). (2) 좌상단 런처 버튼을 9-dot 앱그리드 아이콘 +
+  툴팁 + 호버로 강화. (3) 첫 방문 시 독 위 펄스 말풍선 힌트 — localStorage 1회, 9초/클릭 시 닫힘.
+  표시 게이팅(shouldShowHint)·area reserve는 순수 함수로 분리해 vitest.
+- 검증: verify.sh 통과(typecheck·lint 무경고·vitest 26/26), build 4/4(/ 18.1kB),
+  smoke 10/10(데스크톱 독 시나리오 추가). Playwright 시각 확인(독·버튼·힌트 렌더).
+- 리뷰: 통과 1라운드(P3: 타이머 cleanup 반영, a11y 백로그) — 상세: docs/reviews/2026-06-22-앱발견성.md
+- 가정: 세 기능 모두 데스크톱 한정, 모바일 무변경. 버튼 라벨 "ruehanix" 유지(아이콘만 교체). ADR 0004 기록.
+- 백로그: 클릭 요소 전반 키보드 접근성(div+onClick → role/tabIndex/Enter), 독 자동숨김 토글, 힌트 다국어.
+- 관련 결정: docs/decisions/0004-app-discoverability.md
+
 ## 2026-06-22 — 반응형 / 모바일 모드
 - 브랜치: feat/responsive-mobile
 - 한 일: RueHanix에 768px 경계 반응형 추가. <768px에서 폰 OS 메타포(포커스 앱 풀스크린 +

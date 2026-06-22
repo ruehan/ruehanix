@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ruehanix — 한규 / ruehan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --crust:#11111b; --mantle:#181825; --base:#1e1e2e; --surf0:#313244; --surf1:#45475a; --surf2:#585b70;
+    --ov0:#6c7086; --ov1:#7f849c; --sub0:#a6adc8; --sub1:#bac2de; --text:#cdd6f4; --on-accent:#11111b;
+    --accent:#cba6f7;
+  }
+  html.rh-light{
+    --crust:#dce0e8; --mantle:#e6e9ef; --base:#eff1f5; --surf0:#ccd0da; --surf1:#bcc0cc; --surf2:#acb0be;
+    --ov0:#8c8fa1; --ov1:#7c7f93; --sub0:#6c6f85; --sub1:#5c5f77; --text:#4c4f69; --on-accent:#eff1f5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; -webkit-font-smoothing: antialiased; background: var(--crust); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--surf1); border-radius: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes rh-blink { 0%,50% { opacity: 1; } 50.01%,100% { opacity: 0; } }
+  @keyframes rh-spin { to { transform: rotate(360deg); } }
+  @keyframes rh-fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .rh-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; }
+  .rh-launch-item:hover { background: var(--surf0); }
+  .rh-webcard { transition: border-color .15s, transform .15s; }
+  .rh-webcard:hover { border-color: #cba6f7 !important; transform: translateY(-2px); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState } = React;
+
+// CSS text -> React style object. Template strings ("a:b;c:d") become inline styles.
+function S(css){
+  const o = {};
+  if (!css) return o;
+  for (const decl of css.split(';')) {
+    const i = decl.indexOf(':');
+    if (i < 0) continue;
+    const key = decl.slice(0, i).trim();
+    const val = decl.slice(i + 1).trim();
+    if (!key) continue;
+    o[key.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = val;
+  }
+  return o;
+}
+
+// neofetch-style ascii (desktop widget + terminal use slightly different indentation)
+const ART_DESK = [
+  "      .---.",
+  "     /     \\",
+  "     \\.@-@./",
+  "     /`\\_/`\\",
+  "    //  _  \\\\",
+  "   | \\     )|_",
+  " /`\\_`>  <_/ \\",
+  " \\__/'---'\\__/",
+].join("\n");
+const ART_TERM = [
+  "    .---.",
+  "   /     \\",
+  "   \\.@-@./",
+  "   /`\\_/`\\",
+  "  //  _  \\\\",
+  " | \\     )|_",
+  "/`\\_`>  <_/ \\",
+  "\\__/'---'\\__/",
+].join("\n");
+
+// folder icon used across Files sidebar
+function Folder({ color }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color || 'currentColor'} strokeWidth="1.7" strokeLinejoin="round">
+      <path d="M3 7h6l2 2h10v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7z"/>
+    </svg>
+  );
+}
+
+class App extends React.Component {
+  constructor(p){
+    super(p);
+    this.state = {
+      booting: true, bootN: 0,
+      ws: 1, focused: null,
+      selected: 'p1', finderCat: 'all',
+      W: window.innerWidth, H: window.innerHeight,
+      clock: this.fmtClock(), cpu: 14, ram: 47,
+      showLauncher: false, showKeys: false,
+      open: { reader:{ws:2}, files:{ws:2}, terminal:{ws:3}, hotlap:{ws:3}, foto:{ws:3} },
+      order: ['files','reader','terminal','hotlap','foto'],
+      ratios: {},
+      ui: { mode:'dark', accent:'#cba6f7', gap:10, rounded:true, glow:true, transp:false },
+    };
+    this.appMeta = {
+      files:   { name:'Files',    color:'#89b4fa', hint:'파일 탐색' },
+      reader:  { name:'Reader',   color:'#f5c2e7', hint:'글 읽기' },
+      foto:    { name:'Foto',     color:'#a6e3a1', hint:'사진' },
+      hotlap:  { name:'HOT LAP',  color:'#f38ba8', hint:'심레이싱' },
+      terminal:{ name:'Terminal', color:'#94e2d5', hint:'셸' },
+      web:     { name:'Web',      color:'#89dceb', hint:'ruehan.dev' },
+      settings:{ name:'Settings', color:'#fab387', hint:'설정' },
+      about:   { name:'About',    color:'#cba6f7', hint:'시스템 정보' },
+    };
+    this.keys = Object.keys(this.appMeta);
+    this.cats = {
+      dev:   { label:'dev',   color:'#89b4fa' },
+      sim:   { label:'racing',color:'#f38ba8' },
+      moto:  { label:'moto',  color:'#fab387' },
+      music: { label:'music', color:'#cba6f7' },
+    };
+    this.posts = [
+      { id:'p1', cat:'dev', title:'React 서버 컴포넌트, 1년 굴려보고 남은 생각', date:'2026.06.18', read:'9분',
+        excerpt:'RSC를 프로덕션에 올린 지 1년. 빛났던 부분과, 솔직히 후회한 선택을 나눠봤다.',
+        body:[
+          '서버 컴포넌트를 처음 도입할 때 가장 끌렸던 건 "번들에서 통째로 사라지는 코드"였다. 마크다운 파서, 날짜 라이브러리, 무거운 하이라이터 ― 클라이언트로 한 글자도 내려가지 않는다는 점은 측정 가능한 이득이었다.',
+          '실제로 이 블로그의 초기 JS 페이로드는 도입 전 대비 41% 줄었다. 문제는 "어디까지 서버고 어디부터 클라이언트인가"라는 경계가 코드 리뷰의 절반을 잡아먹기 시작했다는 것이다.',
+          '1년이 지난 지금의 결론은 단순하다. 데이터를 읽어 그리기만 하는 화면은 서버로, 상태가 사는 조각은 작게 잘라 클라이언트로. 경계를 흐리게 두면 RSC의 장점은 빠르게 증발한다.',
+          '다음 글에서는 캐시 무효화 전략 ― 특히 revalidateTag를 어떻게 도메인 이벤트에 묶었는지 ― 를 코드와 함께 정리할 예정이다.',
+        ] },
+      { id:'p2', cat:'dev', title:'모노레포에서 빌드 시간 70% 줄인 이야기', date:'2026.05.30', read:'7분',
+        excerpt:'turbo 캐시와 의존성 그래프를 다시 그렸더니 CI가 12분에서 3분대로 내려왔다.',
+        body:[
+          '패키지 14개짜리 모노레포에서 한 줄만 고쳐도 전체가 다시 빌드되는 게 일상이었다. 원인의 8할은 잘못 선언된 패키지 간 의존성이었다.',
+          '먼저 graph를 시각화해 "사실은 안 쓰는데 import만 걸려 있는" 엣지를 18개 끊었다. 그것만으로 영향 범위가 절반으로 줄었다.',
+          '그다음 원격 캐시를 붙였다. 같은 입력이면 동료의 머신에서 만든 결과물을 그대로 내려받는다. CI 평균이 12분 20초에서 3분 40초로 떨어졌다.',
+        ] },
+      { id:'p3', cat:'sim', title:'iRacing GT3, 뉘르부르크링 7분 벽 깨기', date:'2026.06.10', read:'6분',
+        excerpt:'노르드슐라이페 6분 59초. 1년을 매달린 개인 목표를 드디어 넘었다.',
+        body:[
+          '24.4km, 코너 154개. 노르드슐라이페는 외우는 게 아니라 몸에 새기는 트랙이다. 한 바퀴를 7분 밑으로 넣는다는 건 실수 허용치가 거의 0이라는 뜻이다.',
+          '벽을 넘은 결정적 차이는 브레이킹이 아니라 "코너 탈출에서 얼마나 빨리 풀 스로틀로 복귀하느냐"였다. Pflanzgarten 구간에서 0.3초를 통째로 줍는다.',
+          'BMW M4 GT3, 셋업은 거의 베이스. 결국 장비보다 반복이었다. 리플레이를 30바퀴어치 돌려보며 같은 코너에서 같은 실수를 지웠다.',
+        ] },
+      { id:'p4', cat:'moto', title:'2026 르망 24시, 하이퍼카 판도가 바뀐다', date:'2026.06.15', read:'8분',
+        excerpt:'LMDh와 LMH가 한 그리드에서 맞붙는 시대. 올해 르망의 관전 포인트를 정리했다.',
+        body:[
+          '하이퍼카 클래스에 9개 제조사가 모였다. 페라리, 토요타, 포르쉐, 캐딜락, BMW… 2000년대 이후 가장 빽빽한 그리드다.',
+          'BoP(성능 균등화)에 대한 불만은 여전하지만, 역설적으로 그 덕에 24시간 내내 선두권이 1분 안쪽에 묶인다. 밤사이 순위가 다섯 번 뒤집히는 레이스가 됐다.',
+          '개인적으로는 토요타의 연료 전략을 주목하고 있다. 스틴트를 한 랩 더 끌고 가는 도박이 새벽에 통할지가 승부처다.',
+        ] },
+      { id:'p5', cat:'moto', title:'F1 2026 레귤레이션, 무엇이 바뀌나', date:'2026.04.22', read:'10분',
+        excerpt:'파워유닛 전기 비중 50%, 액티브 에어로, 경량화. 새 규정의 핵심을 짚어본다.',
+        body:[
+          '2026년 파워유닛은 내연 기관과 전기 모터의 출력 비중이 거의 반반이 된다. MGU-H는 사라지고 배터리 회생에 더 의존한다.',
+          '액티브 에어로가 도입되면서 직선에서 다운포스를 흘리고 코너에서 잡는 모드 전환이 가능해진다. DRS의 역할이 사실상 재정의되는 셈이다.',
+          '차량은 더 좁고 가벼워진다. 무게 30kg 감량 목표는 최근 10년 흐름을 거스르는 방향이라 팀들의 패키징 싸움이 치열할 것이다.',
+        ] },
+      { id:'p6', cat:'music', title:'베이스 입문 6개월, 손가락이 기억하기까지', date:'2026.03.12', read:'5분',
+        excerpt:'메트로놈과의 지루한 싸움. 그리고 어느 날 갑자기 그루브가 붙던 순간.',
+        body:[
+          '처음 석 달은 솔직히 재미없었다. 60bpm 메트로놈에 맞춰 루트 음만 반복하는 연습은 음악이 아니라 노동에 가까웠다.',
+          '전환점은 좋아하던 곡의 베이스 라인을 통째로 카피하면서 왔다. 음을 외우는 게 아니라 "왜 여기서 이 음으로 움직이는가"가 들리기 시작했다.',
+          '지금은 밴드 합주에서 드럼과 호흡을 맞추는 게 가장 즐겁다. 베이스는 튀지 않으면서 곡 전체를 밀고 가는 악기라는 말을 이제야 체감한다.',
+        ] },
+      { id:'p7', cat:'music', title:'내가 매일 듣는 플레이리스트와 톤', date:'2026.02.08', read:'4분',
+        excerpt:'코딩할 때, 운전할 때, 잠들기 전. 상황별로 다른 베이스 톤의 음악들.',
+        body:[
+          '집중이 필요할 때는 보컬이 없는 퓨전 재즈를 튼다. 베이스가 전면에 나오는 트랙은 오히려 산만해서 피한다.',
+          '운전할 때는 펑크와 모타운. 그루브가 분명한 곡은 페이스를 일정하게 잡아준다 ― 이건 심레이싱에서도 똑같이 통한다.',
+          '잠들기 전엔 앰비언트. 톤이 둥글고 어택이 약한 음악이 하루의 긴장을 풀어준다.',
+        ] },
+      { id:'p8', cat:'dev', title:'TypeScript 타입 좁히기, 실전 패턴 모음', date:'2026.01.20', read:'8분',
+        excerpt:'discriminated union부터 assertion 함수까지, 실무에서 자주 쓰는 좁히기 패턴.',
+        body:[
+          '타입 좁히기(narrowing)는 결국 "컴파일러에게 내가 아는 사실을 증명하는 일"이다. 가장 깔끔한 도구는 discriminated union이다.',
+          'kind 같은 태그 필드를 두면 switch 한 번으로 분기마다 타입이 자동으로 좁혀진다. as 단언을 쓰고 싶어질 때 대부분은 이 패턴으로 대체할 수 있다.',
+          '외부 경계(네트워크, 폼)에서는 assertion 함수나 zod 같은 런타임 검증으로 타입과 실제 값을 일치시키는 게 안전하다.',
+        ] },
+    ];
+    this.photos = [
+      { t:'Spa · Eau Rouge', c1:'#1b3a5c', c2:'#3f7cae', tag:'track' },
+      { t:'베이스 셋업 · 합주실', c1:'#3a2a1a', c2:'#9a6b3a', tag:'music' },
+      { t:'르망 새벽 4시', c1:'#1a1330', c2:'#5b3f8a', tag:'moto' },
+      { t:'트리플 모니터 리그', c1:'#10211c', c2:'#2f6f57', tag:'sim' },
+      { t:'몬차 · 파라볼리카', c1:'#3a1320', c2:'#b03a52', tag:'track' },
+      { t:'주말의 LP', c1:'#2a2410', c2:'#a08a2a', tag:'music' },
+      { t:'스즈카 · S자', c1:'#10243a', c2:'#3a86c0', tag:'track' },
+      { t:'야간 코딩', c1:'#1a1a22', c2:'#4a4a66', tag:'dev' },
+      { t:'WEC 피트월', c1:'#2a160a', c2:'#c0641a', tag:'moto' },
+    ];
+    this.laps = [
+      { track:'Nürburgring Nordschleife', car:'BMW M4 GT3', time:'6:59.214', delta:'-0.41', best:true },
+      { track:'Spa-Francorchamps', car:'Ferrari 296 GT3', time:'2:17.882', delta:'-0.12', best:false },
+      { track:'Monza', car:'Porsche 992 GT3 R', time:'1:47.503', delta:'+0.08', best:false },
+      { track:'Suzuka', car:'BMW M4 GT3', time:'2:00.661', delta:'-0.27', best:false },
+      { track:'Le Mans · La Sarthe', car:'Toyota GR010', time:'3:24.119', delta:'-0.55', best:false },
+    ];
+    this.bootSeq = [
+      ['ok','Reached target ', 'Basic System'],
+      ['ok','Started ', 'Network Manager'],
+      ['ok','Mounted ', '/home/ruehan'],
+      ['ok','Started ', 'Bluetooth service'],
+      ['ok','Started ', 'PipeWire Multimedia'],
+      ['ok','Reached target ', 'Graphical Interface'],
+      ['ok','Started ', 'Hyprland session'],
+      ['info','Loading ', 'Catppuccin Mocha theme'],
+      ['info','Spawning ', 'waybar · conky · fastfetch'],
+      ['ok','Welcome to ', 'ruehanix 1.0 (kernel 6.9.2-rue)'],
+    ];
+    this.drag = null;
+    this._mm = this.onMove.bind(this);
+    this._mu = this.onUp.bind(this);
+    this._kd = this.onKey.bind(this);
+  }
+  componentDidMount(){
+    window.addEventListener('mousemove', this._mm);
+    window.addEventListener('mouseup', this._mu);
+    window.addEventListener('keydown', this._kd);
+    window.addEventListener('resize', this._rz = ()=> this.setState({ W: window.innerWidth, H: window.innerHeight }));
+    this.runBoot();
+    this.applyTheme();
+    this._t = setInterval(()=> this.setState({ clock: this.fmtClock(), cpu: 8+Math.floor(Math.random()*26), ram: 44+Math.floor(Math.random()*12) }), 1400);
+  }
+  componentWillUnmount(){
+    window.removeEventListener('mousemove', this._mm);
+    window.removeEventListener('mouseup', this._mu);
+    window.removeEventListener('keydown', this._kd);
+    window.removeEventListener('resize', this._rz);
+    clearInterval(this._t); clearInterval(this._bt);
+  }
+  fmtClock(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+  runBoot(){
+    clearInterval(this._bt); clearTimeout(this._bootDone);
+    this.setState({ booting:true, bootN:0 });
+    let n=0;
+    this._bt = setInterval(()=>{
+      n++;
+      this.setState({ bootN:Math.min(n,this.bootSeq.length) });
+      if(n>=this.bootSeq.length){
+        clearInterval(this._bt);
+        this._bootDone=setTimeout(()=>this.setState({ booting:false }), 700);
+      }
+    }, 200);
+  }
+  reboot(){ this.runBoot(); }
+
+  onKey(e){
+    if(this.state.booting) return;
+    const k=e.key;
+    if(e.metaKey || e.altKey){
+      if(k==='d'||k==='D'){ e.preventDefault(); this.toggleLauncher(); }
+      if(k==='/'){ e.preventDefault(); this.toggleKeys(); }
+      if(k>='1'&&k<='6'){ e.preventDefault(); this.gotoWs(+k); }
+      if(k==='q'||k==='Q'){ if(this.state.focused) this.close(this.state.focused); }
+    }
+    if(k==='Escape') this.setState({ showLauncher:false, showKeys:false });
+  }
+
+  curIds(){ return this.state.order.filter(k=> this.state.open[k] && this.state.open[k].ws===this.state.ws); }
+  toggleLauncher(){ this.setState(s=>({ showLauncher: !s.showLauncher, showKeys:false })); }
+  toggleKeys(){ this.setState(s=>({ showKeys: !s.showKeys, showLauncher:false })); }
+  gotoWs(n){ this.setState(s=>{ const ids=s.order.filter(k=> s.open[k] && s.open[k].ws===n); return { ws:n, focused: ids[0]||null, showLauncher:false }; }); }
+  openApp(k){
+    this.setState(s=>{
+      const open={...s.open};
+      let order=s.order;
+      if(open[k]){ open[k]={ws:s.ws}; }
+      else { open[k]={ws:s.ws}; if(!order.includes(k)) order=[...order,k]; }
+      return { open, order, focused:k, showLauncher:false };
+    });
+  }
+  close(k){ this.setState(s=>{ const open={...s.open}; delete open[k]; const ids=s.order.filter(x=> open[x] && open[x].ws===s.ws); return { open, focused: s.focused===k ? (ids[ids.length-1]||null) : s.focused }; }); }
+  focusApp(k){ this.setState({ focused:k }); }
+  openPost(id){ this.setState(s=>{ const open={...s.open, reader:{ws:s.ws}}; const order=s.order.includes('reader')?s.order:[...s.order,'reader']; return { open, order, selected:id, focused:'reader' }; }); }
+  setReaderSel(id){ this.setState({ selected:id }); }
+  setFinderCat(c){ this.setState({ finderCat:c }); }
+  effMode(){ const m=this.state.ui.mode; if(m==='auto'){ return (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'; } return m; }
+  accentEff(){ const lat={'#f38ba8':'#d20f39','#fab387':'#fe640b','#a6e3a1':'#40a02b','#cba6f7':'#8839ef','#89b4fa':'#1e66f5','#f5c2e7':'#ea76cb'}; const a=this.state.ui.accent; return this.effMode()==='light' ? (lat[a]||a) : a; }
+  applyTheme(){ const light=this.effMode()==='light'; document.documentElement.classList.toggle('rh-light', light); document.documentElement.style.setProperty('--accent', this.accentEff()); }
+  setMode(m){ this.setState(s=>({ ui:{...s.ui, mode:m} }), ()=>this.applyTheme()); }
+  setAccent(c){ this.setState(s=>({ ui:{...s.ui, accent:c} }), ()=>this.applyTheme()); }
+  toggleUi(k){ this.setState(s=>({ ui:{...s.ui, [k]:!s.ui[k]} })); }
+  startSlider(e){ e.preventDefault(); const rect=e.currentTarget.getBoundingClientRect(); this.drag={ type:'slider', left:rect.left, width:rect.width }; this.moveSlider(e); }
+  moveSlider(e){ const d=this.drag; if(!d||d.type!=='slider') return; let pct=(e.clientX-d.left)/d.width; pct=Math.max(0,Math.min(1,pct)); this.setState(s=>({ ui:{...s.ui, gap:Math.round(pct*28)} })); }
+
+  area(){ const g=this.state.ui.gap; const m=Math.max(6,g+2), top=8+34+8; return { x:m, y:top, w:this.state.W-m*2, h:this.state.H-top-m }; }
+  layout(){
+    const ids=this.curIds(); const rects={}; const gutters=[]; const gap=Math.max(2,this.state.ui.gap);
+    if(ids.length===0) return { rects, gutters };
+    let R={...this.area()}; let dir='v';
+    for(let i=0;i<ids.length;i++){
+      if(i===ids.length-1){ rects[ids[i]]={...R}; break; }
+      const key=this.state.ws+':'+i; const ratio=this.state.ratios[key] ?? 0.5;
+      if(dir==='v'){ const wA=Math.round(R.w*ratio);
+        rects[ids[i]]={x:R.x,y:R.y,w:wA-gap/2,h:R.h};
+        gutters.push({key, dir, total:R.w, x:R.x+wA-gap/2, y:R.y, w:gap, h:R.h});
+        R={x:R.x+wA+gap/2,y:R.y,w:R.w-wA-gap/2,h:R.h};
+      } else { const hA=Math.round(R.h*ratio);
+        rects[ids[i]]={x:R.x,y:R.y,w:R.w,h:hA-gap/2};
+        gutters.push({key, dir, total:R.h, x:R.x, y:R.y+hA-gap/2, w:R.w, h:gap});
+        R={x:R.x,y:R.y+hA+gap/2,w:R.w,h:R.h-hA-gap/2};
+      }
+      dir = dir==='v'?'h':'v';
+    }
+    return { rects, gutters };
+  }
+  startGutter(g, e){ e.preventDefault(); this.drag={ key:g.key, dir:g.dir, total:g.total, sx:e.clientX, sy:e.clientY, start:(this.state.ratios[g.key] ?? 0.5) }; }
+  onMove(e){ if(!this.drag) return; if(this.drag.type==='slider'){ this.moveSlider(e); return; } const d=this.drag; const delta = d.dir==='v' ? (e.clientX-d.sx) : (e.clientY-d.sy); let r = d.start + delta/d.total; r=Math.max(0.18,Math.min(0.82,r)); this.setState(s=>({ ratios:{...s.ratios,[d.key]:r} })); }
+  onUp(){ this.drag=null; }
+
+  lineIcon(k, size){
+    const s=size||22; const sw=1.7;
+    const com={width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:sw,strokeLinecap:'round',strokeLinejoin:'round'};
+    const E=React.createElement;
+    const paths={
+      files:[E('path',{key:1,d:'M3 7h6l2 2h10v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7z'})],
+      reader:[E('path',{key:1,d:'M4 5a2 2 0 0 1 2-2h6v18H6a2 2 0 0 0-2 2V5z'}),E('path',{key:2,d:'M12 3h6a2 2 0 0 1 2 2v16a2 2 0 0 0-2-2h-6'})],
+      foto:[E('rect',{key:1,x:3,y:4,width:18,height:16,rx:2}),E('circle',{key:2,cx:8.5,cy:9.5,r:1.5}),E('path',{key:3,d:'M4 18l5-5 4 4 3-3 4 4'})],
+      hotlap:[E('circle',{key:1,cx:12,cy:12,r:9}),E('circle',{key:2,cx:12,cy:12,r:2.2}),E('path',{key:3,d:'M12 3v5M3.8 9.5l4.8 2.2M20.2 9.5l-4.8 2.2'})],
+      terminal:[E('rect',{key:1,x:3,y:4,width:18,height:16,rx:2}),E('path',{key:2,d:'M7 9l3 3-3 3M12.5 15h4'})],
+      web:[E('circle',{key:1,cx:12,cy:12,r:9}),E('path',{key:2,d:'M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18'})],
+      settings:[E('circle',{key:1,cx:12,cy:12,r:3}),E('path',{key:2,d:'M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2'})],
+      about:[E('circle',{key:1,cx:12,cy:12,r:9}),E('path',{key:2,d:'M12 11v5'}),E('circle',{key:3,cx:12,cy:7.8,r:0.7,fill:'currentColor'})],
+    };
+    return E('svg',com,paths[k]);
+  }
+
+  renderVals(){
+    const C={base:'var(--base)',mantle:'var(--mantle)',surf0:'var(--surf0)',surf1:'var(--surf1)',ov0:'var(--ov0)',text:'var(--text)',mauve:'#cba6f7'};
+    const ui=this.state.ui;
+    const accent=this.accentEff();
+    const hexA=(hex,a)=>{ const h=hex.replace('#',''); const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16); return `rgba(${r},${g},${b},${a})`; };
+    const rad = ui.rounded ? 11 : 2;
+    const lay=this.layout();
+    const tiles={};
+    for(const k of this.keys){
+      const r=lay.rects[k];
+      const vis = this.state.open[k] && this.state.open[k].ws===this.state.ws && !this.state.booting && r;
+      if(!vis){ tiles[k]='position:absolute;display:none;'; continue; }
+      const foc=this.state.focused===k;
+      const shadow = foc
+        ? (ui.glow ? `0 0 0 1px ${hexA(accent,.45)},0 0 22px ${hexA(accent,.35)},0 14px 40px rgba(0,0,0,.5)` : '0 14px 40px rgba(0,0,0,.5)')
+        : '0 8px 24px rgba(0,0,0,.35)';
+      const op = ui.transp ? (foc ? 0.97 : 0.82) : 1;
+      tiles[k]=`position:absolute;left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;`
+        +`border-radius:${rad}px;overflow:hidden;border:2px solid ${foc?accent:C.surf0};opacity:${op};`
+        +(ui.transp?`backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);`:'')
+        +`box-shadow:${shadow};`
+        +`transition:left .17s ease,top .17s ease,width .17s ease,height .17s ease,border-color .15s,opacity .15s,box-shadow .15s;z-index:${foc?120:110};`;
+    }
+    const gutters=lay.gutters.map(g=>({ onDown:(e)=>this.startGutter(g,e),
+      style:`position:absolute;left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px;z-index:300;cursor:${g.dir==='v'?'col-resize':'row-resize'};` }));
+
+    const focus={}, close={};
+    for(const k of this.keys){ focus[k]=()=>this.focusApp(k); close[k]=(e)=>{ e&&e.stopPropagation(); this.close(k); }; }
+
+    const wsList=[1,2,3,4,5,6].map(n=>{
+      const occupied=this.state.order.some(k=> this.state.open[k] && this.state.open[k].ws===n);
+      const active=this.state.ws===n;
+      const col = active ? 'var(--on-accent)' : (occupied ? accent : 'var(--ov0)');
+      const bg = active ? `background:${accent};font-weight:700;` : (occupied?`background:${hexA(accent,.16)};`:'');
+      return { n, onClick:()=>this.gotoWs(n),
+        style:`min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0 6px;border-radius:6px;font-size:12px;cursor:pointer;color:${col};${bg}` };
+    });
+
+    const fa=this.state.focused; const fm=fa?this.appMeta[fa]:null;
+    const focusTitle = fm ? fm.name : 'ruehanix · Hyprland';
+    const focusDot = fm ? fm.color : 'var(--ov0)';
+
+    const appList=this.keys.map(k=>({ name:this.appMeta[k].name, color:this.appMeta[k].color, hint:this.appMeta[k].hint,
+      icon:this.lineIcon(k,20), onClick:()=>this.openApp(k) }));
+
+    const E=React.createElement;
+    const kb=(combo,desc)=> E('div',{style:{display:'flex',alignItems:'center',gap:'10px',fontSize:'12.5px'}},
+      E('span',{style:{color:'var(--text)',background:'var(--surf0)',borderRadius:'6px',padding:'3px 8px',fontWeight:600,whiteSpace:'nowrap'}},combo),
+      E('span',{style:{color:'var(--sub0)'}},desc));
+    const keybinds=[ kb('Super + D','앱 실행기'), kb('Super + 1-6','워크스페이스 이동'), kb('Super + Q','창 닫기'),
+      kb('Super + /','이 도움말'), kb('Esc','오버레이 닫기'), kb('드래그','타일 경계 크기조절'),
+      kb('워크스페이스 클릭','바에서 전환'), kb('앱 클릭','포커스 이동') ];
+    const kbWrap = E(React.Fragment,null,...keybinds.map((el,i)=>E(React.Fragment,{key:i},el)));
+
+    const bootLines=this.bootSeq.slice(0,this.state.bootN).map((l,i)=>{
+      const tag = l[0]==='ok' ? E('span',{style:{color:'#a6e3a1'}},'  OK  ') : E('span',{style:{color:'#89b4fa'}},' INFO ');
+      return { node: E('span',null, E('span',{style:{color:'var(--ov0)'}},'[ '), tag, E('span',{style:{color:'var(--ov0)'}},' ] '),
+        E('span',{style:{color:'var(--sub0)'}},l[1]), E('span',{style:{color:'var(--text)',fontWeight:600}},l[2])) };
+    });
+
+    // ---- blog data ----
+    const lightMode = this.effMode()==='light';
+    const catC = lightMode ? {dev:'#1e66f5',sim:'#d20f39',moto:'#fe640b',music:'#8839ef'} : {dev:'#89b4fa',sim:'#f38ba8',moto:'#fab387',music:'#cba6f7'};
+    const catOf=(id)=>({ label:this.cats[id].label, color: catC[id]||this.cats[id].color });
+    const decorate=(p)=>{ const c=catOf(p.cat); return {
+      id:p.id, title:p.title, date:p.date, read:p.read, excerpt:p.excerpt,
+      catLabel:c.label, catColor:c.color,
+      rowBg: p.id===this.state.selected ? hexA(accent,.14) : 'transparent',
+      open:()=>this.openPost(p.id) }; };
+    const fc=this.state.finderCat;
+    const finderPosts=this.posts.filter(p=> fc==='all'||p.cat===fc).map(decorate);
+    const finderCount=finderPosts.length+' items · '+this.posts.length+' total';
+    const catList=[{key:'all',label:'all'}].concat(Object.keys(this.cats).map(k=>({key:k,label:this.cats[k].label})));
+    const finderCats=catList.map(c=>({ key:c.key, label:c.label, onClick:()=>this.setFinderCat(c.key),
+      chipStyle:`padding:3px 11px;border-radius:7px;font-size:12px;cursor:pointer;white-space:nowrap;${c.key===fc?`background:${accent};color:var(--on-accent);font-weight:700;`:'background:var(--surf0);color:var(--sub0);'}` }));
+    const selP=this.posts.find(p=>p.id===this.state.selected)||this.posts[0];
+    const selC=catOf(selP.cat);
+    const post={ title:selP.title, date:selP.date, read:selP.read, catLabel:selC.label, catColor:selC.color,
+      paras:selP.body.map((t,i)=>({ id:i, text:t })) };
+    const readerList=this.posts.map(p=>{ const c=catOf(p.cat); return {
+      id:p.id, title:p.title, catColor:c.color, date:p.date,
+      itemStyle:`display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:7px;cursor:pointer;${p.id===this.state.selected?`background:${hexA(accent,.14)};`:''}`,
+      open:()=>this.setReaderSel(p.id) }; });
+    const photos=this.photos.map((ph,i)=>({ id:i, title:ph.t, tag:ph.tag,
+      tileStyle:`position:relative;aspect-ratio:4/3;border-radius:9px;overflow:hidden;cursor:pointer;background:linear-gradient(135deg,${ph.c1},${ph.c2});border:1px solid var(--surf0);` }));
+    const laps=this.laps.map((l,i)=>({ id:i, track:l.track, car:l.car, time:l.time, delta:l.delta, best:l.best,
+      deltaColor: l.delta.startsWith('-')?'#a6e3a1':'#f38ba8',
+      rowStyle:`display:grid;grid-template-columns:1.6fr 1.1fr .6fr .5fr;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--surf0);${l.best?'background:rgba(243,139,168,.08);':''}` }));
+    const allPosts=this.posts.map(decorate);
+
+    // ---- settings (live) ----
+    const wallpaper = lightMode
+      ? `radial-gradient(120% 110% at 12% 6%, ${hexA(accent,.30)} 0%, rgba(0,0,0,0) 50%), radial-gradient(120% 120% at 92% 96%, ${hexA(accent,.22)} 0%, rgba(0,0,0,0) 52%), linear-gradient(160deg, #f3f4f8 0%, #e6e9ef 55%, #dce0e8 100%)`
+      : `radial-gradient(120% 110% at 12% 6%, ${hexA(accent,.20)} 0%, rgba(0,0,0,0) 50%), radial-gradient(120% 120% at 92% 96%, ${hexA(accent,.16)} 0%, rgba(0,0,0,0) 52%), linear-gradient(160deg, #1e1e2e 0%, #181825 55%, #11111b 100%)`;
+    const togTrack=(on)=>`width:38px;height:22px;border-radius:11px;position:relative;cursor:pointer;background:${on?accent:'var(--surf0)'};transition:background .15s;`;
+    const togKnob=(on)=>`position:absolute;top:2px;left:${on?18:2}px;width:18px;height:18px;border-radius:50%;background:${on?'var(--on-accent)':'var(--ov0)'};transition:left .15s;`;
+    const modes=[
+      {k:'light',label:'Light',prev:'linear-gradient(135deg,#eff1f5,#ccd0da)'},
+      {k:'dark',label:'Dark',prev:'linear-gradient(135deg,#1e1e2e,#45475a)'},
+      {k:'auto',label:'Auto',prev:'linear-gradient(135deg,#eff1f5 0%,#eff1f5 48%,#1e1e2e 52%,#1e1e2e 100%)'},
+    ];
+    const modeOpts=modes.map(m=>({ key:m.k, label:m.label, onClick:()=>this.setMode(m.k),
+      swatchStyle:`width:84px;height:54px;border-radius:9px;background:${m.prev};margin-bottom:6px;border:2px solid ${ui.mode===m.k?accent:'var(--surf0)'};box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);`,
+      labelStyle:`font-size:11px;${ui.mode===m.k?'font-weight:700;color:var(--text);':'color:var(--ov0);'}` }));
+    const accentPalette=['#f38ba8','#fab387','#a6e3a1','#cba6f7','#89b4fa','#f5c2e7'];
+    const accentOpts=accentPalette.map(c=>({ key:c, onClick:()=>this.setAccent(c),
+      style:`width:20px;height:20px;border-radius:50%;cursor:pointer;background:${c};${ui.accent===c?'box-shadow:0 0 0 2px var(--base),0 0 0 3.5px '+c+';':''}` }));
+    const set={
+      modeOpts, accentOpts,
+      gapPct:Math.round(ui.gap/28*100)+'%', gapLabel:ui.gap+'px', startSlider:(e)=>this.startSlider(e),
+      transpOn:ui.transp, roundedOn:ui.rounded, glowOn:ui.glow,
+      togTranspTrack:togTrack(ui.transp), togTranspKnob:togKnob(ui.transp),
+      togRoundTrack:togTrack(ui.rounded), togRoundKnob:togKnob(ui.rounded),
+      togGlowTrack:togTrack(ui.glow), togGlowKnob:togKnob(ui.glow),
+      toggleTransp:()=>this.toggleUi('transp'), toggleRounded:()=>this.toggleUi('rounded'), toggleGlow:()=>this.toggleUi('glow'),
+    };
+
+    return {
+      booting:this.state.booting, bootLines,
+      tiles, gutters, focus, close,
+      chrome:`width:100%;height:100%;display:flex;flex-direction:column;background:${C.base};`,
+      tbar:`flex:none;height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:${C.mantle};border-bottom:1px solid ${C.surf0};font-size:12px;cursor:default;`,
+      xbtn:`width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:5px;color:${C.ov0};font-size:11px;cursor:pointer;`,
+      bodyWrap:`flex:1;min-height:0;overflow:auto;`,
+      wsList, focusTitle, focusDot,
+      mod:{ clock:this.state.clock, cpu:this.state.cpu+'%', ram:this.state.ram+'%', vol:'64', batt:'87%' },
+      showLauncher:this.state.showLauncher, showKeys:this.state.showKeys,
+      toggleLauncher:()=>this.toggleLauncher(), toggleKeys:()=>this.toggleKeys(), reboot:()=>this.reboot(),
+      stop:(e)=>e.stopPropagation(),
+      appList, keybinds:kbWrap,
+      finderPosts, finderCount, finderCats, post, readerList, photos, laps, allPosts,
+      wallpaper, set, accent,
+    };
+  }
+
+  // ----- per-app bodies -----
+  bodyFiles(v){
+    const folders=[['posts',true],['series',false],['tags',false],['drafts',false]];
+    return (
+      <div style={{display:'flex',height:'100%',fontSize:'12.5px',color:'var(--text)'}}>
+        <div style={{flex:'none',width:'152px',background:'var(--mantle)',borderRight:'1px solid var(--surf0)',padding:'12px 8px',overflow:'auto'}}>
+          <div style={{color:'var(--ov0)',fontSize:'11px',padding:'0 6px 7px'}}>~/blog</div>
+          <div style={{display:'flex',flexDirection:'column',gap:'1px'}}>
+            {folders.map(([name,active])=>(
+              <div key={name} style={S(`display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:6px;${active?'background:rgba(137,180,250,.12);color:#89b4fa;':'color:var(--sub0);'}`)}>
+                <Folder/>{name}
+              </div>
+            ))}
+          </div>
+          <div style={{color:'var(--ov0)',fontSize:'11px',padding:'14px 6px 7px'}}>devices</div>
+          <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'5px 7px',borderRadius:'6px',color:'var(--sub0)'}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><rect x="3" y="5" width="18" height="12" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>/dev/nvme0
+          </div>
+        </div>
+        <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column'}}>
+          <div onMouseDown={v.stop} style={{flex:'none',display:'flex',alignItems:'center',gap:'6px',padding:'10px 14px',borderBottom:'1px solid var(--surf0)'}}>
+            {v.finderCats.map(c=>(<div key={c.key} onClick={c.onClick} style={S(c.chipStyle)}>{c.label}</div>))}
+          </div>
+          <div style={{flex:1,minHeight:0,overflow:'auto'}}>
+            {v.finderPosts.map(p=>(
+              <div key={p.id} onClick={p.open} style={S(`display:flex;align-items:center;gap:11px;padding:9px 14px;border-bottom:1px solid var(--surf0);cursor:pointer;background:${p.rowBg};`)}>
+                <span style={S(`flex:none;width:8px;height:8px;border-radius:2px;background:${p.catColor};`)}></span>
+                <div style={{minWidth:0,flex:1}}>
+                  <div style={{whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',color:'var(--text)'}}>{p.title}.md</div>
+                  <div style={{fontSize:'11px',color:'var(--ov0)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.excerpt}</div>
+                </div>
+                <span style={S(`flex:none;font-size:11px;color:${p.catColor};`)}>{p.catLabel}</span>
+                <span style={{flex:'none',fontSize:'11px',color:'var(--ov0)',width:'74px',textAlign:'right'}}>{p.date}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{flex:'none',padding:'7px 14px',borderTop:'1px solid var(--surf0)',fontSize:'11px',color:'var(--ov0)'}}>{v.finderCount}</div>
+        </div>
+      </div>
+    );
+  }
+  bodyReader(v){
+    const p=v.post;
+    return (
+      <div style={{display:'flex',height:'100%'}}>
+        <div style={{flex:'none',width:'188px',background:'var(--mantle)',borderRight:'1px solid var(--surf0)',overflow:'auto',padding:'12px 8px'}}>
+          <div style={{color:'var(--ov0)',fontSize:'11px',padding:'0 6px 8px'}}>posts/</div>
+          <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
+            {v.readerList.map(it=>(
+              <div key={it.id} onClick={it.open} style={S(it.itemStyle)}>
+                <div style={{display:'flex',alignItems:'center',gap:'7px'}}>
+                  <span style={S(`width:6px;height:6px;border-radius:50%;flex:none;background:${it.catColor};`)}></span>
+                  <span style={{fontSize:'11.5px',color:'var(--text)',lineHeight:1.35}}>{it.title}</span>
+                </div>
+                <span style={{fontSize:'10.5px',color:'var(--ov0)',paddingLeft:'13px'}}>{it.date}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{flex:1,minWidth:0,overflow:'auto',background:'var(--base)'}}>
+          <div className="rh-sans" style={{maxWidth:'580px',margin:'0 auto',padding:'46px 50px 64px'}}>
+            <div style={S(`display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:18px;font-family:'JetBrains Mono',monospace;background:color-mix(in srgb, var(--accent) 18%, transparent);color:${p.catColor};`)}>#{p.catLabel}</div>
+            <h1 style={{margin:'0 0 14px',fontSize:'27px',lineHeight:1.28,fontWeight:800,letterSpacing:'-.02em',color:'var(--text)',textWrap:'balance'}}>{p.title}</h1>
+            <div style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'12.5px',color:'var(--ov0)',fontFamily:"'JetBrains Mono',monospace",paddingBottom:'24px',marginBottom:'28px',borderBottom:'1px solid var(--surf0)'}}>
+              <span style={{color:'var(--sub0)'}}>ruehan</span><span>·</span><span>{p.date}</span><span>·</span><span>{p.read}</span>
+            </div>
+            {p.paras.map(para=>(<p key={para.id} style={{margin:'0 0 20px',fontSize:'16px',lineHeight:1.82,color:'var(--sub1)'}}>{para.text}</p>))}
+            <div style={{marginTop:'40px',paddingTop:'22px',borderTop:'1px solid var(--surf0)',display:'flex',alignItems:'center',gap:'12px'}}>
+              <div style={{width:'40px',height:'40px',borderRadius:'50%',flex:'none',background:'linear-gradient(135deg,#cba6f7,#89b4fa)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--on-accent)',fontWeight:800,fontSize:'15px',fontFamily:"'JetBrains Mono',monospace"}}>한</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace"}}>
+                <div style={{fontWeight:700,fontSize:'13px',color:'var(--text)'}}>한규 · ruehan</div>
+                <div style={{fontSize:'11.5px',color:'var(--ov0)'}}>full-stack dev · sim racing · bass</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  bodyFoto(v){
+    return (
+      <div style={{padding:'14px'}}>
+        <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:'13px',padding:'0 2px'}}>
+          <span style={{fontSize:'13px',color:'var(--text)'}}>~/Pictures</span>
+          <span style={{fontSize:'11px',color:'var(--ov0)'}}>9 images</span>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'9px'}}>
+          {v.photos.map(ph=>(
+            <div key={ph.id} style={S(ph.tileStyle)}>
+              <span style={{position:'absolute',top:'7px',left:'7px',padding:'2px 8px',borderRadius:'6px',fontSize:'10px',fontWeight:700,background:'rgba(17,17,27,.5)',color:'var(--text)',backdropFilter:'blur(3px)'}}>#{ph.tag}</span>
+              <div style={{position:'absolute',left:0,right:0,bottom:0,padding:'20px 9px 8px',fontSize:'11.5px',color:'#fff',background:'linear-gradient(transparent,rgba(0,0,0,.6))'}}>{ph.title}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  bodyHotlap(v){
+    return (
+      <div style={{fontSize:'12.5px',color:'var(--text)'}}>
+        <div style={{padding:'18px 18px 16px',borderBottom:'1px solid var(--surf0)'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
+            <span style={{width:'8px',height:'8px',borderRadius:'50%',background:'#f38ba8',boxShadow:'0 0 8px #f38ba8'}}></span>
+            <span style={{fontSize:'11px',fontWeight:800,letterSpacing:'.18em',color:'#f38ba8'}}>PERSONAL BEST</span>
+          </div>
+          <div style={{fontSize:'11.5px',color:'var(--ov0)',marginBottom:'3px'}}>Nürburgring Nordschleife · BMW M4 GT3</div>
+          <div style={{fontSize:'42px',fontWeight:800,letterSpacing:'-.02em',lineHeight:1}}>6:59<span style={{fontSize:'24px',color:'var(--ov0)'}}>.214</span></div>
+          <div style={{fontSize:'12px',color:'#a6e3a1',fontWeight:700,marginTop:'7px'}}>▼ 0.41s · 개인 기록 경신</div>
+        </div>
+        <div style={{display:'flex',gap:'8px',padding:'14px 18px',borderBottom:'1px solid var(--surf0)'}}>
+          {[['1,284','total laps',null],['6','GT3 cars',null],['4.2k','iRating','#f9e2af']].map(([n,l,col],i)=>(
+            <div key={i} style={{flex:1,padding:'10px 12px',borderRadius:'9px',background:'var(--mantle)',border:'1px solid var(--surf0)'}}>
+              <div style={{fontSize:'20px',fontWeight:800,...(col?{color:col}:{})}}>{n}</div>
+              <div style={{fontSize:'10.5px',color:'var(--ov0)',marginTop:'2px'}}>{l}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1.6fr 1.1fr .6fr .5fr',gap:'10px',padding:'10px 14px',fontSize:'10.5px',fontWeight:700,color:'var(--ov0)',letterSpacing:'.04em',borderBottom:'1px solid var(--surf0)'}}>
+          <span>TRACK</span><span>CAR</span><span>TIME</span><span style={{textAlign:'right'}}>Δ</span>
+        </div>
+        {v.laps.map(l=>(
+          <div key={l.id} style={S(l.rowStyle)}>
+            <span style={{display:'flex',alignItems:'center',gap:'7px',color:'var(--text)'}}>
+              {l.best && (<span style={{fontSize:'9px',fontWeight:800,padding:'1px 5px',borderRadius:'4px',background:'#f38ba8',color:'var(--on-accent)'}}>PB</span>)}
+              {l.track}
+            </span>
+            <span style={{color:'var(--ov0)'}}>{l.car}</span>
+            <span style={{fontWeight:700}}>{l.time}</span>
+            <span style={S(`text-align:right;font-weight:700;color:${l.deltaColor};`)}>{l.delta}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  bodyTerminal(v){
+    const fast=[['OS','ruehanix 1.0 x86_64'],['Kernel','6.9.2-rue'],['WM','Hyprland (Wayland)'],['Theme','Catppuccin Mocha'],['Shell','zsh 5.9'],['Role','Full-stack Dev · SW Lead'],['Stack','TypeScript · Go · React'],['Hobby','Sim Racing · F1/WEC · Bass']];
+    const sw=['#f38ba8','#fab387','#f9e2af','#a6e3a1','#89b4fa','#cba6f7'];
+    return (
+      <div style={{padding:'16px 16px',fontSize:'12.5px',lineHeight:1.6,color:'var(--text)'}}>
+        <div style={{color:'var(--ov0)'}}>ruehan@ruehanix:~$ fastfetch</div>
+        <div style={{display:'flex',gap:'18px',margin:'12px 0 8px',flexWrap:'wrap'}}>
+          <pre style={{margin:0,color:'#cba6f7',fontSize:'11px',lineHeight:1.3}}>{ART_TERM}</pre>
+          <div style={{fontSize:'12.5px'}}>
+            <div><span style={{color:'#cba6f7',fontWeight:700}}>ruehan</span><span style={{color:'var(--ov0)'}}>@</span><span style={{color:'#cba6f7',fontWeight:700}}>ruehanix</span></div>
+            <div style={{color:'var(--surf1)'}}>───────────────</div>
+            {fast.map(([k,val])=>(<div key={k}><span style={{color:'#89b4fa'}}>{k}</span><span style={{color:'var(--ov0)'}}>: </span>{val}</div>))}
+            <div style={{marginTop:'7px',display:'flex',gap:'4px'}}>
+              {sw.map(c=>(<span key={c} style={{width:'13px',height:'13px',borderRadius:'3px',background:c}}></span>))}
+            </div>
+          </div>
+        </div>
+        <div style={{marginTop:'4px'}}><span style={{color:'#a6e3a1'}}>ruehan@ruehanix</span><span style={{color:'var(--ov0)'}}>:</span><span style={{color:'#89b4fa'}}>~</span><span style={{color:'var(--ov0)'}}>$ </span>whoami</div>
+        <div style={{color:'var(--sub1)'}}>한규 — 코드를 짓고, 랩타임을 줄이고, 베이스를 친다.</div>
+        <div style={{marginTop:'4px'}}><span style={{color:'#a6e3a1'}}>ruehan@ruehanix</span><span style={{color:'var(--ov0)'}}>:</span><span style={{color:'#89b4fa'}}>~</span><span style={{color:'var(--ov0)'}}>$ </span><span style={{display:'inline-block',width:'8px',height:'14px',background:'var(--text)',verticalAlign:'-2px',animation:'rh-blink 1.1s steps(1) infinite'}}></span></div>
+      </div>
+    );
+  }
+  bodyWeb(v){
+    return (
+      <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+        <div onMouseDown={v.stop} style={{flex:'none',display:'flex',alignItems:'center',gap:'9px',padding:'8px 12px',background:'var(--mantle)',borderBottom:'1px solid var(--surf0)'}}>
+          <span style={{color:'var(--ov0)',fontSize:'14px'}}>‹ ›</span>
+          <div style={{flex:1,display:'flex',alignItems:'center',gap:'7px',height:'26px',borderRadius:'7px',background:'var(--crust)',padding:'0 11px',fontSize:'11.5px',color:'var(--sub0)'}}><span style={{color:'#a6e3a1'}}>●</span>https://ruehan.dev</div>
+        </div>
+        <div className="rh-sans" style={{flex:1,minHeight:0,overflow:'auto',background:'var(--base)'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 30px',borderBottom:'1px solid var(--surf0)',position:'sticky',top:0,background:'color-mix(in srgb, var(--base) 92%, transparent)',backdropFilter:'blur(8px)',zIndex:1,fontFamily:"'JetBrains Mono',monospace"}}>
+            <span style={{fontWeight:800,fontSize:'15px',color:'var(--text)'}}>ruehan<span style={{color:'#cba6f7'}}>.dev</span></span>
+            <div style={{display:'flex',gap:'18px',fontSize:'12.5px',color:'var(--ov0)'}}><span>posts</span><span>projects</span><span>racing</span><span>about</span></div>
+          </div>
+          <div style={{padding:'54px 30px 42px',textAlign:'center',background:'radial-gradient(120% 100% at 50% 0%,color-mix(in srgb, var(--accent) 14%, transparent),transparent 70%)'}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'12px',fontWeight:700,color:'#cba6f7',letterSpacing:'.06em',marginBottom:'14px'}}>FULL-STACK DEVELOPER · SW LEAD</div>
+            <h1 style={{margin:'0 0 16px',fontSize:'36px',lineHeight:1.18,fontWeight:800,letterSpacing:'-.03em',color:'var(--text)',textWrap:'balance'}}>코드를 짓고, 랩타임을 줄이고,<br/>베이스를 친다.</h1>
+            <p style={{margin:'0 auto',maxWidth:'480px',fontSize:'15px',lineHeight:1.7,color:'var(--sub0)'}}>한규(ruehan)의 기술 블로그. 서버 컴포넌트와 모노레포, 그리고 트랙 위의 0.1초에 대한 기록.</p>
+          </div>
+          <div style={{padding:'6px 30px 44px',maxWidth:'840px',margin:'0 auto'}}>
+            <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:'16px',fontFamily:"'JetBrains Mono',monospace"}}>
+              <h2 style={{margin:0,fontSize:'18px',fontWeight:800,color:'var(--text)'}}>최근 글</h2>
+              <span style={{fontSize:'12px',color:'var(--ov0)'}}>all posts →</span>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'14px'}}>
+              {v.allPosts.map(p=>(
+                <div key={p.id} className="rh-webcard" onClick={p.open} style={{border:'1px solid var(--surf0)',borderRadius:'13px',padding:'18px 20px',cursor:'pointer',background:'var(--mantle)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'11px',fontFamily:"'JetBrains Mono',monospace"}}>
+                    <span style={S(`padding:2px 9px;border-radius:6px;font-size:10.5px;font-weight:700;background:color-mix(in srgb, var(--accent) 18%, transparent);color:${p.catColor};`)}>#{p.catLabel}</span>
+                    <span style={{fontSize:'11px',color:'var(--ov0)'}}>{p.date}</span>
+                  </div>
+                  <div style={{fontSize:'15px',fontWeight:700,lineHeight:1.35,marginBottom:'7px',color:'var(--text)',letterSpacing:'-.01em',textWrap:'balance'}}>{p.title}</div>
+                  <div style={{fontSize:'13px',lineHeight:1.6,color:'var(--ov1)'}}>{p.excerpt}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{padding:'28px 30px',textAlign:'center',borderTop:'1px solid var(--surf0)',fontSize:'11.5px',color:'var(--ov0)',fontFamily:"'JetBrains Mono',monospace"}}>© 2026 ruehan.dev · built on ruehanix · 서울</div>
+        </div>
+      </div>
+    );
+  }
+  bodySettings(v){
+    const s=v.set;
+    const navItems=[['General',false],['Appearance',true],['Window Rules',false],['Keybindings',false],['Displays',false],['Wallpaper',false]];
+    return (
+      <div style={{display:'flex',height:'100%',fontSize:'12.5px',color:'var(--text)'}}>
+        <div style={{flex:'none',width:'170px',background:'var(--mantle)',borderRight:'1px solid var(--surf0)',padding:'12px 8px',overflow:'auto'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'6px 8px 12px'}}>
+            <div style={{width:'34px',height:'34px',borderRadius:'9px',flex:'none',background:'linear-gradient(135deg,#cba6f7,#89b4fa)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--on-accent)',fontWeight:800}}>한</div>
+            <div><div style={{fontSize:'12.5px',fontWeight:600}}>ruehan</div><div style={{fontSize:'10.5px',color:'var(--ov0)'}}>localhost</div></div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:'1px'}}>
+            {navItems.map(([label,active])=>(
+              <div key={label} style={S(`padding:6px 9px;border-radius:6px;${active?'background:rgba(250,179,135,.12);color:#fab387;font-weight:600;':'color:var(--sub0);'}`)}>{label}</div>
+            ))}
+          </div>
+        </div>
+        <div style={{flex:1,minWidth:0,overflow:'auto',padding:'22px 24px'}}>
+          <h2 style={{margin:'0 0 18px',fontSize:'18px',fontWeight:800,letterSpacing:'-.01em'}}>Appearance</h2>
+          <div style={{fontSize:'11px',color:'var(--ov0)',marginBottom:'11px',letterSpacing:'.04em'}}>APPEARANCE</div>
+          <div style={{display:'flex',gap:'11px',marginBottom:'24px'}}>
+            {s.modeOpts.map(m=>(
+              <div key={m.key} onClick={m.onClick} style={{textAlign:'center',cursor:'pointer'}}>
+                <div style={S(m.swatchStyle)}></div>
+                <div style={S(m.labelStyle)}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'13px 0',borderTop:'1px solid var(--surf0)'}}>
+            <span>Accent color</span>
+            <div style={{display:'flex',gap:'8px'}}>{s.accentOpts.map(a=>(<div key={a.key} onClick={a.onClick} style={S(a.style)}></div>))}</div>
+          </div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'13px 0',borderTop:'1px solid var(--surf0)'}}>
+            <span>Window gaps</span>
+            <div style={{display:'flex',alignItems:'center',gap:'10px',color:'var(--ov0)'}}>
+              <div onMouseDown={s.startSlider} style={{width:'120px',height:'14px',display:'flex',alignItems:'center',cursor:'pointer',position:'relative'}}>
+                <div style={{width:'100%',height:'4px',borderRadius:'2px',background:'var(--surf0)'}}></div>
+                <div style={{position:'absolute',left:0,top:'5px',height:'4px',width:s.gapPct,borderRadius:'2px',background:v.accent,pointerEvents:'none'}}></div>
+                <div style={{position:'absolute',left:s.gapPct,top:'1px',width:'12px',height:'12px',borderRadius:'50%',background:'var(--text)',transform:'translateX(-50%)',pointerEvents:'none'}}></div>
+              </div>
+              <span style={{fontVariantNumeric:'tabular-nums',width:'34px',textAlign:'right'}}>{s.gapLabel}</span>
+            </div>
+          </div>
+          {[['Window transparency',s.togTranspTrack,s.togTranspKnob,s.toggleTransp],['Rounded corners',s.togRoundTrack,s.togRoundKnob,s.toggleRounded],['Active border glow',s.togGlowTrack,s.togGlowKnob,s.toggleGlow]].map(([label,track,knob,toggle])=>(
+            <div key={label} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'13px 0',borderTop:'1px solid var(--surf0)'}}>
+              <span>{label}</span>
+              <div onClick={toggle} style={S(track)}><span style={S(knob)}></span></div>
+            </div>
+          ))}
+          <div style={{marginTop:'18px',fontSize:'11px',color:'var(--ov0)',lineHeight:1.7}}>변경 사항은 모든 워크스페이스의 창에 즉시 반영됩니다. <span style={{color:v.accent}}>Super + 1-6</span> 으로 확인해 보세요.</div>
+        </div>
+      </div>
+    );
+  }
+  bodyAbout(v){
+    const specs=[['CPU','Ryzen 9 7950X · 16C/32T'],['GPU','Radeon RX 7900 XTX'],['Memory','64GB DDR5-6000'],['WM','Hyprland · Wayland'],['Uptime','7 yrs in the industry']];
+    return (
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',textAlign:'center',padding:'30px 26px',color:'var(--text)'}}>
+        <div style={{width:'62px',height:'62px',borderRadius:'16px',background:'linear-gradient(135deg,#cba6f7,#89b4fa)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'16px',boxShadow:'0 8px 28px rgba(203,166,247,.3)'}}>
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/><circle cx="9.5" cy="7.5" r="0.7" fill="var(--on-accent)"/><circle cx="14.5" cy="7.5" r="0.7" fill="var(--on-accent)"/></svg>
+        </div>
+        <div style={{fontSize:'23px',fontWeight:800,letterSpacing:'-.02em'}}>ruehanix</div>
+        <div style={{fontSize:'12px',color:'var(--ov0)',marginTop:'3px'}}>1.0 · kernel 6.9.2-rue · x86_64</div>
+        <div style={{width:'100%',marginTop:'20px',fontSize:'12.5px'}}>
+          {specs.map(([k,val])=>(
+            <div key={k} style={{display:'flex',justifyContent:'space-between',padding:'8px 4px',borderBottom:'1px solid var(--surf0)'}}>
+              <span style={{color:'var(--ov0)'}}>{k}</span><span style={{fontWeight:600}}>{val}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{width:'100%',marginTop:'16px',padding:'14px 15px',borderRadius:'11px',background:'var(--mantle)',border:'1px solid var(--surf0)',display:'flex',alignItems:'center',gap:'12px',textAlign:'left'}}>
+          <div style={{width:'42px',height:'42px',borderRadius:'50%',flex:'none',background:'linear-gradient(135deg,#cba6f7,#89b4fa)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--on-accent)',fontWeight:800,fontSize:'16px'}}>한</div>
+          <div><div style={{fontWeight:700,fontSize:'13px'}}>한규 · ruehan</div><div style={{fontSize:'11px',color:'var(--ov0)',lineHeight:1.5}}>full-stack dev · SW Lead<br/>sim racing · F1/WEC · bass</div></div>
+        </div>
+      </div>
+    );
+  }
+
+  win(v, k, body){
+    const meta=this.appMeta[k];
+    return (
+      <div style={S(v.tiles[k])}>
+        <div style={S(v.chrome)}>
+          <div onMouseDown={v.focus[k]} style={S(v.tbar)}>
+            <span style={{display:'flex',alignItems:'center',gap:'7px',whiteSpace:'nowrap',color:meta.color}}>
+              {this.lineIcon(k,14)}<span style={{color:'var(--text)'}}>{meta.name}</span>
+            </span>
+            <div onClick={v.close[k]} style={S(v.xbtn)}>✕</div>
+          </div>
+          <div style={S(v.bodyWrap)}>{body}</div>
+        </div>
+      </div>
+    );
+  }
+
+  render(){
+    const v=this.renderVals();
+    const barChip=(bg,col,children)=>(<div style={{display:'flex',alignItems:'center',gap:'6px',padding:'3px 9px',borderRadius:'7px',background:bg,color:col}}>{children}</div>);
+    return (
+      <div style={{position:'relative',width:'100%',height:'100vh',overflow:'hidden',background:'var(--crust)',color:'var(--text)',fontFamily:"'JetBrains Mono', ui-monospace, monospace",userSelect:'none'}}>
+
+        {/* WALLPAPER */}
+        <div style={{position:'absolute',inset:0,background:v.wallpaper}}></div>
+        <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(rgba(205,214,244,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(205,214,244,.025) 1px,transparent 1px)',backgroundSize:'42px 42px',pointerEvents:'none'}}></div>
+
+        {/* DESKTOP WIDGETS */}
+        <div style={{position:'absolute',left:'46px',top:'90px',zIndex:30,display:'flex',gap:'22px',alignItems:'flex-start',textShadow:'0 1px 8px rgba(0,0,0,.4)'}}>
+          <pre style={{margin:0,color:'#cba6f7',fontSize:'13px',lineHeight:1.3}}>{ART_DESK}</pre>
+          <div style={{fontSize:'13px',lineHeight:1.65,color:'var(--sub0)'}}>
+            <div><span style={{color:'#cba6f7',fontWeight:700}}>ruehan</span><span style={{color:'var(--ov0)'}}>@</span><span style={{color:'#cba6f7',fontWeight:700}}>ruehanix</span></div>
+            <div style={{color:'var(--surf1)'}}>─────────────────</div>
+            <div><span style={{color:'#89b4fa'}}>OS</span><span style={{color:'var(--ov0)'}}>   </span>ruehanix 1.0</div>
+            <div><span style={{color:'#f5c2e7'}}>WM</span><span style={{color:'var(--ov0)'}}>   </span>Hyprland</div>
+            <div><span style={{color:'#a6e3a1'}}>DE</span><span style={{color:'var(--ov0)'}}>   </span>Catppuccin Mocha</div>
+            <div><span style={{color:'#fab387'}}>SH</span><span style={{color:'var(--ov0)'}}>   </span>zsh 5.9</div>
+            <div><span style={{color:'#f38ba8'}}>WHO</span><span style={{color:'var(--ov0)'}}>  </span>한규 · full-stack dev</div>
+            <div style={{marginTop:'8px',display:'flex',gap:'5px'}}>
+              {['#f38ba8','#fab387','#f9e2af','#a6e3a1','#89b4fa','#cba6f7'].map(c=>(<span key={c} style={{width:'16px',height:'16px',borderRadius:'4px',background:c}}></span>))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{position:'absolute',right:'34px',top:'84px',zIndex:30,width:'236px',padding:'16px 18px',borderRadius:'13px',background:'color-mix(in srgb, var(--mantle) 58%, transparent)',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)',border:'1px solid rgba(69,71,90,.5)',fontSize:'11.5px',color:'var(--sub0)',textShadow:'0 1px 6px rgba(0,0,0,.3)'}}>
+          <div style={{fontSize:'26px',fontWeight:800,color:'var(--text)',letterSpacing:'-.02em',lineHeight:1}}>{v.mod.clock}<span style={{fontSize:'12px',color:'var(--ov0)',fontWeight:500}}> KST</span></div>
+          <div style={{color:'var(--ov0)',marginBottom:'14px'}}>Mon 22 Jun 2026 · up 4h 12m</div>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:'4px'}}><span style={{color:'#a6e3a1'}}>CPU</span><span>{v.mod.cpu}</span></div>
+          <div style={{height:'5px',borderRadius:'3px',background:'var(--surf0)',marginBottom:'10px',overflow:'hidden'}}><div style={{height:'100%',width:v.mod.cpu,background:'#a6e3a1',borderRadius:'3px'}}></div></div>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:'4px'}}><span style={{color:'#f9e2af'}}>RAM</span><span>{v.mod.ram} · 30/64G</span></div>
+          <div style={{height:'5px',borderRadius:'3px',background:'var(--surf0)',marginBottom:'10px',overflow:'hidden'}}><div style={{height:'100%',width:v.mod.ram,background:'#f9e2af',borderRadius:'3px'}}></div></div>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:'4px'}}><span style={{color:'#89b4fa'}}>DISK</span><span>61% · 1.2/2T</span></div>
+          <div style={{height:'5px',borderRadius:'3px',background:'var(--surf0)',marginBottom:'13px',overflow:'hidden'}}><div style={{height:'100%',width:'61%',background:'#89b4fa',borderRadius:'3px'}}></div></div>
+          <div style={{display:'flex',justifyContent:'space-between',whiteSpace:'nowrap',color:'var(--ov0)'}}><span style={{color:'#cba6f7'}}>NET</span><span>↓2.4M ↑312K</span></div>
+          <div style={{display:'flex',justifyContent:'space-between',marginTop:'5px',whiteSpace:'nowrap',color:'var(--ov0)'}}><span style={{color:'#f5c2e7'}}>PROC</span><span>312 · 0.84</span></div>
+        </div>
+
+        <div style={{position:'absolute',left:'46px',bottom:'34px',zIndex:30,fontSize:'12px',color:'var(--ov0)',lineHeight:1.9,whiteSpace:'nowrap'}}>
+          <div><span style={{color:'#cba6f7'}}>Super</span> + <span style={{color:'#89b4fa'}}>D</span>  앱 실행기</div>
+          <div><span style={{color:'#cba6f7'}}>Super</span> + <span style={{color:'#89b4fa'}}>1-6</span>  워크스페이스</div>
+          <div><span style={{color:'#cba6f7'}}>Super</span> + <span style={{color:'#89b4fa'}}>/</span>  단축키 전체보기</div>
+        </div>
+
+        {/* WAYBAR */}
+        <div style={{position:'absolute',top:'8px',left:'8px',right:'8px',height:'34px',zIndex:500,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 8px',borderRadius:'11px',background:'color-mix(in srgb, var(--mantle) 86%, transparent)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'1px solid var(--surf0)',fontSize:'12.5px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+            <div onClick={v.toggleLauncher} style={{display:'flex',alignItems:'center',gap:'6px',padding:'3px 10px',borderRadius:'7px',background:'color-mix(in srgb, var(--accent) 18%, transparent)',color:'var(--accent)',cursor:'pointer',fontWeight:700}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/><circle cx="9" cy="7.5" r="0.6" fill="currentColor"/><circle cx="15" cy="7.5" r="0.6" fill="currentColor"/></svg>
+              ruehanix
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:'3px'}}>
+              {v.wsList.map(w=>(<div key={w.n} onClick={w.onClick} style={S(w.style)}>{w.n}</div>))}
+            </div>
+          </div>
+          <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',display:'flex',alignItems:'center',gap:'8px',color:'var(--sub1)'}}>
+            <span style={{width:'7px',height:'7px',borderRadius:'50%',background:v.focusDot}}></span>{v.focusTitle}
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
+            {barChip('rgba(137,180,250,.14)','#89b4fa',<><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="0.5" fill="currentColor"/></svg>wlan0</>)}
+            {barChip('rgba(166,227,161,.14)','#a6e3a1',<><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>{v.mod.cpu}</>)}
+            {barChip('rgba(249,226,175,.14)','#f9e2af',<><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="9" rx="1.5"/><path d="M6 8V6M10 8V6M14 8V6M18 8V6"/></svg>{v.mod.ram}</>)}
+            {barChip('rgba(245,194,231,.14)','#f5c2e7',<><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>{v.mod.vol}</>)}
+            {barChip('rgba(166,227,161,.14)','#a6e3a1',<><svg width="15" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><rect x="2" y="7" width="17" height="10" rx="2"/><rect x="4" y="9" width="11" height="6" rx="1" fill="currentColor" stroke="none"/><path d="M21 10v4" strokeLinecap="round"/></svg>{v.mod.batt}</>)}
+            <div style={{padding:'3px 11px',borderRadius:'7px',background:'color-mix(in srgb, var(--accent) 18%, transparent)',color:'var(--accent)',fontWeight:700}}>{v.mod.clock}</div>
+            <div onClick={v.reboot} title="reboot" style={{display:'flex',alignItems:'center',padding:'3px 8px',borderRadius:'7px',background:'rgba(243,139,168,.14)',color:'#f38ba8',cursor:'pointer'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 3v9"/><path d="M6.5 7a8 8 0 1 0 11 0"/></svg></div>
+          </div>
+        </div>
+
+        {/* WINDOWS */}
+        <div style={{position:'absolute',inset:0,zIndex:100}}>
+          {this.win(v,'files',this.bodyFiles(v))}
+          {this.win(v,'reader',this.bodyReader(v))}
+          {this.win(v,'foto',this.bodyFoto(v))}
+          {this.win(v,'hotlap',this.bodyHotlap(v))}
+          {this.win(v,'terminal',this.bodyTerminal(v))}
+          {this.win(v,'web',this.bodyWeb(v))}
+          {this.win(v,'settings',this.bodySettings(v))}
+          {this.win(v,'about',this.bodyAbout(v))}
+          {v.gutters.map((g,i)=>(<div key={i} onMouseDown={g.onDown} style={S(g.style)}></div>))}
+        </div>
+
+        {/* LAUNCHER */}
+        {v.showLauncher && (
+          <div onClick={v.toggleLauncher} style={{position:'absolute',inset:0,zIndex:9000,background:'rgba(17,17,27,.55)',backdropFilter:'blur(3px)',display:'flex',alignItems:'flex-start',justifyContent:'center',paddingTop:'118px'}}>
+            <div onClick={v.stop} style={{width:'420px',background:'color-mix(in srgb, var(--mantle) 97%, transparent)',border:'1px solid var(--surf1)',borderRadius:'14px',overflow:'hidden',boxShadow:'0 30px 80px rgba(0,0,0,.55)',animation:'rh-fadeup .16s ease'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'9px',padding:'13px 16px',borderBottom:'1px solid var(--surf0)',color:'var(--ov0)'}}>
+                <span style={{color:'var(--accent)'}}>❯</span><span style={{color:'var(--text)'}}>앱 검색…</span><span style={{width:'7px',height:'15px',background:'#cba6f7',animation:'rh-blink 1.1s steps(1) infinite'}}></span>
+              </div>
+              <div style={{padding:'8px',maxHeight:'340px',overflow:'auto'}}>
+                {v.appList.map(a=>(
+                  <div key={a.name} className="rh-launch-item" onClick={a.onClick} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 12px',borderRadius:'9px',cursor:'pointer'}}>
+                    <span style={{color:a.color,display:'flex'}}>{a.icon}</span>
+                    <span style={{fontSize:'13.5px',color:'var(--text)',flex:1}}>{a.name}</span>
+                    <span style={{fontSize:'11px',color:'var(--ov0)'}}>{a.hint}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* KEYBIND OVERLAY */}
+        {v.showKeys && (
+          <div onClick={v.toggleKeys} style={{position:'absolute',inset:0,zIndex:9100,background:'rgba(17,17,27,.62)',backdropFilter:'blur(4px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <div onClick={v.stop} style={{width:'560px',background:'color-mix(in srgb, var(--mantle) 98%, transparent)',border:'1px solid var(--surf1)',borderRadius:'16px',padding:'26px 30px',boxShadow:'0 30px 80px rgba(0,0,0,.55)',animation:'rh-fadeup .16s ease'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'20px'}}>
+                <span style={{fontSize:'16px',fontWeight:700,color:'var(--accent)'}}>키보드 단축키</span>
+                <span style={{fontSize:'12px',color:'var(--ov0)'}}>Hyprland 스타일 · Super = ⊞</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'9px 26px'}}>{v.keybinds}</div>
+            </div>
+          </div>
+        )}
+
+        {/* BOOT */}
+        {v.booting && (
+          <div style={{position:'absolute',inset:0,zIndex:9900,background:'var(--crust)',padding:'34px 40px',fontSize:'13px',lineHeight:1.7,color:'var(--sub0)',overflow:'hidden'}}>
+            {v.bootLines.map((l,i)=>(<div key={i}>{l.node}</div>))}
+            <div style={{marginTop:'6px',display:'flex',alignItems:'center',gap:'8px',color:'var(--text)'}}>
+              <span style={{color:'#a6e3a1'}}>ruehan@ruehanix</span><span style={{color:'#89b4fa'}}>~</span><span>login:</span><span style={{width:'8px',height:'15px',background:'var(--text)',animation:'rh-blink 1.1s steps(1) infinite'}}></span>
+            </div>
+          </div>
+        )}
+
+      </div>
+    );
+  }
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

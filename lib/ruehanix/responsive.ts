@@ -15,5 +15,7 @@ export function isMobileWidth(W: number): boolean {
 
 /** 모바일에서 포커스된 앱이 차지하는 풀스크린 영역(상단바 아래 ~ 독 위). */
 export function mobileAppRect(vp: Viewport): Rect {
-  return { x: 0, y: MOBILE_TOPBAR, w: vp.W, h: vp.H - MOBILE_TOPBAR - MOBILE_DOCK };
+  // 극단적으로 낮은 뷰포트(상단바+독 합보다 작음)에서도 높이가 음수가 되지 않게 방어한다.
+  const h = Math.max(0, vp.H - MOBILE_TOPBAR - MOBILE_DOCK);
+  return { x: 0, y: MOBILE_TOPBAR, w: vp.W, h };
 }

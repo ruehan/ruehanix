@@ -21,4 +21,7 @@ describe("mobileAppRect", () => {
   it("폭은 뷰포트 전체", () => {
     expect(mobileAppRect({ W: 400, H: 700 }).w).toBe(400);
   });
+  it("상단바+독보다 낮은 뷰포트에서도 높이는 음수가 아니다", () => {
+    expect(mobileAppRect({ W: 320, H: 80 }).h).toBe(0);
+  });
 });

@@ -14,6 +14,7 @@ import {
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
+import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import type { AppKey, CatKey, ThemeMode, UiState } from "@/lib/ruehanix/types";
 
 interface CoreState {
@@ -120,6 +121,8 @@ export function useRuehanix() {
     const onKey = (e: KeyboardEvent) => {
       const s = stRef.current;
       if (s.booting) return;
+      // 모바일 모드에는 워크스페이스·런처 개념이 없으므로 Super 단축키를 무시한다.
+      if (isMobileWidth(window.innerWidth)) return;
       const k = e.key;
       if (e.metaKey || e.altKey) {
         if (k === "d" || k === "D") {

@@ -134,6 +134,12 @@ try {
     .isVisible()
     .catch(() => false);
   ok("부팅 세션 1회(재로드 스킵)", reBoot === false);
+  // 부팅 스킵 직후 시계가 즉시 실제 시각으로 시드(외부 스토어). "00:00"에 머물면 회귀.
+  const clockText = await page.evaluate(() => {
+    const m = document.body.innerText.match(/\b\d\d:\d\d\b/);
+    return m ? m[0] : "";
+  });
+  ok("재로드 후 시계 즉시 시드(00:00 아님)", clockText !== "" && clockText !== "00:00");
 
   // 11. 글 라우트(/posts/[slug]) + sitemap
   await page.goto(`${BASE}/posts/iracing-nordschleife-sub-7`);

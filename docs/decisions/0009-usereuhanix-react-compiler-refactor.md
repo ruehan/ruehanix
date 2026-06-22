@@ -37,6 +37,7 @@ ADR 0007에서 강제된 Next 16 업그레이드로 react-hooks v6(React Compile
 
 ## 영향
 - eslint.config의 react-hooks 완화 블록 제거 → `eslint .` **0 error / 0 warn**(정당한 disable 1줄 제외).
-- 동작 불변 확인: verify(typecheck·lint·vitest 48), build, **smoke 16/16**(부팅·타일링·드래그 기반
-  레이아웃·런처·테마·독·모바일·검색·a11y·글 라우트). 회귀 없음.
+- 동작 불변 확인: verify(typecheck·lint·vitest 48), build, **smoke 16/16**.
+- 리뷰 P2 반영: 시계 외부 스토어가 구독 즉시 1회 시드하도록 수정(재방문·reduced-motion 스킵
+  경로에서 시계가 "00:00"에 머무르던 회귀 제거). getSnapshot은 시각 생성 없이 캐시만 반환.
 - 후속 후보: React Compiler 정식 활성화(babel-plugin-react-compiler).

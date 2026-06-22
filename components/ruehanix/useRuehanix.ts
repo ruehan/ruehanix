@@ -86,6 +86,9 @@ function getPrefersLight() {
 const SYS_SERVER = { clock: "00:00", cpu: 14, ram: 47 };
 let sysCache = { clock: "00:00", cpu: 14, ram: 47 };
 function subscribeSys(cb: () => void) {
+  // 구독 즉시 1회 시드 — 시계가 "00:00"에 머무르지 않게(재방문·reduced-motion 스킵 경로).
+  sysCache = { ...sysCache, clock: fmtClock() };
+  cb();
   const t = setInterval(() => {
     sysCache = {
       clock: fmtClock(),

@@ -66,7 +66,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         </Link>
       </header>
 
-      <article className="rh-sans" style={{ maxWidth: 640, margin: "0 auto", padding: "48px 28px 80px" }}>
+      <article className="rh-sans" style={{ maxWidth: 760, margin: "0 auto", padding: "48px 28px 80px" }}>
         <div style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, marginBottom: 18, fontFamily: mono, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color }}>
           #{catLabel}
         </div>

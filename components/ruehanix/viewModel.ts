@@ -13,6 +13,7 @@ import {
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
+import { filterApps } from "@/lib/ruehanix/search";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
 import type { RuehanixApi } from "./useRuehanix";
 
@@ -160,6 +161,11 @@ export function buildVm(api: RuehanixApi) {
     hint: APP_META[k].hint,
     onClick: () => handlers.openApp(k),
   }));
+  const launcherList = filterApps(appList, api.launcherQuery);
+  const openFirstApp = () => {
+    const first = launcherList[0];
+    if (first) handlers.openApp(first.key);
+  };
 
   // 모바일 하단 독(앱 전환) + 홈(포커스 닫기).
   const dock = APP_KEYS.map((k) => ({
@@ -373,7 +379,10 @@ export function buildVm(api: RuehanixApi) {
     wsList,
     focusTitle,
     focusDot,
-    appList,
+    appList: launcherList,
+    launcherQuery: api.launcherQuery,
+    setLauncherQuery: handlers.setLauncherQuery,
+    openFirstApp,
     isMobile: mobile,
     mobileHome: mobile && !st.booting && !st.focused,
     dock,

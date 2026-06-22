@@ -252,10 +252,22 @@ export function RuehanixShell() {
           <div onClick={vm.stop} style={{ width: 420, background: "color-mix(in srgb, var(--mantle) 97%, transparent)", border: "1px solid var(--surf1)", borderRadius: 14, overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,.55)", animation: "rh-fadeup .16s ease" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "13px 16px", borderBottom: "1px solid var(--surf0)", color: "var(--ov0)" }}>
               <span style={{ color: "var(--accent)" }}>❯</span>
-              <span style={{ color: "var(--text)" }}>앱 검색…</span>
-              <span style={{ width: 7, height: 15, background: "#cba6f7", animation: "rh-blink 1.1s steps(1) infinite" }} />
+              <input
+                value={vm.launcherQuery}
+                onChange={(e) => vm.setLauncherQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") vm.openFirstApp();
+                }}
+                placeholder="앱 검색…"
+                aria-label="앱 검색"
+                autoFocus
+                style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: "var(--text)", fontFamily: "inherit", fontSize: "13.5px" }}
+              />
             </div>
             <div style={{ padding: 8, maxHeight: 340, overflow: "auto" }}>
+              {vm.appList.length === 0 && (
+                <div style={{ padding: "12px", fontSize: 12.5, color: "var(--ov0)", textAlign: "center" }}>결과 없음</div>
+              )}
               {vm.appList.map((a) => (
                 <div key={a.key} className="rh-launch-item" onClick={a.onClick} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
                   <span style={{ color: a.color, display: "flex" }}>

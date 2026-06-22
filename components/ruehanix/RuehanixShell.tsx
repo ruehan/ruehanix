@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { APP_META } from "@/lib/ruehanix/data";
-import { MOBILE_DOCK, MOBILE_TOPBAR } from "@/lib/ruehanix/responsive";
+import { DESKTOP_DOCK, MOBILE_DOCK, MOBILE_TOPBAR } from "@/lib/ruehanix/responsive";
 import type { AppKey } from "@/lib/ruehanix/types";
 import { useRuehanix } from "./useRuehanix";
 import { buildVm, type Vm } from "./viewModel";
@@ -97,6 +97,30 @@ function MobileHome() {
   );
 }
 
+function DesktopDock({ vm }: { vm: Vm }) {
+  return (
+    <div data-testid="desktop-dock" style={{ position: "absolute", left: "50%", bottom: 14, transform: "translateX(-50%)", height: DESKTOP_DOCK, zIndex: 400, display: "flex", alignItems: "center", gap: 4, padding: "0 8px", borderRadius: 16, background: "color-mix(in srgb, var(--mantle) 80%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", boxShadow: "0 12px 36px rgba(0,0,0,.4)", maxWidth: "calc(100% - 24px)", overflowX: "auto" }}>
+      {vm.dock.map((d) => (
+        <div key={d.key} data-testid={"ddock-" + d.key} onClick={d.onClick} title={d.name} className="rh-dock-item" style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 42, borderRadius: 11, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "transparent" }}>
+          <LineIcon app={d.key} size={22} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AppsHint({ vm }: { vm: Vm }) {
+  return (
+    <div onClick={vm.dismissHint} style={{ position: "absolute", left: "50%", bottom: 14 + DESKTOP_DOCK + 12, transform: "translateX(-50%)", zIndex: 450, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", animation: "rh-fadeup .25s ease" }}>
+      <div style={{ padding: "8px 14px", borderRadius: 10, background: "var(--accent)", color: "var(--on-accent)", fontSize: 12.5, fontWeight: 700, boxShadow: "0 8px 24px rgba(0,0,0,.35)", whiteSpace: "nowrap" }}>
+        여기서 앱을 열어보세요 · Super + D
+      </div>
+      <div style={{ width: 10, height: 10, background: "var(--accent)", transform: "rotate(45deg)", marginTop: -11, borderRadius: 2 }} />
+      <div style={{ width: 46, height: 46, borderRadius: 14, border: "2px solid var(--accent)", animation: "rh-pulse 1.4s ease-out infinite" }} />
+    </div>
+  );
+}
+
 export function RuehanixShell() {
   const api = useRuehanix();
   const vm = buildVm(api);
@@ -161,12 +185,11 @@ export function RuehanixShell() {
       {!vm.isMobile && (
       <div style={{ position: "absolute", top: 8, left: 8, right: 8, height: 34, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px", borderRadius: 11, background: "color-mix(in srgb, var(--mantle) 86%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", fontSize: 12.5 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <div data-testid="launcher" onClick={vm.toggleLauncher} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", cursor: "pointer", fontWeight: 700 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="5" />
-              <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
-              <circle cx="9" cy="7.5" r="0.6" fill="currentColor" />
-              <circle cx="15" cy="7.5" r="0.6" fill="currentColor" />
+          <div data-testid="launcher" onClick={vm.toggleLauncher} title="앱 실행기 (Super + D)" className="rh-launcher-btn" style={{ display: "flex", alignItems: "center", gap: 7, padding: "3px 11px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", cursor: "pointer", fontWeight: 700 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="5" cy="5" r="2" /><circle cx="12" cy="5" r="2" /><circle cx="19" cy="5" r="2" />
+              <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+              <circle cx="5" cy="19" r="2" /><circle cx="12" cy="19" r="2" /><circle cx="19" cy="19" r="2" />
             </svg>
             ruehanix
           </div>
@@ -214,6 +237,10 @@ export function RuehanixShell() {
       {/* MOBILE HOME / DOCK */}
       {vm.mobileHome && <MobileHome />}
       {vm.isMobile && <MobileDock vm={vm} />}
+
+      {/* DESKTOP DOCK + 첫 방문 힌트 */}
+      {!vm.isMobile && <DesktopDock vm={vm} />}
+      {!vm.isMobile && vm.showHint && <AppsHint vm={vm} />}
 
       {/* WINDOWS */}
       <div style={{ position: "absolute", inset: 0, zIndex: 100 }}>

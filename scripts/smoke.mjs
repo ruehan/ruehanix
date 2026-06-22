@@ -78,6 +78,13 @@ try {
   await page.waitForFunction(() => document.documentElement.classList.contains("rh-light"), { timeout: 3000 });
   ok("Light 테마 전환", true);
 
+  // 7. 모바일 모드 — 폭을 좁히면 하단 독이 뜨고, 독으로 앱을 풀스크린 전환
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByTestId("dock-terminal").click();
+  await page.getByText("fastfetch").waitFor({ timeout: 3000 });
+  ok("모바일 독 앱 전환", true);
+  ok("모바일 하단 독 표시", await page.getByTestId("dock-files").isVisible());
+
   ok("콘솔 앱 에러 0", appErrors.length === 0);
   if (appErrors.length) console.error("앱 에러:", appErrors);
 } catch (e) {

@@ -12,6 +12,7 @@ import {
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
+import { MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
 import type { RuehanixApi } from "./useRuehanix";
 
@@ -41,12 +42,33 @@ export function buildVm(api: RuehanixApi) {
   const lightMode = effMode(ui.mode, prefersLight) === "light";
   const rad = ui.rounded ? 11 : 2;
 
+  const mobile = isMobileWidth(vp.W);
   const curIds = st.order.filter((k) => st.open[k] && st.open[k]!.ws === st.ws);
   const lay = computeLayout(curIds, area(vp, ui.gap), st.ratios, st.ws, ui.gap);
 
   // --- 창 타일 스타일 ---
   const tiles = {} as Record<AppKey, CSSProperties>;
   for (const k of APP_KEYS) {
+    if (mobile) {
+      // 모바일: 포커스된 앱 하나만 풀스크린, 나머지는 숨긴다(타일링/거터 없음).
+      const visM = st.focused === k && st.open[k] && !st.booting;
+      if (!visM) {
+        tiles[k] = { position: "absolute", display: "none" };
+        continue;
+      }
+      const mr = mobileAppRect(vp);
+      tiles[k] = {
+        position: "absolute",
+        left: mr.x,
+        top: mr.y,
+        width: mr.w,
+        height: mr.h,
+        overflow: "hidden",
+        background: C.base,
+        zIndex: 120,
+      };
+      continue;
+    }
     const r = lay.rects[k];
     const vis = st.open[k] && st.open[k]!.ws === st.ws && !st.booting && r;
     if (!vis || !r) {
@@ -78,7 +100,7 @@ export function buildVm(api: RuehanixApi) {
     };
   }
 
-  const gutters = lay.gutters.map((g) => ({
+  const gutters = (mobile ? [] : lay.gutters).map((g) => ({
     key: g.key,
     onMouseDown: (e: React.MouseEvent) => handlers.startGutter(g, e),
     style: {
@@ -136,6 +158,18 @@ export function buildVm(api: RuehanixApi) {
     hint: APP_META[k].hint,
     onClick: () => handlers.openApp(k),
   }));
+
+  // 모바일 하단 독(앱 전환) + 홈(포커스 닫기).
+  const dock = APP_KEYS.map((k) => ({
+    key: k,
+    name: APP_META[k].name,
+    color: APP_META[k].color,
+    active: st.focused === k,
+    onClick: () => handlers.openApp(k),
+  }));
+  const homeClick = () => {
+    if (st.focused) handlers.close(st.focused);
+  };
 
   // --- 블로그 데이터 ---
   const catC = catColors(lightMode);
@@ -338,6 +372,10 @@ export function buildVm(api: RuehanixApi) {
     focusTitle,
     focusDot,
     appList,
+    isMobile: mobile,
+    mobileHome: mobile && !st.booting && !st.focused,
+    dock,
+    homeClick,
     showLauncher: st.showLauncher,
     showKeys: st.showKeys,
     toggleLauncher: handlers.toggleLauncher,

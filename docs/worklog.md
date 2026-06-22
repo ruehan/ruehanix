@@ -1,5 +1,18 @@
 # 작업 로그
 
+## 2026-06-22 — 블로그 글 Sanity 소스 전환 (하드코딩 제거)
+- 브랜치: feat/sanity-posts-source
+- 한 일: 블로그 글 소스를 하드코딩 → Sanity로 교체("처음부터"). source.ts를 queries(Sanity)로,
+  하드코딩 어댑터·POSTS·Post 타입 제거. 셸이 page.tsx 서버 fetch한 글을 props로 받음(ISR 60s),
+  식별자 id→slug 전환(slugForId 제거). 글 0개면 Files·Reader·Web·/posts에 "아직 글 없음" 안내.
+  posts만 전환(사진·랩타임 유지).
+- 검증: verify exit 0(typecheck·eslint 0 error/0 warn·vitest 44/44), build OK(/posts·[slug] SSG),
+  smoke 17/17(글-무관 재작성). 빈 데이터셋 빈 상태 시각 확인. /posts 404·sitemap 실측.
+- 리뷰: 통과 1라운드(P3: 죽은 Post 타입·INITIAL.selected 정리, 스모크 복원 백로그) — 상세: docs/reviews/2026-06-22-sanity-글-소스-전환.md
+- 가정: 단일 소스(Sanity), id→slug 통일, 빌드/스모크의 Sanity 네트워크 의존 수용. ADR 0010.
+- 백로그: Portable Text 리치 렌더·동적 OG·사진/랩타임 DB·초안 미리보기·글 렌더 스모크 복원.
+- 관련 결정: docs/decisions/0010-sanity-posts-source.md
+
 ## 2026-06-22 — useRuehanix React Compiler 리팩터링
 - 브랜치: refactor/usereuhanix-react-compiler
 - 한 일: useRuehanix를 React 19.2 권장 패턴으로 재작성 — useSyncExternalStore(뷰포트·OS 선호·시계),

@@ -1,5 +1,23 @@
 # 작업 로그
 
+## 2026-06-23 — 음악 플레이어 (rhx-play)
+- 브랜치: feat/music-player
+- 한 일: 데스크톱 셸에 YouTube 기반 음악 플레이어 추가. 2겹 구조 — ①셸 루트 상주 숨긴 iframe 엔진
+  (YouTubeEngine, IFrame API로 재생 제어, 비동기 콜백은 useEffectEvent로 최신화) ②항상 보이는 메뉴바
+  미니플레이어 ③풀 UI인 `music` 창 앱(MusicApp). 순수 reducer(player.ts: next/prev/select/toggle/volume/
+  repeat/onEnded, wrap-around·빈목록 가드)와 영속화(player-storage.ts: 트랙·볼륨·반복모드 복원, playing은
+  autoplay 회피로 항상 false)를 엔진과 분리해 단위 테스트. 앱/워크스페이스 전환 시 셸이 언마운트되지 않아
+  재생이 끊기지 않음. TRACKS는 사용자 편집용 시드 4곡.
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 68/68), build 성공,
+  smoke 3회 연속 21/21(미니플레이어·재생 토글→NOW PLAYING·앱 전환 유지·콘솔 앱 에러 0). 수동(playwright):
+  재생 시 youtube embed iframe 생성·MusicApp UI 시각 확인.
+- 리뷰: 통과 2라운드(1R P1: 미니플레이어 추가로 메뉴바 중앙 타이틀이 포인터 가로채 smoke flaky →
+  focus-title pointerEvents:none·폭 상한; P3 toggle 빈목록 가드) — 상세: docs/reviews/2026-06-23-음악-플레이어.md
+- 가정: YouTube IFrame API 채택(자가호스팅 대비 호스팅 0·미디어키 제한 트레이드오프). 재생 지속 범위 =
+  셸 내부 전환(공짜). /posts 풀 라우트 이동은 v1 범위 밖(셸 언마운트로 정지). 셔플 미구현(반복만). ADR 0012.
+- 백로그: 엔진을 layout.tsx로 올려 크로스 라우트 지속, 셔플, Sanity track 스키마 전환, 비주얼라이저.
+- 관련 결정: docs/decisions/0012-music-player.md
+
 ## 2026-06-22 — UI 설정 영속화 + 빈 상태 문구 정리
 - 브랜치: feat/persist-ui-settings
 - 한 일: 셸 UI 설정(테마 모드·accent·gap·rounded·glow·transp)을 localStorage에 영속화해 재접속 복원.

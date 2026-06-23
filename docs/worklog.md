@@ -1,5 +1,17 @@
 # 작업 로그
 
+## 2026-06-23 — 음악 아티스트 정보 (artist 문서 + 탭)
+- 브랜치: feat/artist-info
+- 한 일: 가수 정보 입력·제공. Sanity artist 문서(name·photo·bio·genre·origin·links) 추가, track이
+  선택적 artistRef로 참조(비파괴 — 기존 artist 문자열 라벨 유지). track 쿼리에서 역참조, normalize가
+  ArtistInfo로 정규화(이름 없으면 null·링크 label/url 필터). MusicApp에 재생목록↔아티스트 탭(로컬 state),
+  ArtistPanel(사진/이니셜 아바타·이름·장르·출신·소개·링크 버튼). 정보 없으면 안내.
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 89/89 — tracks normalize 7), build 성공,
+  smoke 22/22(아티스트 탭 전환). 스텁 artistInfo 주입으로 패널 렌더 시각 확인 후 원복.
+- 리뷰: 통과 1라운드(지적 없음, 회귀 없음) — 상세: docs/reviews/2026-06-23-아티스트-정보.md
+- 가정: 별도 artist 문서 + 참조(DRY), artistRef 선택(비파괴), bio plain text(리치는 백로그), 탭 상태 로컬. ADR 0015.
+- 관련 결정: docs/decisions/0015-artist-info.md
+
 ## 2026-06-23 — 라이트 모드 데스크톱 위젯 대비 개선
 - 브랜치: fix/light-widget-contrast
 - 한 일: 데스크톱 위젯(neofetch·conky·키바인드 힌트)이 다크 팔레트 hex·다크 textShadow를 하드코딩해

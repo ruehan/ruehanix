@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accentEff, catColors, effMode, hexA, wallpaper } from "./theme";
+import { accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "./theme";
 
 describe("effMode", () => {
   it("dark/light 모드는 prefersLight와 무관하게 그대로 반환", () => {
@@ -25,6 +25,24 @@ describe("accentEff", () => {
   });
   it("매핑에 없는 색은 원본 유지", () => {
     expect(accentEff("light", "#000000", false)).toBe("#000000");
+  });
+});
+
+describe("toLatte", () => {
+  it("다크 모드면 원본 hex 유지", () => {
+    expect(toLatte("#cba6f7", false)).toBe("#cba6f7");
+    expect(toLatte("#f9e2af", false)).toBe("#f9e2af");
+  });
+  it("라이트 모드면 Mocha→Latte 매핑", () => {
+    expect(toLatte("#cba6f7", true)).toBe("#8839ef");
+    expect(toLatte("#89b4fa", true)).toBe("#1e66f5");
+    expect(toLatte("#f9e2af", true)).toBe("#df8e1d"); // 노랑(accent 외, 위젯에서 사용)
+  });
+  it("매핑에 없는 색은 원본 유지", () => {
+    expect(toLatte("#123456", true)).toBe("#123456");
+  });
+  it("accentEff와 동일 매핑 공유(accent 색 일관)", () => {
+    expect(toLatte("#f38ba8", true)).toBe(accentEff("light", "#f38ba8", false));
   });
 });
 

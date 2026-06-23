@@ -24,8 +24,6 @@ const KEYBINDS: [string, string][] = [
   ["앱 클릭", "포커스 이동"],
 ];
 
-const PALETTE = ["#f38ba8", "#fab387", "#f9e2af", "#a6e3a1", "#89b4fa", "#cba6f7"];
-
 function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }) {
   const meta = APP_META[app];
   return (
@@ -125,48 +123,48 @@ export function RuehanixShell({ posts, tracks, photos }: { posts: BlogPost[]; tr
       {/* DESKTOP WIDGETS (데스크톱 전용) */}
       {!vm.isMobile && (
         <>
-      <div style={{ position: "absolute", left: 46, top: 90, zIndex: 30, display: "flex", gap: 22, alignItems: "flex-start", textShadow: "0 1px 8px rgba(0,0,0,.4)" }}>
-        <pre style={{ margin: 0, color: "#cba6f7", fontSize: 13, lineHeight: 1.3 }}>{ART_DESK}</pre>
+      <div style={{ position: "absolute", left: 46, top: 90, zIndex: 30, display: "flex", gap: 22, alignItems: "flex-start", textShadow: vm.widget.shadow }}>
+        <pre style={{ margin: 0, color: vm.widget.mauve, fontSize: 13, lineHeight: 1.3 }}>{ART_DESK}</pre>
         <div style={{ fontSize: 13, lineHeight: 1.65, color: "var(--sub0)" }}>
           <div>
-            <span style={{ color: "#cba6f7", fontWeight: 700 }}>ruehan</span>
+            <span style={{ color: vm.widget.mauve, fontWeight: 700 }}>ruehan</span>
             <span style={{ color: "var(--ov0)" }}>@</span>
-            <span style={{ color: "#cba6f7", fontWeight: 700 }}>ruehanix</span>
+            <span style={{ color: vm.widget.mauve, fontWeight: 700 }}>ruehanix</span>
           </div>
           <div style={{ color: "var(--surf1)" }}>─────────────────</div>
-          <div><span style={{ color: "#89b4fa" }}>OS</span><span style={{ color: "var(--ov0)" }}>   </span>ruehanix 1.0</div>
-          <div><span style={{ color: "#f5c2e7" }}>WM</span><span style={{ color: "var(--ov0)" }}>   </span>Hyprland</div>
-          <div><span style={{ color: "#a6e3a1" }}>DE</span><span style={{ color: "var(--ov0)" }}>   </span>Catppuccin Mocha</div>
-          <div><span style={{ color: "#fab387" }}>SH</span><span style={{ color: "var(--ov0)" }}>   </span>zsh 5.9</div>
-          <div><span style={{ color: "#f38ba8" }}>WHO</span><span style={{ color: "var(--ov0)" }}>  </span>한규 · full-stack dev</div>
+          <div><span style={{ color: vm.widget.blue }}>OS</span><span style={{ color: "var(--ov0)" }}>   </span>ruehanix 1.0</div>
+          <div><span style={{ color: vm.widget.pink }}>WM</span><span style={{ color: "var(--ov0)" }}>   </span>Hyprland</div>
+          <div><span style={{ color: vm.widget.green }}>DE</span><span style={{ color: "var(--ov0)" }}>   </span>Catppuccin Mocha</div>
+          <div><span style={{ color: vm.widget.peach }}>SH</span><span style={{ color: "var(--ov0)" }}>   </span>zsh 5.9</div>
+          <div><span style={{ color: vm.widget.red }}>WHO</span><span style={{ color: "var(--ov0)" }}>  </span>한규 · full-stack dev</div>
           <div style={{ marginTop: 8, display: "flex", gap: 5 }}>
-            {PALETTE.map((c) => (
+            {vm.widget.swatches.map((c) => (
               <span key={c} style={{ width: 16, height: 16, borderRadius: 4, background: c }} />
             ))}
           </div>
         </div>
       </div>
 
-      <div style={{ position: "absolute", right: 34, top: 84, zIndex: 30, width: 236, padding: "16px 18px", borderRadius: 13, background: "color-mix(in srgb, var(--mantle) 58%, transparent)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", border: "1px solid rgba(69,71,90,.5)", fontSize: 11.5, color: "var(--sub0)", textShadow: "0 1px 6px rgba(0,0,0,.3)" }}>
+      <div style={{ position: "absolute", right: 34, top: 84, zIndex: 30, width: 236, padding: "16px 18px", borderRadius: 13, background: "color-mix(in srgb, var(--mantle) 58%, transparent)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", border: `1px solid ${vm.widget.border}`, fontSize: 11.5, color: "var(--sub0)", textShadow: vm.widget.shadowSm }}>
         <div style={{ fontSize: 26, fontWeight: 800, color: "var(--text)", letterSpacing: "-.02em", lineHeight: 1 }}>
           {vm.mod.clock}
           <span style={{ fontSize: 12, color: "var(--ov0)", fontWeight: 500 }}> KST</span>
         </div>
         <div style={{ color: "var(--ov0)", marginBottom: 14 }}>Mon 22 Jun 2026 · up 4h 12m</div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: "#a6e3a1" }}>CPU</span><span>{vm.mod.cpu}</span></div>
-        <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 10, overflow: "hidden" }}><div style={{ height: "100%", width: vm.mod.cpu, background: "#a6e3a1", borderRadius: 3 }} /></div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: "#f9e2af" }}>RAM</span><span>{vm.mod.ram} · 30/64G</span></div>
-        <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 10, overflow: "hidden" }}><div style={{ height: "100%", width: vm.mod.ram, background: "#f9e2af", borderRadius: 3 }} /></div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: "#89b4fa" }}>DISK</span><span>61% · 1.2/2T</span></div>
-        <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 13, overflow: "hidden" }}><div style={{ height: "100%", width: "61%", background: "#89b4fa", borderRadius: 3 }} /></div>
-        <div style={{ display: "flex", justifyContent: "space-between", whiteSpace: "nowrap", color: "var(--ov0)" }}><span style={{ color: "#cba6f7" }}>NET</span><span>↓2.4M ↑312K</span></div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, whiteSpace: "nowrap", color: "var(--ov0)" }}><span style={{ color: "#f5c2e7" }}>PROC</span><span>312 · 0.84</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.green }}>CPU</span><span>{vm.mod.cpu}</span></div>
+        <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 10, overflow: "hidden" }}><div style={{ height: "100%", width: vm.mod.cpu, background: vm.widget.green, borderRadius: 3 }} /></div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.yellow }}>RAM</span><span>{vm.mod.ram} · 30/64G</span></div>
+        <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 10, overflow: "hidden" }}><div style={{ height: "100%", width: vm.mod.ram, background: vm.widget.yellow, borderRadius: 3 }} /></div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.blue }}>DISK</span><span>61% · 1.2/2T</span></div>
+        <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 13, overflow: "hidden" }}><div style={{ height: "100%", width: "61%", background: vm.widget.blue, borderRadius: 3 }} /></div>
+        <div style={{ display: "flex", justifyContent: "space-between", whiteSpace: "nowrap", color: "var(--ov0)" }}><span style={{ color: vm.widget.mauve }}>NET</span><span>↓2.4M ↑312K</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, whiteSpace: "nowrap", color: "var(--ov0)" }}><span style={{ color: vm.widget.pink }}>PROC</span><span>312 · 0.84</span></div>
       </div>
 
-      <div style={{ position: "absolute", left: 46, bottom: 34, zIndex: 30, fontSize: 12, color: "var(--ov0)", lineHeight: 1.9, whiteSpace: "nowrap" }}>
-        <div><span style={{ color: "#cba6f7" }}>Super</span> + <span style={{ color: "#89b4fa" }}>D</span>  앱 실행기</div>
-        <div><span style={{ color: "#cba6f7" }}>Super</span> + <span style={{ color: "#89b4fa" }}>1-6</span>  워크스페이스</div>
-        <div><span style={{ color: "#cba6f7" }}>Super</span> + <span style={{ color: "#89b4fa" }}>/</span>  단축키 전체보기</div>
+      <div style={{ position: "absolute", left: 46, bottom: 34, zIndex: 30, fontSize: 12, color: "var(--ov0)", lineHeight: 1.9, whiteSpace: "nowrap", textShadow: vm.widget.shadow }}>
+        <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>D</span>  앱 실행기</div>
+        <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>1-6</span>  워크스페이스</div>
+        <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>/</span>  단축키 전체보기</div>
       </div>
         </>
       )}

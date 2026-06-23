@@ -45,14 +45,6 @@ function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }
   );
 }
 
-function BarChip({ bg, color, children }: { bg: string; color: string; children: ReactNode }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 9px", borderRadius: 7, background: bg, color }}>
-      {children}
-    </div>
-  );
-}
-
 function MobileTopbar({ vm }: { vm: Vm }) {
   return (
     <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: MOBILE_TOPBAR, zIndex: 500, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px", background: "color-mix(in srgb, var(--mantle) 90%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid var(--surf0)", fontSize: 12.5 }}>
@@ -205,38 +197,17 @@ export function RuehanixShell({ posts }: { posts: BlogPost[] }) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           {vm.player.hasTracks && (
-            <div data-testid="miniplayer" style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 5px 2px 7px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 14%, transparent)", maxWidth: 210 }}>
-              <div data-testid="mini-playpause" {...clickable(vm.player.toggle, vm.player.playing ? "일시정지" : "재생")} style={{ display: "flex", color: "var(--accent)", cursor: "pointer" }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  {vm.player.playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
-                </svg>
-              </div>
-              <span data-testid="mini-title" style={{ fontSize: 11.5, color: "var(--sub1)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{vm.player.current?.title}</span>
-              <div data-testid="mini-next" {...clickable(vm.player.next, "다음 곡")} style={{ display: "flex", color: "var(--ov0)", cursor: "pointer" }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z" /></svg>
-              </div>
+            <div
+              data-testid="miniplayer"
+              {...clickable(vm.player.togglePopover, "음악 컨트롤러")}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "2px 9px", borderRadius: 7, cursor: "pointer", maxWidth: 200, background: vm.player.popoverOpen ? "color-mix(in srgb, var(--accent) 26%, transparent)" : "color-mix(in srgb, var(--accent) 14%, transparent)", color: "var(--accent)" }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                {vm.player.playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
+              </svg>
+              <span data-testid="mini-title" style={{ fontSize: 11.5, color: "var(--sub1)", maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{vm.player.current?.title}</span>
             </div>
           )}
-          <BarChip bg="rgba(137,180,250,.14)" color="#89b4fa">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M5 13a10 10 0 0 1 14 0" /><path d="M8.5 16.5a5 5 0 0 1 7 0" /><circle cx="12" cy="20" r="0.5" fill="currentColor" /></svg>
-            wlan0
-          </BarChip>
-          <BarChip bg="rgba(166,227,161,.14)" color="#a6e3a1">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" /><rect x="9" y="9" width="6" height="6" /><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3" /></svg>
-            {vm.mod.cpu}
-          </BarChip>
-          <BarChip bg="rgba(249,226,175,.14)" color="#f9e2af">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="9" rx="1.5" /><path d="M6 8V6M10 8V6M14 8V6M18 8V6" /></svg>
-            {vm.mod.ram}
-          </BarChip>
-          <BarChip bg="rgba(245,194,231,.14)" color="#f5c2e7">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H3v6h3l5 4V5z" /><path d="M16 9a4 4 0 0 1 0 6" /></svg>
-            {vm.mod.vol}
-          </BarChip>
-          <BarChip bg="rgba(166,227,161,.14)" color="#a6e3a1">
-            <svg width="15" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><rect x="2" y="7" width="17" height="10" rx="2" /><rect x="4" y="9" width="11" height="6" rx="1" fill="currentColor" stroke="none" /><path d="M21 10v4" strokeLinecap="round" /></svg>
-            {vm.mod.batt}
-          </BarChip>
           <div style={{ padding: "3px 11px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", fontWeight: 700 }}>{vm.mod.clock}</div>
           <div {...clickable(vm.reboot, "재부팅")} title="reboot" style={{ display: "flex", alignItems: "center", padding: "3px 8px", borderRadius: 7, background: "rgba(243,139,168,.14)", color: "#f38ba8", cursor: "pointer" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 3v9" /><path d="M6.5 7a8 8 0 1 0 11 0" /></svg>
@@ -267,6 +238,15 @@ export function RuehanixShell({ posts }: { posts: BlogPost[] }) {
           <div key={g.key} onMouseDown={g.onMouseDown} style={g.style} />
         ))}
       </div>
+
+      {/* 음악 컨트롤러 팝오버 (데스크톱) — 미니플레이어 클릭으로 토글 */}
+      {!vm.isMobile && vm.player.popoverOpen && vm.player.hasTracks && (
+        <div onClick={vm.player.togglePopover} style={{ position: "absolute", inset: 0, zIndex: 8000 }}>
+          <div data-testid="music-popover" onClick={vm.stop} style={{ position: "absolute", top: 48, right: 8, width: 300, height: 380, background: "color-mix(in srgb, var(--mantle) 98%, transparent)", border: "1px solid var(--surf1)", borderRadius: 14, overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,.5)", animation: "rh-fadeup .16s ease" }}>
+            <MusicApp vm={vm} />
+          </div>
+        </div>
+      )}
 
       {/* LAUNCHER */}
       {!vm.isMobile && vm.showLauncher && (

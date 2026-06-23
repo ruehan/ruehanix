@@ -40,6 +40,7 @@ interface CoreState {
   finderCat: "all" | CatKey;
   showLauncher: boolean;
   showKeys: boolean;
+  showMusic: boolean;
   open: Partial<Record<AppKey, { ws: number }>>;
   order: AppKey[];
   ratios: Record<string, number>;
@@ -66,6 +67,7 @@ const INITIAL: CoreState = {
   finderCat: "all",
   showLauncher: false,
   showKeys: false,
+  showMusic: false,
   open: { reader: { ws: 2 }, files: { ws: 2 }, terminal: { ws: 3 }, hotlap: { ws: 3 }, foto: { ws: 3 } },
   order: ["files", "reader", "terminal", "hotlap", "foto"],
   ratios: {},
@@ -136,9 +138,10 @@ export function useRuehanix(posts: BlogPost[]) {
   // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
   const toggleLauncher = () => {
     setLauncherQuery("");
-    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false }));
+    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false, showMusic: false }));
   };
-  const toggleKeys = () => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false }));
+  const toggleKeys = () => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false, showMusic: false }));
+  const toggleMusic = () => setSt((s) => ({ ...s, showMusic: !s.showMusic, showLauncher: false, showKeys: false }));
   const gotoWs = (n: number) =>
     setSt((s) => {
       const ids = s.order.filter((k) => s.open[k] && s.open[k]!.ws === n);
@@ -252,7 +255,7 @@ export function useRuehanix(posts: BlogPost[]) {
     }
     if (k === "Escape") {
       setLauncherQuery("");
-      setSt((p) => ({ ...p, showLauncher: false, showKeys: false }));
+      setSt((p) => ({ ...p, showLauncher: false, showKeys: false, showMusic: false }));
     }
   });
 
@@ -372,6 +375,7 @@ export function useRuehanix(posts: BlogPost[]) {
       setLauncherQuery,
       toggleLauncher,
       toggleKeys,
+      toggleMusic,
       gotoWs,
       openApp,
       close,

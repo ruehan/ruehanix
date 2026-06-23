@@ -113,19 +113,26 @@ try {
   await page.getByText("https://ruehan.dev").first().waitFor({ timeout: 3000 });
   ok("데스크톱 독 앱 오픈", true);
 
-  // 7.5 음악 플레이어 — 메뉴바 미니플레이어 표시 + 재생 토글 + 앱 전환에도 상태 유지
+  // 7.5 음악 플레이어 — 미니플레이어 클릭 → 팝오버 컨트롤러 + 재생 토글 + 앱 전환에도 미니플레이어 유지
   ok("메뉴바 미니플레이어 표시", await page.getByTestId("miniplayer").isVisible());
-  await page.getByTestId("mini-playpause").click();
-  await page.getByTestId("launcher").click();
-  await page.getByText("rhx-play음악").click();
-  await page.getByText("NOW PLAYING").waitFor({ timeout: 3000 });
-  ok("재생 토글 → NOW PLAYING", true);
+  await page.getByTestId("miniplayer").click();
+  await page.getByTestId("music-popover").waitFor({ timeout: 3000 });
+  ok("미니플레이어 클릭 → 팝오버 표시", true);
+  // 팝오버 안 재생 버튼으로 재생 → NOW PLAYING 표시
+  await page.getByTestId("music-popover").getByRole("button", { name: "재생", exact: true }).click();
+  await page.getByTestId("music-popover").getByText("NOW PLAYING").waitFor({ timeout: 3000 });
+  ok("팝오버 재생 → NOW PLAYING", true);
+  await page.keyboard.press("Escape");
+  await page.getByTestId("music-popover").waitFor({ state: "hidden", timeout: 3000 });
+  ok("Esc로 팝오버 닫힘", true);
   // 다른 앱으로 전환해도 미니플레이어(셸 상주)가 유지된다 — 재생 지속의 대용 신호.
   await page.getByTestId("ddock-terminal").click();
   await page.getByText("fastfetch").waitFor({ timeout: 3000 });
   ok("앱 전환 후 미니플레이어 유지", await page.getByTestId("mini-title").isVisible());
   // 정지로 되돌려 이후 시나리오에 영향 없게 한다.
-  await page.getByTestId("mini-playpause").click();
+  await page.getByTestId("miniplayer").click();
+  await page.getByTestId("music-popover").getByRole("button", { name: "일시정지", exact: true }).click();
+  await page.keyboard.press("Escape");
 
   // 8. 모바일 모드 — 폭을 좁히면 하단 독이 뜨고, 독으로 앱을 풀스크린 전환
   await page.setViewportSize({ width: 390, height: 844 });

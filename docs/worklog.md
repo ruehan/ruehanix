@@ -1,5 +1,20 @@
 # 작업 로그
 
+## 2026-06-23 — 본문 Portable Text 리치 렌더 + 사진 Sanity 전환
+- 브랜치: feat/rich-content
+- 한 일: ①글 본문을 평문 문단 → 원본 Portable Text로. 공용 PostBody(@portabletext/react)로 헤딩·리스트·
+  인용·링크·인라인코드·코드블록·본문이미지 렌더(Reader 앱·/posts/[slug] 공용). post 스키마 body에
+  image(alt)·codeBlock 추가. BlogPost.body 타입 string[]→PortableTextBlock[]. ②사진을 Sanity photo
+  스키마로 전환(image·title·tag·order, tracks 패턴 미러링). lib/photos, image.asset->url 투영,
+  FotoApp 실제 이미지 렌더 + 빈 상태. 하드코딩 PHOTOS 제거. 순수 Sanity·폴백 없음.
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 통과 — photos normalize 4·posts image 정제 테스트 추가,
+  죽은 portableTextToParagraphs 제거), build 성공(slug SSG), smoke 21/21(사진·곡 유무 무관). /posts/[slug] PT 렌더 시각 확인.
+- 리뷰: 통과 2라운드(1R P1: asset 없는 본문 image 블록이 urlFor throw → normalize sanitizeBody 제외 +
+  PostBody 가드 + 테스트; P2 죽은 함수 제거) — 상세: docs/reviews/2026-06-23-portable-text-사진-sanity.md
+- 가정: 코드 하이라이트 플러그인(@sanity/code-input) 미도입(단순 codeBlock). 순수 Sanity·폴백 없음. ADR 0014.
+- 백로그: next/image 설정(외부 CDN 이미지), 코드 신택스 하이라이트.
+- 관련 결정: docs/decisions/0014-portable-text-and-photos.md
+
 ## 2026-06-23 — 팝오버 아이콘 수정 + 플레이리스트 Sanity 전환
 - 브랜치: feat/sanity-tracks
 - 한 일: ①팝오버 재생 버튼이 세로 타원으로 찌그러지던 문제 수정(컨트롤 아이콘에 flex:none — 좁은

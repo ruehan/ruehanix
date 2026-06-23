@@ -349,6 +349,8 @@ export function buildVm(api: RuehanixApi) {
     repeat: pl.repeat,
     repeatLabel,
     current: curTrack ? { title: curTrack.title, artist: curTrack.artist } : null,
+    popoverOpen: st.showMusic,
+    togglePopover: handlers.toggleMusic,
     tracks: TRACKS.map((t, i) => ({
       id: i,
       title: t.title,

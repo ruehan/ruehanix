@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPost, getSlugs } from "@/lib/posts/source";
+import { PostBody } from "@/components/posts/PostBody";
 import { CATS } from "@/lib/ruehanix/data";
 import { catColors } from "@/lib/ruehanix/theme";
 
@@ -78,9 +79,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           <span>·</span>
           <span>{post.readingTime}</span>
         </div>
-        {post.body.map((para, i) => (
-          <p key={i} style={{ margin: "0 0 22px", fontSize: 16.5, lineHeight: 1.85, color: "var(--sub1)" }}>{para}</p>
-        ))}
+        <PostBody value={post.body} />
         <footer style={{ marginTop: 44, paddingTop: 22, borderTop: "1px solid var(--surf0)", display: "flex", alignItems: "center", gap: 12, fontFamily: sans }}>
           <div style={{ width: 42, height: 42, borderRadius: "50%", flex: "none", background: "linear-gradient(135deg,#cba6f7,#89b4fa)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-accent)", fontWeight: 800, fontSize: 16, fontFamily: mono }}>한</div>
           <div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, normalizePost, portableTextToParagraphs } from "./normalize";
+import { formatDate, normalizePost } from "./normalize";
 
 describe("formatDate", () => {
   it("ISO → YYYY.MM.DD (UTC 고정)", () => {
@@ -11,20 +11,6 @@ describe("formatDate", () => {
   it("빈/유효하지 않은 값은 빈 문자열", () => {
     expect(formatDate(undefined)).toBe("");
     expect(formatDate("not-a-date")).toBe("");
-  });
-});
-
-describe("portableTextToParagraphs", () => {
-  it("block의 children text를 문단으로 추출", () => {
-    const blocks = [
-      { _type: "block", children: [{ text: "안녕 " }, { text: "세계" }] },
-      { _type: "block", children: [{ text: "둘째 문단" }] },
-    ];
-    expect(portableTextToParagraphs(blocks)).toEqual(["안녕 세계", "둘째 문단"]);
-  });
-  it("block 아닌 항목·빈 문단·배열 아님은 건너뜀", () => {
-    expect(portableTextToParagraphs([{ _type: "image" }, { _type: "block", children: [{ text: "  " }] }])).toEqual([]);
-    expect(portableTextToParagraphs(undefined)).toEqual([]);
   });
 });
 
@@ -41,7 +27,8 @@ describe("normalizePost", () => {
     });
     expect(p.slug).toBe("rsc-1년");
     expect(p.category).toBe("dev");
-    expect(p.body).toEqual(["본문 한 줄"]);
+    // 원본 Portable Text 블록을 그대로 보존(평탄화하지 않음).
+    expect(p.body).toEqual([{ _type: "block", children: [{ text: "본문 한 줄" }] }]);
     expect(p.date).toBe("2026.06.18");
   });
   it("누락 필드는 안전한 기본값", () => {
@@ -50,6 +37,20 @@ describe("normalizePost", () => {
     expect(p.category).toBe("dev");
     expect(p.body).toEqual([]);
     expect(p.date).toBe("");
+  });
+  it("body가 배열이 아니면 빈 배열", () => {
+    expect(normalizePost({ body: undefined }).body).toEqual([]);
+  });
+  it("asset 없는 image 블록은 제외(urlFor 크래시 방지), 정상 블록은 보존", () => {
+    const body = [
+      { _type: "block", children: [{ text: "문단" }] },
+      { _type: "image", alt: "업로드 전" }, // asset 없음 → 제외
+      { _type: "image", asset: { _ref: "image-abc" } }, // 정상 → 보존
+    ];
+    expect(normalizePost({ body }).body).toEqual([
+      { _type: "block", children: [{ text: "문단" }] },
+      { _type: "image", asset: { _ref: "image-abc" } },
+    ]);
   });
   it("알 수 없는 카테고리는 dev로 폴백", () => {
     expect(normalizePost({ category: "unknown" }).category).toBe("dev");

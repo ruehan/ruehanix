@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { ART_TERM, Folder } from "./icons";
 import { clickable } from "./clickable";
+import { PostBody } from "@/components/posts/PostBody";
 import type { Vm } from "./viewModel";
 
 const mono = "'JetBrains Mono',monospace";
@@ -106,9 +107,7 @@ export function ReaderApp({ vm }: { vm: Vm }) {
               <span>·</span>
               <span>{p.read}</span>
             </div>
-            {p.paras.map((para) => (
-              <p key={para.id} style={{ margin: "0 0 20px", fontSize: 16, lineHeight: 1.82, color: "var(--sub1)" }}>{para.text}</p>
-            ))}
+            <PostBody value={p.body} />
             <Link href={`/posts/${p.slug}`} style={{ display: "inline-block", marginTop: 8, fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none", fontFamily: mono }}>
               전체 페이지로 보기 →
             </Link>
@@ -127,16 +126,26 @@ export function ReaderApp({ vm }: { vm: Vm }) {
 }
 
 export function FotoApp({ vm }: { vm: Vm }) {
+  if (vm.photos.length === 0) {
+    return (
+      <div style={{ height: "100%", minHeight: 200, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--sub1)" }}>사진이 없습니다</div>
+        <div style={{ fontSize: 11.5 }}>/studio 에서 사진(photo)을 추가하세요</div>
+      </div>
+    );
+  }
   return (
     <div style={{ padding: 14 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 13, padding: "0 2px" }}>
         <span style={{ fontSize: 13, color: "var(--text)" }}>~/Pictures</span>
-        <span style={{ fontSize: 11, color: "var(--ov0)" }}>9 images</span>
+        <span style={{ fontSize: 11, color: "var(--ov0)" }}>{vm.photos.length} images</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 9 }}>
         {vm.photos.map((ph) => (
           <div key={ph.id} style={ph.tileStyle}>
-            <span style={{ position: "absolute", top: 7, left: 7, padding: "2px 8px", borderRadius: 6, fontSize: 10, fontWeight: 700, background: "rgba(17,17,27,.5)", color: "var(--text)", backdropFilter: "blur(3px)" }}>#{ph.tag}</span>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그. */}
+            <img src={ph.url} alt={ph.title} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+            {ph.tag ? <span style={{ position: "absolute", top: 7, left: 7, padding: "2px 8px", borderRadius: 6, fontSize: 10, fontWeight: 700, background: "rgba(17,17,27,.5)", color: "var(--text)", backdropFilter: "blur(3px)" }}>#{ph.tag}</span> : null}
             <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "20px 9px 8px", fontSize: 11.5, color: "#fff", background: "linear-gradient(transparent,rgba(0,0,0,.6))" }}>{ph.title}</div>
           </div>
         ))}

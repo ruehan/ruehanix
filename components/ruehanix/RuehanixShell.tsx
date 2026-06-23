@@ -5,7 +5,7 @@ import { APP_META } from "@/lib/ruehanix/data";
 import { DESKTOP_DOCK, MOBILE_DOCK, MOBILE_TOPBAR } from "@/lib/ruehanix/responsive";
 import type { AppKey } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
-import type { Track } from "@/lib/ruehanix/types";
+import type { Photo, Track } from "@/lib/ruehanix/types";
 import { useRuehanix } from "./useRuehanix";
 import { clickable } from "./clickable";
 import { buildVm, type Vm } from "./viewModel";
@@ -107,8 +107,8 @@ function DesktopDock({ vm }: { vm: Vm }) {
 }
 
 
-export function RuehanixShell({ posts, tracks }: { posts: BlogPost[]; tracks: Track[] }) {
-  const api = useRuehanix(posts, tracks);
+export function RuehanixShell({ posts, tracks, photos }: { posts: BlogPost[]; tracks: Track[]; photos: Photo[] }) {
+  const api = useRuehanix(posts, tracks, photos);
   const vm = buildVm(api);
 
   return (

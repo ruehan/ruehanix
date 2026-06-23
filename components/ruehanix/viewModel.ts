@@ -6,7 +6,6 @@ import {
   BOOT_SEQ,
   CATS,
   LAPS,
-  PHOTOS,
   THEME_MODES,
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
@@ -37,7 +36,7 @@ export interface RowPost {
 }
 
 export function buildVm(api: RuehanixApi) {
-  const { st, sys, vp, posts, tracks, prefersLight, handlers } = api;
+  const { st, sys, vp, posts, tracks, photos: photoSrc, prefersLight, handlers } = api;
   const ui = st.ui;
   const accent = accentEff(ui.mode, ui.accent, prefersLight);
   const lightMode = effMode(ui.mode, prefersLight) === "light";
@@ -229,7 +228,7 @@ export function buildVm(api: RuehanixApi) {
         read: selP.readingTime,
         catLabel: catOf(selP.category).label,
         catColor: catOf(selP.category).color,
-        paras: selP.body.map((t, i) => ({ id: i, text: t })),
+        body: selP.body,
       }
     : null;
 
@@ -245,17 +244,18 @@ export function buildVm(api: RuehanixApi) {
     };
   });
 
-  const photos = PHOTOS.map((ph, i) => ({
+  const photos = photoSrc.map((ph, i) => ({
     id: i,
-    title: ph.t,
+    title: ph.title,
     tag: ph.tag,
+    url: ph.url,
     tileStyle: {
       position: "relative",
       aspectRatio: "4 / 3",
       borderRadius: 9,
       overflow: "hidden",
       cursor: "pointer",
-      background: `linear-gradient(135deg,${ph.c1},${ph.c2})`,
+      background: "var(--surf0)",
       border: "1px solid var(--surf0)",
     } as CSSProperties,
   }));

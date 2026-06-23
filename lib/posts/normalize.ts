@@ -1,3 +1,4 @@
+import type { PortableTextBlock } from "@portabletext/types";
 import type { CatKey } from "@/lib/ruehanix/types";
 import type { BlogPost, SanityPostDoc } from "./types";
 
@@ -15,21 +16,14 @@ export function formatDate(iso: string | undefined): string {
   return `${y}.${m}.${day}`;
 }
 
-interface PtBlock {
-  _type?: string;
-  children?: { text?: string }[];
-}
-
-/** Portable Text 블록 배열 → 문단 텍스트 배열. block이 아닌 항목·빈 문단은 건너뛴다. */
-export function portableTextToParagraphs(blocks: unknown[] | undefined): string[] {
+/** 본문 블록 정제: asset 없는 image 블록을 제외한다(urlFor가 throw하므로).
+ *  tracks(videoId)·photos(url)의 "유효하지 않은 항목 제외"와 일관된 방어. */
+function sanitizeBody(blocks: unknown): PortableTextBlock[] {
   if (!Array.isArray(blocks)) return [];
-  const out: string[] = [];
-  for (const b of blocks as PtBlock[]) {
-    if (!b || b._type !== "block" || !Array.isArray(b.children)) continue;
-    const text = b.children.map((c) => c?.text ?? "").join("").trim();
-    if (text) out.push(text);
-  }
-  return out;
+  return (blocks as PortableTextBlock[]).filter((b) => {
+    const o = b as { _type?: string; asset?: unknown };
+    return !(o?._type === "image" && !o.asset);
+  });
 }
 
 /** Sanity 문서 → BlogPost. 누락 필드는 안전한 기본값으로 채운다. */
@@ -43,6 +37,6 @@ export function normalizePost(doc: SanityPostDoc): BlogPost {
     date: formatDate(doc.publishedAt),
     excerpt: doc.excerpt ?? "",
     readingTime: doc.readingTime ?? "",
-    body: portableTextToParagraphs(doc.body),
+    body: sanitizeBody(doc.body),
   };
 }

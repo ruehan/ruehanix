@@ -4,7 +4,6 @@ import type {
   BootLine,
   CatKey,
   Lap,
-  Photo,
 } from "./types";
 
 export const APP_META: Record<AppKey, AppMeta> = {
@@ -28,18 +27,6 @@ export const CATS: Record<CatKey, { label: string; color: string }> = {
   music: { label: "music", color: "#cba6f7" },
 };
 
-
-export const PHOTOS: Photo[] = [
-  { t: "Spa · Eau Rouge", c1: "#1b3a5c", c2: "#3f7cae", tag: "track" },
-  { t: "베이스 셋업 · 합주실", c1: "#3a2a1a", c2: "#9a6b3a", tag: "music" },
-  { t: "르망 새벽 4시", c1: "#1a1330", c2: "#5b3f8a", tag: "moto" },
-  { t: "트리플 모니터 리그", c1: "#10211c", c2: "#2f6f57", tag: "sim" },
-  { t: "몬차 · 파라볼리카", c1: "#3a1320", c2: "#b03a52", tag: "track" },
-  { t: "주말의 LP", c1: "#2a2410", c2: "#a08a2a", tag: "music" },
-  { t: "스즈카 · S자", c1: "#10243a", c2: "#3a86c0", tag: "track" },
-  { t: "야간 코딩", c1: "#1a1a22", c2: "#4a4a66", tag: "dev" },
-  { t: "WEC 피트월", c1: "#2a160a", c2: "#c0641a", tag: "moto" },
-];
 
 export const LAPS: Lap[] = [
   { track: "Nürburgring Nordschleife", car: "BMW M4 GT3", time: "6:59.214", delta: "-0.41", best: true },

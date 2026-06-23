@@ -16,9 +16,16 @@ export const trackType = defineType({
     }),
     defineField({
       name: "artist",
-      title: "아티스트",
+      title: "아티스트(표시 이름)",
       type: "string",
       validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "artistRef",
+      title: "아티스트 정보(선택)",
+      type: "reference",
+      to: [{ type: "artist" }],
+      description: "연결하면 음악 앱 '아티스트' 탭에 사진·소개·링크가 표시됩니다.",
     }),
     defineField({
       name: "videoId",

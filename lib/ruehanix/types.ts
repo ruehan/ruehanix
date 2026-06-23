@@ -45,10 +45,27 @@ export interface UiState {
 }
 
 /** 플레이리스트 한 곡. videoId는 YouTube 영상 ID(11자). */
+/** 아티스트 외부 링크(공식·인스타·유튜브 등). */
+export interface ArtistLink {
+  label: string;
+  url: string;
+}
+
+/** 곡의 가수 정보(Sanity artist 문서 참조에서 정규화). */
+export interface ArtistInfo {
+  name: string;
+  photoUrl: string; // 없으면 ""
+  bio: string;
+  genre: string;
+  origin: string;
+  links: ArtistLink[];
+}
+
 export interface Track {
   videoId: string;
   title: string;
-  artist: string;
+  artist: string; // 표시 라벨(참조 없어도 유지)
+  artistInfo: ArtistInfo | null; // artistRef 참조가 있을 때만
 }
 
 /** 반복 모드: 끔 · 전체 반복 · 한 곡 반복. */

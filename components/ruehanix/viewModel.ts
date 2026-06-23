@@ -350,6 +350,7 @@ export function buildVm(api: RuehanixApi) {
     repeat: pl.repeat,
     repeatLabel,
     current: curTrack ? { title: curTrack.title, artist: curTrack.artist } : null,
+    artistInfo: curTrack?.artistInfo ?? null,
     popoverOpen: st.showMusic,
     togglePopover: handlers.toggleMusic,
     tracks: tracks.map((t, i) => ({

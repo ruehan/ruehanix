@@ -18,10 +18,10 @@ export interface AppMeta {
   hint: string;
 }
 
+/** 소스(Sanity 등)에서 정규화된 사진. */
 export interface Photo {
-  t: string;
-  c1: string;
-  c2: string;
+  url: string;
+  title: string;
   tag: string;
 }
 

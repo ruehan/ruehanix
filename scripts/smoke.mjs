@@ -71,7 +71,8 @@ try {
 
   await page.getByTestId("launcher").click();
   await page.getByText("Foto사진").click();
-  await page.getByText("~/Pictures").waitFor({ timeout: 3000 });
+  // 사진 유무 무관(Sanity 소스): 사진이 있으면 ~/Pictures, 0개면 빈 상태 문구.
+  await page.getByText(/~\/Pictures|사진이 없습니다/).first().waitFor({ timeout: 3000 });
   ok("런처에서 앱 오픈", true);
 
   await page.getByTestId("launcher").click();

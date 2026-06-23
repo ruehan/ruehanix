@@ -8,7 +8,6 @@ import {
   BOOT_SEQ,
   CATS,
   LAPS,
-  PHOTOS,
   THEME_MODES,
 } from "@/lib/ruehanix/data";
 import {
@@ -27,7 +26,7 @@ import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
-import type { AppKey, CatKey, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
+import type { AppKey, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
 interface CoreState {
@@ -119,7 +118,7 @@ function getSys() {
   return sysCache;
 }
 
-export function useRuehanix(posts: BlogPost[], tracks: Track[]) {
+export function useRuehanix(posts: BlogPost[], tracks: Track[], photos: Photo[]) {
   const [st, setSt] = useState<CoreState>(() => ({ ...INITIAL, selected: posts[0]?.slug ?? "" }));
   const trackCount = tracks.length;
   const [launcherQuery, setLauncherQuery] = useState("");
@@ -395,7 +394,8 @@ export function useRuehanix(posts: BlogPost[], tracks: Track[]) {
     // 파생 헬퍼 — 뷰모델 빌더가 사용
     derive: { area, computeLayout, accentEff, catColors, effMode, hexA, wallpaper },
     tracks,
-    data: { APP_KEYS, APP_META, CATS, PHOTOS, LAPS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
+    photos,
+    data: { APP_KEYS, APP_META, CATS, LAPS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
   };
 }
 

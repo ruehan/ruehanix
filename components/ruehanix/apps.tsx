@@ -409,16 +409,16 @@ export function MusicApp({ vm }: { vm: Vm }) {
 
         {/* CONTROLS */}
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 18 }}>
-          <div {...clickable(p.prev, "이전 곡")} style={{ cursor: "pointer", color: "var(--sub0)", display: "flex" }}>
+          <div {...clickable(p.prev, "이전 곡")} style={{ flex: "none", cursor: "pointer", color: "var(--sub0)", display: "flex" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14l-11-7z" /></svg>
           </div>
-          <div {...clickable(p.toggle, p.playing ? "일시정지" : "재생")} style={{ cursor: "pointer", width: 44, height: 44, borderRadius: "50%", background: accent, color: "var(--on-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div {...clickable(p.toggle, p.playing ? "일시정지" : "재생")} style={{ flex: "none", cursor: "pointer", width: 44, height: 44, borderRadius: "50%", background: accent, color: "var(--on-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <PlayIcon playing={p.playing} size={20} />
           </div>
-          <div {...clickable(p.next, "다음 곡")} style={{ cursor: "pointer", color: "var(--sub0)", display: "flex" }}>
+          <div {...clickable(p.next, "다음 곡")} style={{ flex: "none", cursor: "pointer", color: "var(--sub0)", display: "flex" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z" /></svg>
           </div>
-          <div {...clickable(p.cycleRepeat, p.repeatLabel)} style={{ cursor: "pointer", marginLeft: 4, display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: p.repeat === "off" ? "var(--ov0)" : accent }}>
+          <div {...clickable(p.cycleRepeat, p.repeatLabel)} style={{ flex: "none", cursor: "pointer", marginLeft: 4, display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: p.repeat === "off" ? "var(--ov0)" : accent }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
             {p.repeat === "one" ? "1" : p.repeat === "all" ? "∞" : ""}
           </div>

@@ -1,5 +1,16 @@
 # 작업 로그
 
+## 2026-06-23 — 라이트 모드 데스크톱 위젯 대비 개선
+- 브랜치: fix/light-widget-contrast
+- 한 일: 데스크톱 위젯(neofetch·conky·키바인드 힌트)이 다크 팔레트 hex·다크 textShadow를 하드코딩해
+  라이트 모드에서 washout되던 문제 수정. theme.ts의 LATTE(accent 6색)를 MOCHA_TO_LATTE(보조색 yellow·
+  teal·sky 추가)로 일반화하고 순수 toLatte(hex, lightMode) 매퍼 추가(accentEff와 맵 공유). viewModel에
+  widget 팔레트 파생(라이트면 Latte 색·그림자 제거·밝은 border), 셸 위젯이 vm.widget 사용. 미사용 PALETTE 제거.
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 86/86 — theme +4 toLatte), build 성공,
+  smoke 21/21(Light 전환 PASS). 라이트 모드 강제 후 위젯 가독성 시각 확인(washout 해소).
+- 리뷰: 통과 1라운드(지적 없음, 회귀 없음) — 상세: docs/reviews/2026-06-23-라이트-위젯-대비.md
+- 가정: 위젯 색을 테마 시스템(theme→vm→shell)으로 흡수. ADR 없음(기존 패턴 연장 수정).
+
 ## 2026-06-23 — 본문 Portable Text 리치 렌더 + 사진 Sanity 전환
 - 브랜치: feat/rich-content
 - 한 일: ①글 본문을 평문 문단 → 원본 Portable Text로. 공용 PostBody(@portabletext/react)로 헤딩·리스트·

@@ -8,7 +8,7 @@ import {
   LAPS,
   THEME_MODES,
 } from "@/lib/ruehanix/data";
-import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
+import { accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
 import { filterApps } from "@/lib/ruehanix/search";
@@ -368,6 +368,23 @@ export function buildVm(api: RuehanixApi) {
     onEnded: handlers.playerEnded,
   };
 
+  // --- 데스크톱 위젯 팔레트(라이트 모드 적응) ---
+  // neofetch·conky 위젯이 하드코딩 다크 hex/그림자 대신 이 값으로 라이트에서 가독성 확보.
+  const w = (hex: string) => toLatte(hex, lightMode);
+  const widget = {
+    shadow: lightMode ? "none" : "0 1px 8px rgba(0,0,0,.4)",
+    shadowSm: lightMode ? "none" : "0 1px 6px rgba(0,0,0,.3)",
+    border: lightMode ? "var(--surf1)" : "rgba(69,71,90,.5)",
+    mauve: w("#cba6f7"),
+    blue: w("#89b4fa"),
+    pink: w("#f5c2e7"),
+    green: w("#a6e3a1"),
+    peach: w("#fab387"),
+    red: w("#f38ba8"),
+    yellow: w("#f9e2af"),
+    swatches: ["#f38ba8", "#fab387", "#f9e2af", "#a6e3a1", "#89b4fa", "#cba6f7"].map(w),
+  };
+
   const bootLines = BOOT_SEQ.slice(0, st.bootN).map((l, i) => ({ id: i, ok: l[0] === "ok", pre: l[1], post: l[2] }));
 
   return {
@@ -439,6 +456,7 @@ export function buildVm(api: RuehanixApi) {
     allPosts,
     set,
     player,
+    widget,
   };
 }
 

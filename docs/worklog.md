@@ -1,5 +1,19 @@
 # 작업 로그
 
+## 2026-06-23 — 음악 컨트롤러 팝오버 + 메뉴바 칩 제거
+- 브랜치: feat/music-popover
+- 한 일: 데스크톱 메뉴바의 가짜 시스템 칩 5개(wlan0·CPU·RAM·볼륨·배터리)와 BarChip 컴포넌트 제거 →
+  우측엔 미니플레이어·시계·재부팅만. 미니플레이어를 단일 버튼(재생상태 아이콘+제목)으로 바꿔 클릭 시
+  음악 컨트롤러 팝오버 토글. 팝오버는 MusicApp(컨트롤+플레이리스트) 재사용, 외부 클릭·Esc로 닫힘,
+  런처·단축키·팝오버 3자 상호배타. showMusic 상태·toggleMusic 핸들러 추가.
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 68/68), build 성공,
+  smoke 23/23(미니플레이어 클릭→팝오버→재생 NOW PLAYING→Esc 닫힘 시나리오 추가). 수동(playwright):
+  팝오버 우상단 렌더·칩 제거 시각 확인.
+- 리뷰: 통과 1라운드(P3 죽은 mod.vol 제거 반영; P4 smoke 콘솔필터 URL기반 보강은 백로그) —
+  상세: docs/reviews/2026-06-23-음악-팝오버.md
+- 가정: music 창 앱(rhx-play) 유지(제거 지시 없음, 팝오버=빠른 접근·창=타일). UI 재구성이라 ADR 미작성.
+- 백로그: smoke 콘솔 에러 필터를 텍스트→m.location() URL 기반으로 보강.
+
 ## 2026-06-23 — 음악 플레이어 (rhx-play)
 - 브랜치: feat/music-player
 - 한 일: 데스크톱 셸에 YouTube 기반 음악 플레이어 추가. 2겹 구조 — ①셸 루트 상주 숨긴 iframe 엔진

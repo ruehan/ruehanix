@@ -10,16 +10,22 @@ function silent(s: PlayerState): PlayerState {
   return { ...s, index: 0, playing: false };
 }
 
+/** 저장된 index가 곡 수 범위를 벗어났을 때 유효 범위로 클램프.
+ *  뷰모델 표시(min(index, n-1))와 동일 기준이라 표시 곡과 스킵 동작이 일치한다. */
+function clampIdx(i: number, n: number): number {
+  return Math.min(Math.max(0, i), n - 1);
+}
+
 /** 다음 곡(사용자 스킵) — 마지막에서 첫 곡으로 순환, 항상 재생. */
 export function playerNext(s: PlayerState, n: number): PlayerState {
   if (n <= 0) return silent(s);
-  return { ...s, index: (s.index + 1) % n, playing: true };
+  return { ...s, index: (clampIdx(s.index, n) + 1) % n, playing: true };
 }
 
 /** 이전 곡(사용자 스킵) — 첫 곡에서 마지막으로 순환, 항상 재생. */
 export function playerPrev(s: PlayerState, n: number): PlayerState {
   if (n <= 0) return silent(s);
-  return { ...s, index: (s.index - 1 + n) % n, playing: true };
+  return { ...s, index: (clampIdx(s.index, n) - 1 + n) % n, playing: true };
 }
 
 /** 특정 곡 선택 — 범위 밖이면 무시(상태 유지). */
@@ -47,8 +53,9 @@ export function cycleRepeat(s: PlayerState): PlayerState {
 /** 곡이 자연 종료됐을 때 — 반복 모드를 반영해 다음 상태를 만든다. */
 export function onEnded(s: PlayerState, n: number): PlayerState {
   if (n <= 0) return silent(s);
-  if (s.repeat === "one") return { ...s, playing: true };
-  const last = s.index >= n - 1;
-  if (s.repeat === "off" && last) return { ...s, playing: false };
-  return { ...s, index: (s.index + 1) % n, playing: true };
+  const i = clampIdx(s.index, n);
+  if (s.repeat === "one") return { ...s, index: i, playing: true };
+  const last = i >= n - 1;
+  if (s.repeat === "off" && last) return { ...s, index: i, playing: false };
+  return { ...s, index: (i + 1) % n, playing: true };
 }

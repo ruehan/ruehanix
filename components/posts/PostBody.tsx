@@ -38,7 +38,9 @@ const components: PortableTextComponents = {
   },
   types: {
     image: ({ value }) => {
-      const v = value as { alt?: string };
+      const v = value as { alt?: string; asset?: unknown };
+      // asset 없는 image 블록(업로드 전 저장 등)은 urlFor가 throw → 렌더하지 않는다(normalize에서도 거름).
+      if (!v.asset) return null;
       // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그.
       return <img src={urlFor(value).width(1400).fit("max").auto("format").url()} alt={v.alt ?? ""} style={{ display: "block", maxWidth: "100%", height: "auto", borderRadius: 10, margin: "8px 0 22px" }} />;
     },

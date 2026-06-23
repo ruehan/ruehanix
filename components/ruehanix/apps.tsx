@@ -377,6 +377,84 @@ export function SettingsApp({ vm }: { vm: Vm }) {
   );
 }
 
+function PlayIcon({ playing, size = 16 }: { playing: boolean; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      {playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
+    </svg>
+  );
+}
+
+export function MusicApp({ vm }: { vm: Vm }) {
+  const p = vm.player;
+  const accent = vm.accent;
+  if (!p.hasTracks) {
+    return (
+      <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--sub1)" }}>플레이리스트가 비어 있습니다</div>
+        <div style={{ fontSize: 11.5 }}>lib/ruehanix/data.ts 의 TRACKS에 곡을 추가하세요</div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", color: "var(--text)" }}>
+      {/* NOW PLAYING */}
+      <div style={{ flex: "none", padding: "22px 22px 18px", borderBottom: "1px solid var(--surf0)", background: "radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: p.playing ? "#a6e3a1" : "var(--ov0)", boxShadow: p.playing ? "0 0 8px #a6e3a1" : "none" }} />
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".16em", color: p.playing ? "#a6e3a1" : "var(--ov0)" }}>{p.playing ? "NOW PLAYING" : "PAUSED"}</span>
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.01em", lineHeight: 1.25, marginBottom: 4, textWrap: "balance" }}>{p.current?.title}</div>
+        <div style={{ fontSize: 13, color: "var(--ov0)" }}>{p.current?.artist}</div>
+
+        {/* CONTROLS */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 18 }}>
+          <div {...clickable(p.prev, "이전 곡")} style={{ cursor: "pointer", color: "var(--sub0)", display: "flex" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14l-11-7z" /></svg>
+          </div>
+          <div {...clickable(p.toggle, p.playing ? "일시정지" : "재생")} style={{ cursor: "pointer", width: 44, height: 44, borderRadius: "50%", background: accent, color: "var(--on-accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <PlayIcon playing={p.playing} size={20} />
+          </div>
+          <div {...clickable(p.next, "다음 곡")} style={{ cursor: "pointer", color: "var(--sub0)", display: "flex" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z" /></svg>
+          </div>
+          <div {...clickable(p.cycleRepeat, p.repeatLabel)} style={{ cursor: "pointer", marginLeft: 4, display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: p.repeat === "off" ? "var(--ov0)" : accent }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
+            {p.repeat === "one" ? "1" : p.repeat === "all" ? "∞" : ""}
+          </div>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ov0)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z" /><path d="M16 9a4 4 0 0 1 0 6" /></svg>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={p.volume}
+              onChange={(e) => p.setVolume(Number(e.target.value))}
+              aria-label="볼륨"
+              style={{ width: 90, accentColor: accent, cursor: "pointer" }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* PLAYLIST */}
+      <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        {p.tracks.map((t) => (
+          <div key={t.id} {...clickable(t.onClick, `${t.title} 재생`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 18px", borderBottom: "1px solid var(--surf0)", cursor: "pointer", background: t.current ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent" }}>
+            <span style={{ flex: "none", width: 18, textAlign: "center", color: t.current ? accent : "var(--ov0)", fontSize: 12 }}>
+              {t.playing ? <PlayIcon playing size={12} /> : t.id + 1}
+            </span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 13, color: t.current ? "var(--text)" : "var(--sub1)", fontWeight: t.current ? 700 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.title}</div>
+              <div style={{ fontSize: 11, color: "var(--ov0)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.artist}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AboutApp() {
   const specs: [string, string][] = [
     ["CPU", "Ryzen 9 7950X · 16C/32T"],

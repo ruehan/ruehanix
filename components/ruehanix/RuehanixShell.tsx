@@ -9,7 +9,8 @@ import { useRuehanix } from "./useRuehanix";
 import { clickable } from "./clickable";
 import { buildVm, type Vm } from "./viewModel";
 import { ART_DESK, LineIcon } from "./icons";
-import { AboutApp, FilesApp, FotoApp, HotlapApp, ReaderApp, SettingsApp, TerminalApp, WebApp } from "./apps";
+import { AboutApp, FilesApp, FotoApp, HotlapApp, MusicApp, ReaderApp, SettingsApp, TerminalApp, WebApp } from "./apps";
+import { YouTubeEngine } from "./YouTubeEngine";
 
 const KEYBINDS: [string, string][] = [
   ["Super + D", "앱 실행기"],
@@ -119,6 +120,11 @@ export function RuehanixShell({ posts }: { posts: BlogPost[] }) {
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh", overflow: "hidden", background: "var(--crust)", color: "var(--text)", fontFamily: "'JetBrains Mono', ui-monospace, monospace", userSelect: "none" }}>
+      {/* 숨긴 오디오 엔진 — 셸 루트 상주(앱 전환에도 재생 유지) */}
+      {vm.player.hasTracks && (
+        <YouTubeEngine videoId={vm.player.videoId} playing={vm.player.playing} volume={vm.player.volume} onEnded={vm.player.onEnded} />
+      )}
+
       {/* WALLPAPER */}
       <div style={{ position: "absolute", inset: 0, background: vm.wallpaper }} />
       <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(205,214,244,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(205,214,244,.025) 1px,transparent 1px)", backgroundSize: "42px 42px", pointerEvents: "none" }} />
@@ -193,11 +199,24 @@ export function RuehanixShell({ posts }: { posts: BlogPost[] }) {
             ))}
           </div>
         </div>
-        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 8, color: "var(--sub1)" }}>
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: vm.focusDot }} />
-          {vm.focusTitle}
+        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 8, color: "var(--sub1)", maxWidth: 240, overflow: "hidden", whiteSpace: "nowrap", pointerEvents: "none" }}>
+          <span style={{ flex: "none", width: 7, height: 7, borderRadius: "50%", background: vm.focusDot }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{vm.focusTitle}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          {vm.player.hasTracks && (
+            <div data-testid="miniplayer" style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 5px 2px 7px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 14%, transparent)", maxWidth: 210 }}>
+              <div data-testid="mini-playpause" {...clickable(vm.player.toggle, vm.player.playing ? "일시정지" : "재생")} style={{ display: "flex", color: "var(--accent)", cursor: "pointer" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  {vm.player.playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
+                </svg>
+              </div>
+              <span data-testid="mini-title" style={{ fontSize: 11.5, color: "var(--sub1)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{vm.player.current?.title}</span>
+              <div data-testid="mini-next" {...clickable(vm.player.next, "다음 곡")} style={{ display: "flex", color: "var(--ov0)", cursor: "pointer" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z" /></svg>
+              </div>
+            </div>
+          )}
           <BarChip bg="rgba(137,180,250,.14)" color="#89b4fa">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M5 13a10 10 0 0 1 14 0" /><path d="M8.5 16.5a5 5 0 0 1 7 0" /><circle cx="12" cy="20" r="0.5" fill="currentColor" /></svg>
             wlan0
@@ -241,6 +260,7 @@ export function RuehanixShell({ posts }: { posts: BlogPost[] }) {
         <Win vm={vm} app="hotlap"><HotlapApp vm={vm} /></Win>
         <Win vm={vm} app="terminal"><TerminalApp /></Win>
         <Win vm={vm} app="web"><WebApp vm={vm} /></Win>
+        <Win vm={vm} app="music"><MusicApp vm={vm} /></Win>
         <Win vm={vm} app="settings"><SettingsApp vm={vm} /></Win>
         <Win vm={vm} app="about"><AboutApp /></Win>
         {vm.gutters.map((g) => (

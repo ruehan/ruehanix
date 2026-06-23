@@ -5,6 +5,7 @@ import type {
   CatKey,
   Lap,
   Photo,
+  Track,
 } from "./types";
 
 export const APP_META: Record<AppKey, AppMeta> = {
@@ -14,6 +15,7 @@ export const APP_META: Record<AppKey, AppMeta> = {
   hotlap: { name: "HOT LAP", color: "#f38ba8", hint: "심레이싱" },
   terminal: { name: "Terminal", color: "#94e2d5", hint: "셸" },
   web: { name: "Web", color: "#89dceb", hint: "ruehan.dev" },
+  music: { name: "rhx-play", color: "#cba6f7", hint: "음악" },
   settings: { name: "Settings", color: "#fab387", hint: "설정" },
   about: { name: "About", color: "#cba6f7", hint: "시스템 정보" },
 };
@@ -48,6 +50,16 @@ export const LAPS: Lap[] = [
   { track: "Le Mans · La Sarthe", car: "Toyota GR010", time: "3:24.119", delta: "-0.55", best: false },
 ];
 
+/** rhx-play 플레이리스트.
+ *  videoId = YouTube 영상 ID(주소의 `watch?v=` 뒤 11자, 또는 `youtu.be/` 뒤).
+ *  아래는 예시 — 본인 취향으로 자유롭게 교체/추가하세요. 임베드가 막힌 영상은 재생되지 않습니다. */
+export const TRACKS: Track[] = [
+  { videoId: "jfKfPfyJRdk", title: "lofi hip hop radio", artist: "Lofi Girl" },
+  { videoId: "5qap5aO4i9A", title: "lofi hip hop radio (2)", artist: "Lofi Girl" },
+  { videoId: "DWcJFNfaw9c", title: "Daft Punk — Around the World", artist: "Daft Punk" },
+  { videoId: "rY0WxgSXdEE", title: "Jamiroquai — Virtual Insanity", artist: "Jamiroquai" },
+];
+
 export const BOOT_SEQ: BootLine[] = [
   ["ok", "Reached target ", "Basic System"],
   ["ok", "Started ", "Network Manager"],
@@ -56,6 +68,7 @@ export const BOOT_SEQ: BootLine[] = [
   ["ok", "Started ", "PipeWire Multimedia"],
   ["ok", "Reached target ", "Graphical Interface"],
   ["ok", "Started ", "Hyprland session"],
+  ["ok", "Started ", "rhx-play audio daemon"],
   ["info", "Loading ", "Catppuccin Mocha theme"],
   ["info", "Spawning ", "waybar · conky · fastfetch"],
   ["ok", "Welcome to ", "ruehanix 1.0 (kernel 6.9.2-rue)"],

@@ -57,6 +57,11 @@ const PATHS: Record<AppKey, JSX.Element[]> = {
     <circle key={1} cx={12} cy={12} r={9} />,
     <path key={2} d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" />,
   ],
+  music: [
+    <path key={1} d="M9 18V5l10-2v13" />,
+    <circle key={2} cx={6} cy={18} r={3} />,
+    <circle key={3} cx={16} cy={16} r={3} />,
+  ],
   settings: [
     <circle key={1} cx={12} cy={12} r={3} />,
     <path key={2} d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" />,

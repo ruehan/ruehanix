@@ -5,6 +5,7 @@ export type AppKey =
   | "hotlap"
   | "terminal"
   | "web"
+  | "music"
   | "settings"
   | "about";
 
@@ -41,6 +42,24 @@ export interface UiState {
   rounded: boolean;
   glow: boolean;
   transp: boolean;
+}
+
+/** 플레이리스트 한 곡. videoId는 YouTube 영상 ID(11자). */
+export interface Track {
+  videoId: string;
+  title: string;
+  artist: string;
+}
+
+/** 반복 모드: 끔 · 전체 반복 · 한 곡 반복. */
+export type Repeat = "off" | "all" | "one";
+
+/** 음악 플레이어의 순수 상태(엔진과 무관한 로직 부분). */
+export interface PlayerState {
+  index: number; // TRACKS 내 현재 곡 인덱스
+  playing: boolean;
+  volume: number; // 0..100
+  repeat: Repeat;
 }
 
 export interface Rect {

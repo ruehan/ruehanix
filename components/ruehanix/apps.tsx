@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { ART_TERM, Folder } from "./icons";
 import { clickable } from "./clickable";
@@ -394,9 +394,48 @@ function PlayIcon({ playing, size = 16 }: { playing: boolean; size?: number }) {
   );
 }
 
+function ArtistPanel({ info, accent }: { info: Vm["player"]["artistInfo"]; accent: string }) {
+  if (!info) {
+    return (
+      <div style={{ height: "100%", minHeight: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sub1)" }}>아티스트 정보가 없습니다</div>
+        <div style={{ fontSize: 11.5 }}>/studio 의 곡에서 아티스트를 연결하세요</div>
+      </div>
+    );
+  }
+  const meta = [info.genre, info.origin].filter(Boolean).join(" · ");
+  return (
+    <div style={{ padding: "18px 18px 22px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 14 }}>
+        {info.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그.
+          <img src={info.photoUrl} alt={info.name} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", flex: "none", border: "1px solid var(--surf0)" }} />
+        ) : (
+          <div style={{ width: 56, height: 56, borderRadius: "50%", flex: "none", background: "var(--surf0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800, color: "var(--ov0)" }}>{info.name.slice(0, 1)}</div>
+        )}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{info.name}</div>
+          {meta ? <div style={{ fontSize: 11.5, color: "var(--ov0)", marginTop: 2 }}>{meta}</div> : null}
+        </div>
+      </div>
+      {info.bio ? <p style={{ margin: "0 0 14px", fontSize: 12.5, lineHeight: 1.7, color: "var(--sub1)", whiteSpace: "pre-wrap" }}>{info.bio}</p> : null}
+      {info.links.length > 0 ? (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+          {info.links.map((l) => (
+            <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 600, padding: "5px 11px", borderRadius: 7, textDecoration: "none", background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accent }}>
+              {l.label} ↗
+            </a>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function MusicApp({ vm }: { vm: Vm }) {
   const p = vm.player;
   const accent = vm.accent;
+  const [tab, setTab] = useState<"playlist" | "artist">("playlist");
   if (!p.hasTracks) {
     return (
       <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
@@ -446,19 +485,34 @@ export function MusicApp({ vm }: { vm: Vm }) {
         </div>
       </div>
 
-      {/* PLAYLIST */}
-      <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-        {p.tracks.map((t) => (
-          <div key={t.id} {...clickable(t.onClick, `${t.title} 재생`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 18px", borderBottom: "1px solid var(--surf0)", cursor: "pointer", background: t.current ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent" }}>
-            <span style={{ flex: "none", width: 18, textAlign: "center", color: t.current ? accent : "var(--ov0)", fontSize: 12 }}>
-              {t.playing ? <PlayIcon playing size={12} /> : t.id + 1}
-            </span>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 13, color: t.current ? "var(--text)" : "var(--sub1)", fontWeight: t.current ? 700 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.title}</div>
-              <div style={{ fontSize: 11, color: "var(--ov0)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.artist}</div>
-            </div>
+      {/* TABS */}
+      <div style={{ flex: "none", display: "flex", borderBottom: "1px solid var(--surf0)" }}>
+        {([["playlist", "재생목록"], ["artist", "아티스트"]] as const).map(([key, label]) => (
+          <div
+            key={key}
+            {...clickable(() => setTab(key), label)}
+            style={{ flex: 1, textAlign: "center", padding: "9px 0", fontSize: 12, fontWeight: tab === key ? 700 : 500, cursor: "pointer", color: tab === key ? accent : "var(--ov0)", borderBottom: `2px solid ${tab === key ? accent : "transparent"}`, marginBottom: -1 }}
+          >
+            {label}
           </div>
         ))}
+      </div>
+
+      {/* CONTENT */}
+      <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        {tab === "playlist"
+          ? p.tracks.map((t) => (
+              <div key={t.id} {...clickable(t.onClick, `${t.title} 재생`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 18px", borderBottom: "1px solid var(--surf0)", cursor: "pointer", background: t.current ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent" }}>
+                <span style={{ flex: "none", width: 18, textAlign: "center", color: t.current ? accent : "var(--ov0)", fontSize: 12 }}>
+                  {t.playing ? <PlayIcon playing size={12} /> : t.id + 1}
+                </span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 13, color: t.current ? "var(--text)" : "var(--sub1)", fontWeight: t.current ? 700 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.title}</div>
+                  <div style={{ fontSize: 11, color: "var(--ov0)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.artist}</div>
+                </div>
+              </div>
+            ))
+          : <ArtistPanel info={p.artistInfo} accent={accent} />}
       </div>
     </div>
   );

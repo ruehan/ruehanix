@@ -127,6 +127,10 @@ try {
     await page.getByTestId("music-popover").getByRole("button", { name: "재생", exact: true }).click();
     await page.getByTestId("music-popover").getByText("NOW PLAYING").waitFor({ timeout: 3000 });
     ok("팝오버 재생 → NOW PLAYING", true);
+    // 아티스트 탭 전환(데이터 무관 — 정보 있으면 표시, 없으면 안내).
+    await page.getByTestId("music-popover").getByRole("button", { name: "아티스트" }).click();
+    await page.getByTestId("music-popover").getByRole("button", { name: "재생목록" }).waitFor({ timeout: 3000 });
+    ok("아티스트 탭 전환", true);
     await page.keyboard.press("Escape");
     await page.getByTestId("music-popover").waitFor({ state: "hidden", timeout: 3000 });
     // 다른 앱으로 전환해도 미니플레이어(셸 상주)가 유지된다 — 재생 지속의 대용 신호.

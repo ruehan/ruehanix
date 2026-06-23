@@ -36,7 +36,7 @@ export interface RowPost {
 }
 
 export function buildVm(api: RuehanixApi) {
-  const { st, sys, vp, posts, tracks, photos: photoSrc, prefersLight, handlers } = api;
+  const { st, sys, vp, posts, tracks, photos: photoSrc, artists, prefersLight, handlers } = api;
   const ui = st.ui;
   const accent = accentEff(ui.mode, ui.accent, prefersLight);
   const lightMode = effMode(ui.mode, prefersLight) === "light";
@@ -351,6 +351,8 @@ export function buildVm(api: RuehanixApi) {
     repeatLabel,
     current: curTrack ? { title: curTrack.title, artist: curTrack.artist } : null,
     artistInfo: curTrack?.artistInfo ?? null,
+    artists, // 전체 아티스트 디렉터리
+    currentArtistId: curTrack?.artistInfo?.id ?? null, // 재생 중 가수 강조용
     popoverOpen: st.showMusic,
     togglePopover: handlers.toggleMusic,
     tracks: tracks.map((t, i) => ({

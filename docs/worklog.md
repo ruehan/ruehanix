@@ -1,5 +1,17 @@
 # 작업 로그
 
+## 2026-06-23 — 전체 아티스트 디렉터리
+- 브랜치: feat/artist-directory
+- 한 일: MusicApp 아티스트 탭을 현재 곡 가수 → 전체 아티스트 디렉터리로. lib/artists(getAllArtists·normalize)
+  추가, artist 컬렉션 직접 쿼리해 셸 주입. ArtistInfo에 id(_id) 추가, toArtistInfo를 lib/artists로 이전해
+  tracks와 공유(DRY). 디렉터리: 카드 목록(사진/이니셜 아바타), 재생 중 가수 강조("재생 중" 배지), 카드 클릭 시
+  소개·링크 인라인 펼침. useRuehanix 인자를 content 객체({posts,tracks,photos,artists})로 정리(positional 혼동 방지).
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 94/94 — artists normalize 5), build 성공,
+  smoke 22/22. 스텁 아티스트 3명 주입으로 디렉터리·강조·확장 시각 확인 후 원복.
+- 리뷰: 통과 1라운드(지적 없음, 회귀 없음, 0015 positional footgun 권고도 반영) — 상세: docs/reviews/2026-06-23-아티스트-디렉터리.md
+- 가정: 전체 디렉터리(원래 의도), content 객체 주입, id 폴백 ""(정상 데이터엔 _id 항상). ADR 0016.
+- 관련 결정: docs/decisions/0016-artist-directory.md
+
 ## 2026-06-23 — 음악 아티스트 정보 (artist 문서 + 탭)
 - 브랜치: feat/artist-info
 - 한 일: 가수 정보 입력·제공. Sanity artist 문서(name·photo·bio·genre·origin·links) 추가, track이

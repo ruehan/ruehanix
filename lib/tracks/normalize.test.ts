@@ -31,6 +31,7 @@ describe("normalizeTracks", () => {
           title: "곡",
           artist: "라벨",
           artistRef: {
+            id: "art-1",
             name: "Lofi Girl",
             photoUrl: "https://cdn/a.jpg",
             bio: "소개",
@@ -45,6 +46,7 @@ describe("normalizeTracks", () => {
         },
       ]);
       expect(out[0].artistInfo).toEqual({
+        id: "art-1",
         name: "Lofi Girl",
         photoUrl: "https://cdn/a.jpg",
         bio: "소개",
@@ -59,6 +61,7 @@ describe("normalizeTracks", () => {
     });
     it("선택 필드 누락 시 안전 기본값(빈 문자열·빈 배열)", () => {
       expect(normalizeTracks([{ videoId: "jfKfPfyJRdk", title: "t", artist: "a", artistRef: { name: "A" } }])[0].artistInfo).toEqual({
+        id: "",
         name: "A",
         photoUrl: "",
         bio: "",

@@ -1,18 +1,10 @@
-/** track.artistRef 역참조 원형(GROQ에서 photoUrl은 photo.asset->url 투영). */
-export interface SanityArtistRef {
-  name?: string;
-  photoUrl?: string;
-  bio?: string;
-  genre?: string;
-  origin?: string;
-  links?: { label?: string; url?: string }[];
-}
+import type { SanityArtistDoc } from "@/lib/artists/types";
 
-/** Sanity track 문서의 원형(필요한 필드만). */
+/** Sanity track 문서의 원형(필요한 필드만). artistRef는 역참조된 artist 문서(공유 형태). */
 export interface SanityTrackDoc {
   videoId?: string;
   title?: string;
   artist?: string;
   order?: number;
-  artistRef?: SanityArtistRef | null;
+  artistRef?: SanityArtistDoc | null;
 }

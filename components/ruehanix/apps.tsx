@@ -394,40 +394,65 @@ function PlayIcon({ playing, size = 16 }: { playing: boolean; size?: number }) {
   );
 }
 
-function ArtistPanel({ info, accent }: { info: Vm["player"]["artistInfo"]; accent: string }) {
-  if (!info) {
+function ArtistAvatar({ photoUrl, name, size }: { photoUrl: string; name: string; size: number }) {
+  if (photoUrl) {
+    // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그.
+    return <img src={photoUrl} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flex: "none", border: "1px solid var(--surf0)" }} />;
+  }
+  return (
+    <div style={{ width: size, height: size, borderRadius: "50%", flex: "none", background: "var(--surf0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.4, fontWeight: 800, color: "var(--ov0)" }}>{name.slice(0, 1)}</div>
+  );
+}
+
+function ArtistDirectory({ artists, currentId, accent }: { artists: Vm["player"]["artists"]; currentId: string | null; accent: string }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (artists.length === 0) {
     return (
       <div style={{ height: "100%", minHeight: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sub1)" }}>아티스트 정보가 없습니다</div>
-        <div style={{ fontSize: 11.5 }}>/studio 의 곡에서 아티스트를 연결하세요</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sub1)" }}>아티스트가 없습니다</div>
+        <div style={{ fontSize: 11.5 }}>/studio 에서 아티스트(artist)를 추가하세요</div>
       </div>
     );
   }
-  const meta = [info.genre, info.origin].filter(Boolean).join(" · ");
   return (
-    <div style={{ padding: "18px 18px 22px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 14 }}>
-        {info.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그.
-          <img src={info.photoUrl} alt={info.name} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", flex: "none", border: "1px solid var(--surf0)" }} />
-        ) : (
-          <div style={{ width: 56, height: 56, borderRadius: "50%", flex: "none", background: "var(--surf0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800, color: "var(--ov0)" }}>{info.name.slice(0, 1)}</div>
-        )}
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{info.name}</div>
-          {meta ? <div style={{ fontSize: 11.5, color: "var(--ov0)", marginTop: 2 }}>{meta}</div> : null}
-        </div>
-      </div>
-      {info.bio ? <p style={{ margin: "0 0 14px", fontSize: 12.5, lineHeight: 1.7, color: "var(--sub1)", whiteSpace: "pre-wrap" }}>{info.bio}</p> : null}
-      {info.links.length > 0 ? (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {info.links.map((l) => (
-            <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 600, padding: "5px 11px", borderRadius: 7, textDecoration: "none", background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accent }}>
-              {l.label} ↗
-            </a>
-          ))}
-        </div>
-      ) : null}
+    <div>
+      {artists.map((a) => {
+        const open = openId === a.id;
+        const isCurrent = !!currentId && a.id === currentId;
+        const meta = [a.genre, a.origin].filter(Boolean).join(" · ");
+        const hasDetail = !!a.bio || a.links.length > 0;
+        return (
+          <div key={a.id || a.name} style={{ borderBottom: "1px solid var(--surf0)", background: isCurrent ? "color-mix(in srgb, var(--accent) 10%, transparent)" : "transparent" }}>
+            <div {...clickable(() => setOpenId(open ? null : a.id), `${a.name} ${open ? "접기" : "펼치기"}`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", cursor: "pointer" }}>
+              <ArtistAvatar photoUrl={a.photoUrl} name={a.name} size={42} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.name}</span>
+                  {isCurrent ? <span style={{ flex: "none", fontSize: 9.5, fontWeight: 800, padding: "1px 6px", borderRadius: 5, background: accent, color: "var(--on-accent)" }}>재생 중</span> : null}
+                </div>
+                {meta ? <div style={{ fontSize: 11, color: "var(--ov0)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{meta}</div> : null}
+              </div>
+              {hasDetail ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ov0)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flex: "none", transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }}><path d="M6 9l6 6 6-6" /></svg>
+              ) : null}
+            </div>
+            {open && hasDetail ? (
+              <div style={{ padding: "0 18px 16px 72px" }}>
+                {a.bio ? <p style={{ margin: "0 0 12px", fontSize: 12.5, lineHeight: 1.7, color: "var(--sub1)", whiteSpace: "pre-wrap" }}>{a.bio}</p> : null}
+                {a.links.length > 0 ? (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                    {a.links.map((l) => (
+                      <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 600, padding: "5px 11px", borderRadius: 7, textDecoration: "none", background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accent }}>
+                        {l.label} ↗
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -512,7 +537,7 @@ export function MusicApp({ vm }: { vm: Vm }) {
                 </div>
               </div>
             ))
-          : <ArtistPanel info={p.artistInfo} accent={accent} />}
+          : <ArtistDirectory artists={p.artists} currentId={p.currentArtistId} accent={accent} />}
       </div>
     </div>
   );

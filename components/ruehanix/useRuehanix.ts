@@ -26,7 +26,7 @@ import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
-import type { AppKey, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
+import type { AppKey, ArtistInfo, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
 interface CoreState {
@@ -118,7 +118,15 @@ function getSys() {
   return sysCache;
 }
 
-export function useRuehanix(posts: BlogPost[], tracks: Track[], photos: Photo[]) {
+/** 셸에 주입되는 콘텐츠(서버에서 Sanity fetch). 동형 배열이 많아 순서 혼동을 피하려 객체로 받는다. */
+export interface ShellContent {
+  posts: BlogPost[];
+  tracks: Track[];
+  photos: Photo[];
+  artists: ArtistInfo[];
+}
+
+export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
   const [st, setSt] = useState<CoreState>(() => ({ ...INITIAL, selected: posts[0]?.slug ?? "" }));
   const trackCount = tracks.length;
   const [launcherQuery, setLauncherQuery] = useState("");
@@ -395,6 +403,7 @@ export function useRuehanix(posts: BlogPost[], tracks: Track[], photos: Photo[])
     derive: { area, computeLayout, accentEff, catColors, effMode, hexA, wallpaper },
     tracks,
     photos,
+    artists,
     data: { APP_KEYS, APP_META, CATS, LAPS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
   };
 }

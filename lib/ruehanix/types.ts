@@ -51,8 +51,9 @@ export interface ArtistLink {
   url: string;
 }
 
-/** 곡의 가수 정보(Sanity artist 문서 참조에서 정규화). */
+/** 가수 정보(Sanity artist 문서/참조에서 정규화). */
 export interface ArtistInfo {
+  id: string; // Sanity _id (디렉터리 key·강조 비교용, 없으면 "")
   name: string;
   photoUrl: string; // 없으면 ""
   bio: string;

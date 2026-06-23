@@ -177,7 +177,7 @@ export function useRuehanix(posts: BlogPost[]) {
   const setRatio = (key: string, r: number) => setSt((s) => ({ ...s, ratios: { ...s.ratios, [key]: r } }));
 
   // --- 음악 플레이어 핸들러 (순수 reducer 위임) ---
-  const playerToggle = () => setSt((s) => ({ ...s, player: toggle(s.player) }));
+  const playerToggle = () => setSt((s) => ({ ...s, player: TRACK_COUNT > 0 ? toggle(s.player) : s.player }));
   const playerSkipNext = () => setSt((s) => ({ ...s, player: playerNext(s.player, TRACK_COUNT) }));
   const playerSkipPrev = () => setSt((s) => ({ ...s, player: playerPrev(s.player, TRACK_COUNT) }));
   const playerSelect = (i: number) => setSt((s) => ({ ...s, player: selectTrack(s.player, i, TRACK_COUNT) }));

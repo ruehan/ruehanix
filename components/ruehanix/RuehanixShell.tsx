@@ -199,9 +199,9 @@ export function RuehanixShell({ posts }: { posts: BlogPost[] }) {
             ))}
           </div>
         </div>
-        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 8, color: "var(--sub1)" }}>
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: vm.focusDot }} />
-          {vm.focusTitle}
+        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 8, color: "var(--sub1)", maxWidth: 240, overflow: "hidden", whiteSpace: "nowrap", pointerEvents: "none" }}>
+          <span style={{ flex: "none", width: 7, height: 7, borderRadius: "50%", background: vm.focusDot }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{vm.focusTitle}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           {vm.player.hasTracks && (

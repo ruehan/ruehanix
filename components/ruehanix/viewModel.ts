@@ -8,6 +8,7 @@ import {
   LAPS,
   PHOTOS,
   THEME_MODES,
+  TRACKS,
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
@@ -336,6 +337,34 @@ export function buildVm(api: RuehanixApi) {
     ],
   };
 
+  // --- 음악 플레이어 ---
+  const pl = st.player;
+  const curTrack = TRACKS[pl.index] ?? null;
+  const repeatLabel = pl.repeat === "off" ? "반복 끔" : pl.repeat === "all" ? "전체 반복" : "한 곡 반복";
+  const player = {
+    hasTracks: TRACKS.length > 0,
+    videoId: curTrack?.videoId ?? null,
+    playing: pl.playing,
+    volume: pl.volume,
+    repeat: pl.repeat,
+    repeatLabel,
+    current: curTrack ? { title: curTrack.title, artist: curTrack.artist } : null,
+    tracks: TRACKS.map((t, i) => ({
+      id: i,
+      title: t.title,
+      artist: t.artist,
+      current: i === pl.index,
+      playing: i === pl.index && pl.playing,
+      onClick: () => handlers.playerSelect(i),
+    })),
+    toggle: handlers.playerToggle,
+    next: handlers.playerSkipNext,
+    prev: handlers.playerSkipPrev,
+    cycleRepeat: handlers.playerCycleRepeat,
+    setVolume: handlers.playerSetVolume,
+    onEnded: handlers.playerEnded,
+  };
+
   const bootLines = BOOT_SEQ.slice(0, st.bootN).map((l, i) => ({ id: i, ok: l[0] === "ok", pre: l[1], post: l[2] }));
 
   return {
@@ -406,6 +435,7 @@ export function buildVm(api: RuehanixApi) {
     laps,
     allPosts,
     set,
+    player,
   };
 }
 

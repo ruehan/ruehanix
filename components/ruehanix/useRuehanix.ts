@@ -10,13 +10,25 @@ import {
   LAPS,
   PHOTOS,
   THEME_MODES,
+  TRACKS,
 } from "@/lib/ruehanix/data";
+import {
+  PLAYER_INITIAL,
+  cycleRepeat,
+  onEnded,
+  playerNext,
+  playerPrev,
+  selectTrack,
+  setVolume,
+  toggle,
+} from "@/lib/ruehanix/player";
+import { PLAYER_STORAGE_KEY, parsePlayerState, serializePlayerState } from "@/lib/ruehanix/player-storage";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
-import type { AppKey, CatKey, ThemeMode, UiState } from "@/lib/ruehanix/types";
+import type { AppKey, CatKey, PlayerState, ThemeMode, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
 interface CoreState {
@@ -32,6 +44,7 @@ interface CoreState {
   order: AppKey[];
   ratios: Record<string, number>;
   ui: UiState;
+  player: PlayerState;
 }
 
 type Drag =
@@ -57,7 +70,10 @@ const INITIAL: CoreState = {
   order: ["files", "reader", "terminal", "hotlap", "foto"],
   ratios: {},
   ui: { mode: "dark", accent: "#cba6f7", gap: 10, rounded: true, glow: true, transp: false },
+  player: PLAYER_INITIAL,
 };
+
+const TRACK_COUNT = TRACKS.length;
 
 // --- 외부 스토어: 뷰포트 크기 (resize 구독) ---
 const VP_SERVER = { W: 1280, H: 800 };
@@ -115,6 +131,7 @@ export function useRuehanix(posts: BlogPost[]) {
   const dragRef = useRef<Drag>(null);
   const bootTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const uiSavedRef = useRef(false);
+  const playerSavedRef = useRef(false);
 
   // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
   const toggleLauncher = () => {
@@ -158,6 +175,15 @@ export function useRuehanix(posts: BlogPost[]) {
   const toggleUi = (key: "transp" | "rounded" | "glow") => setSt((s) => ({ ...s, ui: { ...s.ui, [key]: !s.ui[key] } }));
   const setGap = (gap: number) => setSt((s) => ({ ...s, ui: { ...s.ui, gap } }));
   const setRatio = (key: string, r: number) => setSt((s) => ({ ...s, ratios: { ...s.ratios, [key]: r } }));
+
+  // --- 음악 플레이어 핸들러 (순수 reducer 위임) ---
+  const playerToggle = () => setSt((s) => ({ ...s, player: toggle(s.player) }));
+  const playerSkipNext = () => setSt((s) => ({ ...s, player: playerNext(s.player, TRACK_COUNT) }));
+  const playerSkipPrev = () => setSt((s) => ({ ...s, player: playerPrev(s.player, TRACK_COUNT) }));
+  const playerSelect = (i: number) => setSt((s) => ({ ...s, player: selectTrack(s.player, i, TRACK_COUNT) }));
+  const playerSetVolume = (v: number) => setSt((s) => ({ ...s, player: setVolume(s.player, v) }));
+  const playerCycleRepeat = () => setSt((s) => ({ ...s, player: cycleRepeat(s.player) }));
+  const playerEnded = () => setSt((s) => ({ ...s, player: onEnded(s.player, TRACK_COUNT) }));
 
   const startSlider = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -276,6 +302,18 @@ export function useRuehanix(posts: BlogPost[]) {
       /* 무시 */
     }
     const savedUi = parseUiState(rawUi);
+    let rawPlayer: string | null = null;
+    try {
+      rawPlayer = window.localStorage.getItem(PLAYER_STORAGE_KEY);
+    } catch {
+      /* 무시 */
+    }
+    const parsedPlayer = parsePlayerState(rawPlayer);
+    // 플레이리스트가 줄었을 수 있으니 복원 인덱스를 현재 곡 수에 맞게 클램프.
+    const savedPlayer =
+      parsedPlayer && TRACK_COUNT > 0
+        ? { ...parsedPlayer, index: Math.min(parsedPlayer.index, TRACK_COUNT - 1) }
+        : null;
     let booted = false;
     try {
       booted = !!window.sessionStorage.getItem(BOOT_SESSION_KEY);
@@ -284,9 +322,14 @@ export function useRuehanix(posts: BlogPost[]) {
     }
     const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     const skipBoot = !shouldPlayBoot(booted, reduced);
-    if (savedUi || skipBoot) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- 마운트 1회: 브라우저 전용 상태(설정 복원·부팅 결정) 초기화. 렌더/SSR 단계에서 불가.
-      setSt((s) => ({ ...s, ...(savedUi ? { ui: savedUi } : {}), ...(skipBoot ? { booting: false } : {}) }));
+    if (savedUi || savedPlayer || skipBoot) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 마운트 1회: 브라우저 전용 상태(설정·플레이어 복원·부팅 결정) 초기화. 렌더/SSR 단계에서 불가.
+      setSt((s) => ({
+        ...s,
+        ...(savedUi ? { ui: savedUi } : {}),
+        ...(savedPlayer ? { player: savedPlayer } : {}),
+        ...(skipBoot ? { booting: false } : {}),
+      }));
     }
     if (!skipBoot) startBootTimer();
     return () => clearInterval(bootTimerRef.current);
@@ -304,6 +347,19 @@ export function useRuehanix(posts: BlogPost[]) {
       /* 무시 */
     }
   }, [st.ui]);
+
+  // --- 플레이어 상태 영속화 (마운트 첫 실행은 복원 전이라 저장 건너뜀) ---
+  useEffect(() => {
+    if (!playerSavedRef.current) {
+      playerSavedRef.current = true;
+      return;
+    }
+    try {
+      window.localStorage.setItem(PLAYER_STORAGE_KEY, serializePlayerState(st.player));
+    } catch {
+      /* 무시 */
+    }
+  }, [st.player]);
 
   return {
     st,
@@ -329,10 +385,17 @@ export function useRuehanix(posts: BlogPost[]) {
       reboot,
       startSlider,
       startGutter,
+      playerToggle,
+      playerSkipNext,
+      playerSkipPrev,
+      playerSelect,
+      playerSetVolume,
+      playerCycleRepeat,
+      playerEnded,
     },
     // 파생 헬퍼 — 뷰모델 빌더가 사용
     derive: { area, computeLayout, accentEff, catColors, effMode, hexA, wallpaper },
-    data: { APP_KEYS, APP_META, CATS, PHOTOS, LAPS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
+    data: { APP_KEYS, APP_META, CATS, PHOTOS, LAPS, TRACKS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
   };
 }
 

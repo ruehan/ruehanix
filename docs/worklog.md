@@ -1,5 +1,19 @@
 # 작업 로그
 
+## 2026-06-23 — .claude/ 하네스 제거 (opencode 마이그레이션)
+- 브랜치: chore/remove-claude-dir
+- 한 일: 프로젝트 로컬 `.claude/` 하네스 6파일 제거. 하네스를 opencode 글로벌(`~/.config/opencode/`)로
+  이전 — CLAUDE.md·CONVENTIONS.md·code-reviewer 에이전트·`/feature` 커맨드·verify.sh·settings(권한)을
+  opencode 형식(`instructions` 배열·`permission` 객체·agent/command 프론트매터)으로 변환해 설치.
+  같은 커밋에 `content/posts/` 첫 글 원본·0017 ADR(아티스트 브라우저 설계) 포함(사용자 결정).
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 94/94). 단 `lib/ruehanix/types.ts`의 WIP 타입
+  (ArtistMember·Album·SongRef·AlbumView·ArtistView)이 normalize 미대응으로 typecheck red를 만들어 stash로
+  분리 후 제외 → 커밋 후 working tree에 복원. 라우트 무관 변경이라 build/smoke는 생략.
+- 리뷰: 통과 1라운드(P3 권고 3 — 범위 혼합[사용자 결정]·0017 미구현 상태 "채택"[향후 갱신]·worklog 누락[본 항목으로 반영]) —
+  상세: docs/reviews/2026-06-23-claude-하네스-제거.md
+- 가정: 하네스 마이그레이션은 글로벌(모든 프로젝트에 적용), 프로젝트 로컬 복사본 불필요. ADR 0018.
+- 관련 결정: docs/decisions/0018-opencode-harness-migration.md
+
 ## 2026-06-23 — 전체 아티스트 디렉터리
 - 브랜치: feat/artist-directory
 - 한 일: MusicApp 아티스트 탭을 현재 곡 가수 → 전체 아티스트 디렉터리로. lib/artists(getAllArtists·normalize)

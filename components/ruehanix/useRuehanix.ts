@@ -10,7 +10,6 @@ import {
   LAPS,
   PHOTOS,
   THEME_MODES,
-  TRACKS,
 } from "@/lib/ruehanix/data";
 import {
   PLAYER_INITIAL,
@@ -28,7 +27,7 @@ import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
-import type { AppKey, CatKey, PlayerState, ThemeMode, UiState } from "@/lib/ruehanix/types";
+import type { AppKey, CatKey, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
 interface CoreState {
@@ -75,8 +74,6 @@ const INITIAL: CoreState = {
   player: PLAYER_INITIAL,
 };
 
-const TRACK_COUNT = TRACKS.length;
-
 // --- 외부 스토어: 뷰포트 크기 (resize 구독) ---
 const VP_SERVER = { W: 1280, H: 800 };
 let vpCache = { W: 1280, H: 800 };
@@ -122,8 +119,9 @@ function getSys() {
   return sysCache;
 }
 
-export function useRuehanix(posts: BlogPost[]) {
+export function useRuehanix(posts: BlogPost[], tracks: Track[]) {
   const [st, setSt] = useState<CoreState>(() => ({ ...INITIAL, selected: posts[0]?.slug ?? "" }));
+  const trackCount = tracks.length;
   const [launcherQuery, setLauncherQuery] = useState("");
 
   const vp = useSyncExternalStore(subscribeViewport, getViewport, () => VP_SERVER);
@@ -180,13 +178,13 @@ export function useRuehanix(posts: BlogPost[]) {
   const setRatio = (key: string, r: number) => setSt((s) => ({ ...s, ratios: { ...s.ratios, [key]: r } }));
 
   // --- 음악 플레이어 핸들러 (순수 reducer 위임) ---
-  const playerToggle = () => setSt((s) => ({ ...s, player: TRACK_COUNT > 0 ? toggle(s.player) : s.player }));
-  const playerSkipNext = () => setSt((s) => ({ ...s, player: playerNext(s.player, TRACK_COUNT) }));
-  const playerSkipPrev = () => setSt((s) => ({ ...s, player: playerPrev(s.player, TRACK_COUNT) }));
-  const playerSelect = (i: number) => setSt((s) => ({ ...s, player: selectTrack(s.player, i, TRACK_COUNT) }));
+  const playerToggle = () => setSt((s) => ({ ...s, player: trackCount > 0 ? toggle(s.player) : s.player }));
+  const playerSkipNext = () => setSt((s) => ({ ...s, player: playerNext(s.player, trackCount) }));
+  const playerSkipPrev = () => setSt((s) => ({ ...s, player: playerPrev(s.player, trackCount) }));
+  const playerSelect = (i: number) => setSt((s) => ({ ...s, player: selectTrack(s.player, i, trackCount) }));
   const playerSetVolume = (v: number) => setSt((s) => ({ ...s, player: setVolume(s.player, v) }));
   const playerCycleRepeat = () => setSt((s) => ({ ...s, player: cycleRepeat(s.player) }));
-  const playerEnded = () => setSt((s) => ({ ...s, player: onEnded(s.player, TRACK_COUNT) }));
+  const playerEnded = () => setSt((s) => ({ ...s, player: onEnded(s.player, trackCount) }));
 
   const startSlider = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -311,12 +309,9 @@ export function useRuehanix(posts: BlogPost[]) {
     } catch {
       /* 무시 */
     }
-    const parsedPlayer = parsePlayerState(rawPlayer);
-    // 플레이리스트가 줄었을 수 있으니 복원 인덱스를 현재 곡 수에 맞게 클램프.
-    const savedPlayer =
-      parsedPlayer && TRACK_COUNT > 0
-        ? { ...parsedPlayer, index: Math.min(parsedPlayer.index, TRACK_COUNT - 1) }
-        : null;
+    // 트랙은 비동기(Sanity)로 들어오므로 마운트 시 곡 수를 단정할 수 없다.
+    // 범위 밖 인덱스는 뷰모델에서 표시 시점에 클램프한다(reducer는 모듈러로 자가 보정).
+    const savedPlayer = parsePlayerState(rawPlayer);
     let booted = false;
     try {
       booted = !!window.sessionStorage.getItem(BOOT_SESSION_KEY);
@@ -399,7 +394,8 @@ export function useRuehanix(posts: BlogPost[]) {
     },
     // 파생 헬퍼 — 뷰모델 빌더가 사용
     derive: { area, computeLayout, accentEff, catColors, effMode, hexA, wallpaper },
-    data: { APP_KEYS, APP_META, CATS, PHOTOS, LAPS, TRACKS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
+    tracks,
+    data: { APP_KEYS, APP_META, CATS, PHOTOS, LAPS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
   };
 }
 

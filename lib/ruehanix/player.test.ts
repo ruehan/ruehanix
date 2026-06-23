@@ -33,6 +33,28 @@ describe("playerNext / playerPrev (사용자 스킵)", () => {
   });
 });
 
+describe("범위 밖 저장 index 정규화 (곡 수가 줄어든 경우)", () => {
+  // 표시(viewModel은 min(index, n-1)로 클램프)와 reducer 계산 기준을 일치시켜야 한다.
+  it("playerNext: index=4·n=3이면 표시곡(2) 기준 다음 곡(0)", () => {
+    expect(playerNext({ ...base, index: 4 }, 3).index).toBe(0);
+  });
+  it("playerPrev: index=4·n=3이면 표시곡(2) 기준 이전 곡(1)", () => {
+    expect(playerPrev({ ...base, index: 4 }, 3).index).toBe(1);
+  });
+  it("playerNext: index=10·n=3도 표시곡(2) 기준 0", () => {
+    expect(playerNext({ ...base, index: 10 }, 3).index).toBe(0);
+  });
+  it("onEnded all: index=4·n=3이면 표시곡(2)이 마지막 → 0으로 순환", () => {
+    expect(onEnded({ ...base, index: 4, repeat: "all" }, 3)).toMatchObject({ index: 0, playing: true });
+  });
+  it("onEnded off: index=4·n=3이면 표시곡(2)이 마지막 → 정지 + index 정규화(2)", () => {
+    expect(onEnded({ ...base, index: 4, repeat: "off" }, 3)).toMatchObject({ index: 2, playing: false });
+  });
+  it("onEnded one: index=4·n=3이면 표시곡(2) 정규화 후 같은 곡 재생", () => {
+    expect(onEnded({ ...base, index: 4, repeat: "one" }, 3)).toMatchObject({ index: 2, playing: true });
+  });
+});
+
 describe("selectTrack", () => {
   it("고른 곡으로 이동하고 재생", () => {
     expect(selectTrack(base, 2, N)).toMatchObject({ index: 2, playing: true });

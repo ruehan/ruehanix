@@ -41,7 +41,8 @@ describe("normalizePost", () => {
     });
     expect(p.slug).toBe("rsc-1년");
     expect(p.category).toBe("dev");
-    expect(p.body).toEqual(["본문 한 줄"]);
+    // 원본 Portable Text 블록을 그대로 보존(평탄화하지 않음).
+    expect(p.body).toEqual([{ _type: "block", children: [{ text: "본문 한 줄" }] }]);
     expect(p.date).toBe("2026.06.18");
   });
   it("누락 필드는 안전한 기본값", () => {
@@ -50,6 +51,9 @@ describe("normalizePost", () => {
     expect(p.category).toBe("dev");
     expect(p.body).toEqual([]);
     expect(p.date).toBe("");
+  });
+  it("body가 배열이 아니면 빈 배열", () => {
+    expect(normalizePost({ body: undefined }).body).toEqual([]);
   });
   it("알 수 없는 카테고리는 dev로 폴백", () => {
     expect(normalizePost({ category: "unknown" }).category).toBe("dev");

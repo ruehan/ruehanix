@@ -229,7 +229,7 @@ export function buildVm(api: RuehanixApi) {
         read: selP.readingTime,
         catLabel: catOf(selP.category).label,
         catColor: catOf(selP.category).color,
-        paras: selP.body.map((t, i) => ({ id: i, text: t })),
+        body: selP.body,
       }
     : null;
 

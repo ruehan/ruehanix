@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { ART_TERM, Folder } from "./icons";
 import { clickable } from "./clickable";
+import { PostBody } from "@/components/posts/PostBody";
 import type { Vm } from "./viewModel";
 
 const mono = "'JetBrains Mono',monospace";
@@ -106,9 +107,7 @@ export function ReaderApp({ vm }: { vm: Vm }) {
               <span>·</span>
               <span>{p.read}</span>
             </div>
-            {p.paras.map((para) => (
-              <p key={para.id} style={{ margin: "0 0 20px", fontSize: 16, lineHeight: 1.82, color: "var(--sub1)" }}>{para.text}</p>
-            ))}
+            <PostBody value={p.body} />
             <Link href={`/posts/${p.slug}`} style={{ display: "inline-block", marginTop: 8, fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none", fontFamily: mono }}>
               전체 페이지로 보기 →
             </Link>

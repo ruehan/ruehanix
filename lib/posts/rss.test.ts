@@ -10,7 +10,7 @@ describe("escapeXml", () => {
 
 describe("buildRssXml", () => {
   const posts: BlogPost[] = [
-    { slug: "first", title: "제목 & <태그>", category: "dev", publishedAt: "2026-06-18T00:00:00.000Z", date: "2026.06.18", excerpt: "요약", readingTime: "9분", body: ["a"] },
+    { slug: "first", title: "제목 & <태그>", category: "dev", publishedAt: "2026-06-18T00:00:00.000Z", date: "2026.06.18", excerpt: "요약", readingTime: "9분", body: [] },
   ];
   it("rss 2.0 구조 + item 링크/제목 이스케이프", () => {
     const xml = buildRssXml(posts, "https://ruehan.dev");

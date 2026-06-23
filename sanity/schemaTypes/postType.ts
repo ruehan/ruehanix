@@ -1,5 +1,17 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
+/** 본문 코드블록(신택스 하이라이트 플러그인 없이 단순 오브젝트). */
+const codeBlock = defineArrayMember({
+  type: "object",
+  name: "codeBlock",
+  title: "코드블록",
+  fields: [
+    { name: "language", title: "언어", type: "string", description: "예: ts, py, bash" },
+    { name: "code", title: "코드", type: "text", rows: 8 },
+  ],
+  preview: { select: { title: "language", subtitle: "code" } },
+});
+
 export const postType = defineType({
   name: "post",
   title: "글",
@@ -36,7 +48,11 @@ export const postType = defineType({
       name: "body",
       title: "본문",
       type: "array",
-      of: [defineArrayMember({ type: "block" })],
+      of: [
+        defineArrayMember({ type: "block" }),
+        defineArrayMember({ type: "image", options: { hotspot: true }, fields: [{ name: "alt", title: "대체 텍스트", type: "string" }] }),
+        codeBlock,
+      ],
     }),
   ],
   orderings: [{ title: "발행일 최신순", name: "publishedDesc", by: [{ field: "publishedAt", direction: "desc" }] }],

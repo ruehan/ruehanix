@@ -1,3 +1,4 @@
+import type { PortableTextBlock } from "@portabletext/types";
 import type { CatKey } from "@/lib/ruehanix/types";
 import type { BlogPost, SanityPostDoc } from "./types";
 
@@ -43,6 +44,6 @@ export function normalizePost(doc: SanityPostDoc): BlogPost {
     date: formatDate(doc.publishedAt),
     excerpt: doc.excerpt ?? "",
     readingTime: doc.readingTime ?? "",
-    body: portableTextToParagraphs(doc.body),
+    body: Array.isArray(doc.body) ? (doc.body as PortableTextBlock[]) : [],
   };
 }

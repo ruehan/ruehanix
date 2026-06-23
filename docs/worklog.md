@@ -1,5 +1,22 @@
 # 작업 로그
 
+## 2026-06-23 — 팝오버 아이콘 수정 + 플레이리스트 Sanity 전환
+- 브랜치: feat/sanity-tracks
+- 한 일: ①팝오버 재생 버튼이 세로 타원으로 찌그러지던 문제 수정(컨트롤 아이콘에 flex:none — 좁은
+  플렉스 width 축소 차단). ②플레이리스트를 하드코딩 → Sanity 단일 소스로 전환(posts 패턴 미러링,
+  ADR 0013). Sanity track 스키마(title·artist·videoId 11자 검증·order) + studio 등록, lib/tracks
+  (queries·normalize·source·types), page.tsx가 글·곡 Promise.all 서버 fetch해 셸 주입,
+  useRuehanix(posts, tracks). 하드코딩 TRACKS 제거. 곡은 /studio에서 관리.
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 78/78 — tracks normalize 4 + player 클램프 6 추가),
+  build 성공, smoke 19/19(현재 Sanity 트랙 0개 → 숨김 경로; 클램프는 순수 단위 테스트로 결정 검증).
+  스텁 트랙 임시 주입으로 팝오버·원형 아이콘·플레이리스트 렌더 시각 확인 후 원복.
+- 리뷰: 통과 2라운드(1R P1: 곡 수가 줄어 저장 index가 범위 밖일 때 표시 곡과 reducer skip 기준 불일치
+  → reducer 진입 clampIdx 정규화 + 단위 테스트 6개; P2 클램프 단위 테스트로 못박음) —
+  상세: docs/reviews/2026-06-23-sanity-트랙-아이콘.md
+- 가정: 순수 Sanity·폴백 없음(사용자 선택). 곡 0개면 미니플레이어 숨김. ADR 0013.
+- 백로그: smoke 콘솔필터 URL 기반 보강(이전 작업서 이월).
+- 관련 결정: docs/decisions/0013-sanity-tracks-source.md
+
 ## 2026-06-23 — 음악 컨트롤러 팝오버 + 메뉴바 칩 제거
 - 브랜치: feat/music-popover
 - 한 일: 데스크톱 메뉴바의 가짜 시스템 칩 5개(wlan0·CPU·RAM·볼륨·배터리)와 BarChip 컴포넌트 제거 →

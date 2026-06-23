@@ -372,7 +372,7 @@ export function buildVm(api: RuehanixApi) {
   return {
     accent,
     wallpaper: wallpaper(lightMode, accent),
-    mod: { clock: sys.clock, cpu: sys.cpu + "%", ram: sys.ram + "%", vol: "64", batt: "87%" },
+    mod: { clock: sys.clock, cpu: sys.cpu + "%", ram: sys.ram + "%", batt: "87%" },
     booting: st.booting,
     bootLines,
     tiles,

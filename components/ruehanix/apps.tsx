@@ -392,7 +392,7 @@ export function MusicApp({ vm }: { vm: Vm }) {
     return (
       <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "var(--sub1)" }}>플레이리스트가 비어 있습니다</div>
-        <div style={{ fontSize: 11.5 }}>lib/ruehanix/data.ts 의 TRACKS에 곡을 추가하세요</div>
+        <div style={{ fontSize: 11.5 }}>/studio 에서 곡(track)을 추가하세요</div>
       </div>
     );
   }

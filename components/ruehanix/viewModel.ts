@@ -8,7 +8,6 @@ import {
   LAPS,
   PHOTOS,
   THEME_MODES,
-  TRACKS,
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
@@ -38,7 +37,7 @@ export interface RowPost {
 }
 
 export function buildVm(api: RuehanixApi) {
-  const { st, sys, vp, posts, prefersLight, handlers } = api;
+  const { st, sys, vp, posts, tracks, prefersLight, handlers } = api;
   const ui = st.ui;
   const accent = accentEff(ui.mode, ui.accent, prefersLight);
   const lightMode = effMode(ui.mode, prefersLight) === "light";
@@ -339,10 +338,12 @@ export function buildVm(api: RuehanixApi) {
 
   // --- 음악 플레이어 ---
   const pl = st.player;
-  const curTrack = TRACKS[pl.index] ?? null;
+  // 트랙은 Sanity에서 비동기로 오므로 저장된 index가 범위를 벗어날 수 있다 → 표시 시점에 클램프.
+  const curIndex = tracks.length > 0 ? Math.min(pl.index, tracks.length - 1) : 0;
+  const curTrack = tracks[curIndex] ?? null;
   const repeatLabel = pl.repeat === "off" ? "반복 끔" : pl.repeat === "all" ? "전체 반복" : "한 곡 반복";
   const player = {
-    hasTracks: TRACKS.length > 0,
+    hasTracks: tracks.length > 0,
     videoId: curTrack?.videoId ?? null,
     playing: pl.playing,
     volume: pl.volume,
@@ -351,12 +352,12 @@ export function buildVm(api: RuehanixApi) {
     current: curTrack ? { title: curTrack.title, artist: curTrack.artist } : null,
     popoverOpen: st.showMusic,
     togglePopover: handlers.toggleMusic,
-    tracks: TRACKS.map((t, i) => ({
+    tracks: tracks.map((t, i) => ({
       id: i,
       title: t.title,
       artist: t.artist,
-      current: i === pl.index,
-      playing: i === pl.index && pl.playing,
+      current: i === curIndex,
+      playing: i === curIndex && pl.playing,
       onClick: () => handlers.playerSelect(i),
     })),
     toggle: handlers.playerToggle,

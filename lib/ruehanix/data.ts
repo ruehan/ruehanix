@@ -5,7 +5,6 @@ import type {
   CatKey,
   Lap,
   Photo,
-  Track,
 } from "./types";
 
 export const APP_META: Record<AppKey, AppMeta> = {
@@ -48,16 +47,6 @@ export const LAPS: Lap[] = [
   { track: "Monza", car: "Porsche 992 GT3 R", time: "1:47.503", delta: "+0.08", best: false },
   { track: "Suzuka", car: "BMW M4 GT3", time: "2:00.661", delta: "-0.27", best: false },
   { track: "Le Mans · La Sarthe", car: "Toyota GR010", time: "3:24.119", delta: "-0.55", best: false },
-];
-
-/** rhx-play 플레이리스트.
- *  videoId = YouTube 영상 ID(주소의 `watch?v=` 뒤 11자, 또는 `youtu.be/` 뒤).
- *  아래는 예시 — 본인 취향으로 자유롭게 교체/추가하세요. 임베드가 막힌 영상은 재생되지 않습니다. */
-export const TRACKS: Track[] = [
-  { videoId: "jfKfPfyJRdk", title: "lofi hip hop radio", artist: "Lofi Girl" },
-  { videoId: "5qap5aO4i9A", title: "lofi hip hop radio (2)", artist: "Lofi Girl" },
-  { videoId: "DWcJFNfaw9c", title: "Daft Punk — Around the World", artist: "Daft Punk" },
-  { videoId: "rY0WxgSXdEE", title: "Jamiroquai — Virtual Insanity", artist: "Jamiroquai" },
 ];
 
 export const BOOT_SEQ: BootLine[] = [

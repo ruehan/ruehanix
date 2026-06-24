@@ -329,6 +329,7 @@ export function buildVm(api: RuehanixApi) {
     gapPct: Math.round((ui.gap / 28) * 100) + "%",
     gapLabel: ui.gap + "px",
     startSlider: handlers.startSlider,
+    resetUi: handlers.resetUi,
     toggles: [
       { label: "Window transparency", on: ui.transp, track: togTrack(ui.transp), knob: togKnob(ui.transp), onClick: () => handlers.toggleUi("transp") },
       { label: "Rounded corners", on: ui.rounded, track: togTrack(ui.rounded), knob: togKnob(ui.rounded), onClick: () => handlers.toggleUi("rounded") },

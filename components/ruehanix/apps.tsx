@@ -401,6 +401,9 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
   // 드래그-밖 릴리즈에서도 최종 gap을 읽기 위한 최신값 ref.
   const gapRef = useRef(s.gapValue);
   useEffect(() => { gapRef.current = s.gapValue; }, [s.gapValue]);
+  // window mouseup 리스너를 ref로 들어 언마운트/중복 down에서도 잔류·이중 notify 방지.
+  const upRef = useRef<(() => void) | null>(null);
+  useEffect(() => () => { if (upRef.current) window.removeEventListener("mouseup", upRef.current); }, []);
 
   const onGapKey = (e: ReactKeyboardEvent) => {
     const next = e.key === "ArrowRight" || e.key === "ArrowUp" ? s.gapValue + 1 : e.key === "ArrowLeft" || e.key === "ArrowDown" ? s.gapValue - 1 : null;
@@ -412,11 +415,14 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
   };
   // 슬라이더 마우스 down: 드래그 시작 + window mouseup 1회 리스너(영역 밖 릴리즈도 notify).
   const onSliderDown = (e: React.MouseEvent) => {
+    if (upRef.current) window.removeEventListener("mouseup", upRef.current);
     s.startSlider(e);
     const onUp = () => {
       window.removeEventListener("mouseup", onUp);
+      upRef.current = null;
       notify(`창 간격 ${gapRef.current}px`);
     };
+    upRef.current = onUp;
     window.addEventListener("mouseup", onUp);
   };
   // radiogroup 방향키 탐색: 화살표로 옵션 순회 + 즉시 선택 + 포커스 이동(APG 패턴).

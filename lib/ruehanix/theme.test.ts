@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "./theme";
+import { DEFAULT_UI } from "./ui-storage";
+import { accentEff, catColors, effMode, hexA, resolveEarlyTheme, toLatte, wallpaper } from "./theme";
 
 describe("effMode", () => {
   it("dark/light 모드는 prefersLight와 무관하게 그대로 반환", () => {
@@ -68,5 +69,30 @@ describe("wallpaper", () => {
     expect(dark).toContain("#11111b");
     const light = wallpaper(true, "#cba6f7");
     expect(light).toContain("#dce0e8");
+  });
+});
+
+describe("resolveEarlyTheme", () => {
+  // 인라인 head 스크립트가 페인트 전에 적용할 {light, accent}를 저장값에서 결정.
+  const wrap = (ui: unknown) => JSON.stringify(ui);
+
+  it("저장된 dark 모드 → light:false, accent 원본", () => {
+    const r = resolveEarlyTheme(wrap({ mode: "dark", accent: "#cba6f7", gap: 10 }), false);
+    expect(r).toEqual({ light: false, accent: "#cba6f7" });
+  });
+  it("저장된 light 모드 → light:true, accent Latte 매핑", () => {
+    const r = resolveEarlyTheme(wrap({ mode: "light", accent: "#cba6f7", gap: 10 }), false);
+    expect(r).toEqual({ light: true, accent: "#8839ef" });
+  });
+  it("auto 모드는 prefersLight를 따른다", () => {
+    const rDark = resolveEarlyTheme(wrap({ mode: "auto", accent: "#89b4fa", gap: 10 }), false);
+    expect(rDark).toEqual({ light: false, accent: "#89b4fa" });
+    const rLight = resolveEarlyTheme(wrap({ mode: "auto", accent: "#89b4fa", gap: 10 }), true);
+    expect(rLight).toEqual({ light: true, accent: "#1e66f5" });
+  });
+  it("저장값이 없거나 깨지면 기본값(dark, DEFAULT_UI.accent)", () => {
+    expect(resolveEarlyTheme(null, false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
+    expect(resolveEarlyTheme("not json", true)).toEqual({ light: false, accent: DEFAULT_UI.accent });
+    expect(resolveEarlyTheme(wrap({ mode: "neon", accent: "#cba6f7", gap: 10 }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
   });
 });

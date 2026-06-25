@@ -5,6 +5,7 @@ import { clickable } from "./clickable";
 import { PostBody } from "@/components/posts/PostBody";
 import { isActivateKey } from "@/lib/ruehanix/a11y";
 import { ABOUT_META, KEYBINDINGS, SETTINGS_TABS, type SettingsTab } from "@/lib/ruehanix/settings";
+import { notify } from "@/lib/ruehanix/toast";
 import type { Vm } from "./viewModel";
 
 const mono = "'JetBrains Mono',monospace";
@@ -317,18 +318,7 @@ export function WebApp({ vm }: { vm: Vm }) {
 }
 
 export function SettingsApp({ vm }: { vm: Vm }) {
-  const s = vm.set;
   const [tab, setTab] = useState<SettingsTab["key"]>("appearance");
-  const [toast, setToast] = useState<string | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
-
-  const notify = (msg: string) => {
-    setToast(msg);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 1300);
-  };
 
   // 활성 탭 결정 — 미구현 탭이 선택돼 있으면(안전망) Appearance로.
   const activeTab = SETTINGS_TABS.find((t) => t.key === tab && t.ready) ?? SETTINGS_TABS.find((t) => t.key === "appearance")!;
@@ -336,11 +326,10 @@ export function SettingsApp({ vm }: { vm: Vm }) {
   return (
     <div style={{ display: "flex", height: "100%", fontSize: 12.5, color: "var(--text)" }}>
       <SettingsSidebar active={activeTab.key} onSelect={setTab} />
-      <div style={{ flex: 1, minWidth: 0, overflow: "auto", padding: "22px 24px", position: "relative" }}>
+      <div style={{ flex: 1, minWidth: 0, overflow: "auto", padding: "22px 24px" }}>
         {activeTab.key === "appearance" && <AppearancePanel vm={vm} notify={notify} />}
         {activeTab.key === "keybindings" && <KeybindingsPanel />}
         {activeTab.key === "about" && <AboutPanel accent={vm.accent} />}
-        <SettingsToast msg={toast} />
       </div>
     </div>
   );
@@ -380,15 +369,6 @@ function SettingsSidebar({ active, onSelect }: { active: SettingsTab["key"]; onS
           );
         })}
       </nav>
-    </div>
-  );
-}
-
-function SettingsToast({ msg }: { msg: string | null }) {
-  if (!msg) return null;
-  return (
-    <div role="status" aria-live="polite" style={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)", background: "var(--crust)", border: "1px solid var(--surf1)", color: "var(--text)", fontSize: 11.5, padding: "7px 13px", borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,.35)", animation: "rh-fadeup .14s ease", pointerEvents: "none" }}>
-      {msg}
     </div>
   );
 }

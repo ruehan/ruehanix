@@ -1,5 +1,23 @@
 # 작업 로그
 
+## 2026-06-25 — UX 기반층(테마 플래시 제거 + 글로벌 토스트) [그룹 1/4]
+- 브랜치: feat/ux-foundation
+- 한 일: G 테마 플래시 제거 + H 글로벌 토스트(9개 UX 피처 중 기반 계열).
+  G — 순수 함수 resolveEarlyTheme(lib/ruehanix/theme.ts, 저장값→{light,accent}) + layout head
+  인라인 스크립트가 첫 페인트 전 localStorage를 읽어 html.rh-light·--accent 적용. 맵·기본값·키는
+  import해 단일 진실 소스(ADR 0011 백로그 해소). useRuehanix 테마 effect는 마운트 후 동일값 idempotent.
+  H — lib/ruehanix/toast.ts 외부 스토어(notify/clearToast/subscribeToast + useToast, useSyncExternalStore,
+  ttl 자동소멸·재호출 리셋·스티키(0)·SSR 안전). ToastHost를 셸 루트에 추가(z9999, 모바일 오프셋, 말줄임).
+  SettingsApp 로컬 토스트(state/타이머/SettingsToast) 제거 → 글로벌 notify로 마이그레이션.
+- 검증: verify 통과(typecheck 0·eslint 0/0·vitest 118/118 — toast 7·resolveEarlyTheme 5 신규),
+  build 성공, smoke 22/22. WIP types.ts stash로 분리 후 복원.
+- 리뷰: 통과 2라운드(R1 수정필요 P2 gap 드리프트·P2 dead code·P3 모바일 오프셋/말줄임 → 반영 →
+  R2 통과) — 상세: docs/reviews/2026-06-25-ux-foundation-theme-toast.md.
+  ※ R2는 code-reviewer 에이전트가 인프라 결함(3회 연속 DB 오류)으로 불가해 self-review로 대체.
+- 가정: 인라인 스크립트 로직은 순수 함수의 거울 이미지(맵은 import로 주입), 토스트는 외부스토어(React 19 권장),
+  ToastHost 단일 인스턴스. ADR 0020.
+- 관련 결정: docs/decisions/0020-ux-foundation-theme-toast.md
+
 ## 2026-06-25 — 설정 앱 탭/네비 재작성
 - 브랜치: feat/settings-revamp
 - 한 일: SettingsApp 재작성. 사이드바 6개 탭이 하드코딩 bool이라 클릭 불가·항상 Appearance만

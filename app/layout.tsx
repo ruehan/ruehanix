@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { MOCHA_TO_LATTE } from "@/lib/ruehanix/theme";
+import { DEFAULT_UI, UI_STORAGE_KEY } from "@/lib/ruehanix/ui-storage";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ruehan.dev";
@@ -33,6 +35,14 @@ export const viewport: Viewport = {
   ],
 };
 
+/**
+ * 페인트 전 테마 적용 인라인 스크립트. 첫 페인트 전에 localStorage UI 설정을 읽어
+ * html.rh-light 클래스 + --accent를 적용 → 재방문 시 테마 깜빡임(flash) 제거.
+ * 로직은 lib/ruehanix/theme.ts 의 resolveEarlyTheme과 동일(순수 함수 테스트가 값을 수호).
+ * 맵·기본값·저장 키는 import해 단일 진실 소스로 유지. ADR 0011 백로그, 0020에서 채택.
+ */
+const EARLY_THEME_SCRIPT = `(function(){try{var raw=localStorage.getItem(${JSON.stringify(UI_STORAGE_KEY)});var mode=${JSON.stringify(DEFAULT_UI.mode)},accent=${JSON.stringify(DEFAULT_UI.accent)};if(raw){try{var o=JSON.parse(raw);if(o&&(o.mode==="light"||o.mode==="dark"||o.mode==="auto")&&typeof o.accent==="string"&&/^#[0-9a-fA-F]{6}$/.test(o.accent)&&typeof o.gap==="number"&&o.gap>=0&&o.gap<=28){mode=o.mode;accent=o.accent;}}catch(e){}}var pl=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;var light=mode==="light"||(mode==="auto"&&pl);var m=${JSON.stringify(MOCHA_TO_LATTE)};var a=light?(m[accent]||accent):accent;if(light)document.documentElement.classList.add("rh-light");document.documentElement.style.setProperty("--accent",a);}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
@@ -46,6 +56,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+        {/* 페인트 전 실행 — 본문 애니메이션/리액트 하이드레이션보다 먼저 테마 적용. blocking. */}
+        <script dangerouslySetInnerHTML={{ __html: EARLY_THEME_SCRIPT }} />
       </head>
       <body>{children}</body>
     </html>

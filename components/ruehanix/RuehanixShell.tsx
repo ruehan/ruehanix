@@ -11,6 +11,7 @@ import { ART_DESK, LineIcon } from "./icons";
 import { AboutApp, FilesApp, FotoApp, HotlapApp, MusicApp, ReaderApp, SettingsApp, TerminalApp, WebApp } from "./apps";
 import { YouTubeEngine } from "./YouTubeEngine";
 import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
+import { useToast } from "@/lib/ruehanix/toast";
 
 function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }) {
   const meta = APP_META[app];
@@ -311,6 +312,22 @@ export function RuehanixShell(content: ShellContent) {
           </div>
         </div>
       )}
+
+      <ToastHost bottomOffset={vm.isMobile ? MOBILE_DOCK + 12 : 26} />
+    </div>
+  );
+}
+
+function ToastHost({ bottomOffset }: { bottomOffset: number }) {
+  const msg = useToast();
+  if (!msg) return null;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{ position: "absolute", bottom: bottomOffset, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: "80vw", background: "var(--crust)", border: "1px solid var(--surf1)", color: "var(--text)", fontSize: 12, padding: "8px 14px", borderRadius: 9, boxShadow: "0 10px 30px rgba(0,0,0,.4)", animation: "rh-fadeup .14s ease", pointerEvents: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+    >
+      {msg}
     </div>
   );
 }

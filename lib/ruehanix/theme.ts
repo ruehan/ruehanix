@@ -1,7 +1,8 @@
+import { DEFAULT_UI, parseUiState } from "./ui-storage";
 import type { CatKey, ThemeMode } from "./types";
 
 /** Catppuccin Mocha(다크) → Latte(라이트) 색 매핑. accent 팔레트 + 위젯 보조색 전체. */
-const MOCHA_TO_LATTE: Record<string, string> = {
+export const MOCHA_TO_LATTE: Record<string, string> = {
   "#f38ba8": "#d20f39", // red
   "#fab387": "#fe640b", // peach
   "#f9e2af": "#df8e1d", // yellow
@@ -51,4 +52,13 @@ export function wallpaper(lightMode: boolean, accent: string): string {
   return lightMode
     ? `radial-gradient(120% 110% at 12% 6%, ${hexA(accent, 0.3)} 0%, rgba(0,0,0,0) 50%), radial-gradient(120% 120% at 92% 96%, ${hexA(accent, 0.22)} 0%, rgba(0,0,0,0) 52%), linear-gradient(160deg, #f3f4f8 0%, #e6e9ef 55%, #dce0e8 100%)`
     : `radial-gradient(120% 110% at 12% 6%, ${hexA(accent, 0.2)} 0%, rgba(0,0,0,0) 50%), radial-gradient(120% 120% at 92% 96%, ${hexA(accent, 0.16)} 0%, rgba(0,0,0,0) 52%), linear-gradient(160deg, #1e1e2e 0%, #181825 55%, #11111b 100%)`;
+}
+
+/** UI 설정 저장값(원본 문자열)에서 페인트 전 적용할 테마를 결정.
+ *  인라인 head 스크립트와 useRuehanix 복원이 같은 결과를 내도록 하는 단일 진실 소스.
+ *  깨지거나 없는 저장값은 기본값(dark, DEFAULT_UI.accent)으로 떨어진다. */
+export function resolveEarlyTheme(rawUi: string | null, prefersLight: boolean): { light: boolean; accent: string } {
+  const ui = parseUiState(rawUi) ?? DEFAULT_UI;
+  const light = effMode(ui.mode, prefersLight) === "light";
+  return { light, accent: light ? MOCHA_TO_LATTE[ui.accent] ?? ui.accent : ui.accent };
 }

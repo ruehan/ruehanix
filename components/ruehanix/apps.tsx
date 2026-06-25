@@ -396,6 +396,12 @@ function SettingsToast({ msg }: { msg: string | null }) {
 function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }) {
   const s = vm.set;
   const wrap = (fn: () => void, msg: string) => () => { fn(); notify(msg); };
+  const modeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const accentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // 드래그-밖 릴리즈에서도 최종 gap을 읽기 위한 최신값 ref.
+  const gapRef = useRef(s.gapValue);
+  useEffect(() => { gapRef.current = s.gapValue; }, [s.gapValue]);
+
   const onGapKey = (e: ReactKeyboardEvent) => {
     const next = e.key === "ArrowRight" || e.key === "ArrowUp" ? s.gapValue + 1 : e.key === "ArrowLeft" || e.key === "ArrowDown" ? s.gapValue - 1 : null;
     if (next === null) return;
@@ -404,8 +410,22 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
     s.setGap(clamped);
     notify(`창 간격 ${clamped}px`);
   };
-  // radiogroup 방향키 탐색: 화살표로 옵션 순회 + 즉시 선택(APG 패턴).
-  const onRadioArrow = (e: ReactKeyboardEvent, opts: { selected: boolean }[], onPick: (i: number) => void) => {
+  // 슬라이더 마우스 down: 드래그 시작 + window mouseup 1회 리스너(영역 밖 릴리즈도 notify).
+  const onSliderDown = (e: React.MouseEvent) => {
+    s.startSlider(e);
+    const onUp = () => {
+      window.removeEventListener("mouseup", onUp);
+      notify(`창 간격 ${gapRef.current}px`);
+    };
+    window.addEventListener("mouseup", onUp);
+  };
+  // radiogroup 방향키 탐색: 화살표로 옵션 순회 + 즉시 선택 + 포커스 이동(APG 패턴).
+  const onRadioArrow = (
+    e: ReactKeyboardEvent,
+    opts: { selected: boolean }[],
+    refs: React.RefObject<(HTMLDivElement | null)[]>,
+    onPick: (i: number) => void,
+  ) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowDown" && e.key !== "ArrowLeft" && e.key !== "ArrowUp") return;
     e.preventDefault();
     if (opts.length === 0) return;
@@ -413,6 +433,7 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
     const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
     const nextIdx = (cur + dir + opts.length) % opts.length;
     onPick(nextIdx);
+    refs.current[nextIdx]?.focus();
   };
   return (
     <section aria-label="외관 설정">
@@ -422,12 +443,13 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
       <div
         role="radiogroup"
         aria-label="테마 모드"
-        onKeyDown={(e) => onRadioArrow(e, s.modeOpts, (i) => { s.modeOpts[i].onClick(); notify(`${s.modeOpts[i].label} 모드`); })}
+        onKeyDown={(e) => onRadioArrow(e, s.modeOpts, modeRefs, (i) => { s.modeOpts[i].onClick(); notify(`${s.modeOpts[i].label} 모드`); })}
         style={{ display: "flex", gap: 11, marginBottom: 24 }}
       >
-        {s.modeOpts.map((m) => (
+        {s.modeOpts.map((m, i) => (
           <div
             key={m.key}
+            ref={(el) => { modeRefs.current[i] = el; }}
             role="radio"
             aria-checked={m.selected}
             tabIndex={m.selected ? 0 : -1}
@@ -447,12 +469,13 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
         <div
           role="radiogroup"
           aria-label="강조색"
-          onKeyDown={(e) => onRadioArrow(e, s.accentOpts, (i) => { s.accentOpts[i].onClick(); notify(`강조색 ${s.accentOpts[i].name}`); })}
+          onKeyDown={(e) => onRadioArrow(e, s.accentOpts, accentRefs, (i) => { s.accentOpts[i].onClick(); notify(`강조색 ${s.accentOpts[i].name}`); })}
           style={{ display: "flex", gap: 8 }}
         >
-          {s.accentOpts.map((a) => (
+          {s.accentOpts.map((a, i) => (
             <div
               key={a.key}
+              ref={(el) => { accentRefs.current[i] = el; }}
               role="radio"
               aria-checked={a.selected}
               tabIndex={a.selected ? 0 : -1}
@@ -476,8 +499,7 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
             aria-valuenow={s.gapValue}
             aria-valuetext={`${s.gapValue}px`}
             tabIndex={0}
-            onMouseDown={s.startSlider}
-            onMouseUp={() => notify(`창 간격 ${s.gapValue}px`)}
+            onMouseDown={onSliderDown}
             onKeyDown={onGapKey}
             style={{ width: 120, height: 14, display: "flex", alignItems: "center", cursor: "pointer", position: "relative" }}
           >

@@ -404,50 +404,64 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
     s.setGap(clamped);
     notify(`창 간격 ${clamped}px`);
   };
+  // radiogroup 방향키 탐색: 화살표로 옵션 순회 + 즉시 선택(APG 패턴).
+  const onRadioArrow = (e: ReactKeyboardEvent, opts: { selected: boolean }[], onPick: (i: number) => void) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowDown" && e.key !== "ArrowLeft" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    if (opts.length === 0) return;
+    const cur = opts.findIndex((o) => o.selected);
+    const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+    const nextIdx = (cur + dir + opts.length) % opts.length;
+    onPick(nextIdx);
+  };
   return (
     <section aria-label="외관 설정">
       <h2 style={{ margin: "0 0 18px", fontSize: 18, fontWeight: 800, letterSpacing: "-.01em" }}>Appearance</h2>
 
       <div style={{ fontSize: 11, color: "var(--ov0)", marginBottom: 11, letterSpacing: ".04em" }}>테마 모드</div>
-      <div role="radiogroup" aria-label="테마 모드" style={{ display: "flex", gap: 11, marginBottom: 24 }}>
-        {s.modeOpts.map((m) => {
-          const selected = m.labelStyle.fontWeight === 700;
-          return (
-            <div
-              key={m.key}
-              role="radio"
-              aria-checked={selected}
-              tabIndex={selected ? 0 : -1}
-              aria-label={`${m.label} 모드`}
-              onClick={wrap(m.onClick, `${m.label} 모드`)}
-              onKeyDown={(e) => { if (isActivateKey(e.key)) { e.preventDefault(); m.onClick(); notify(`${m.label} 모드`); } }}
-              style={{ textAlign: "center", cursor: "pointer" }}
-            >
-              <div style={m.swatchStyle} />
-              <div style={m.labelStyle}>{m.label}</div>
-            </div>
-          );
-        })}
+      <div
+        role="radiogroup"
+        aria-label="테마 모드"
+        onKeyDown={(e) => onRadioArrow(e, s.modeOpts, (i) => { s.modeOpts[i].onClick(); notify(`${s.modeOpts[i].label} 모드`); })}
+        style={{ display: "flex", gap: 11, marginBottom: 24 }}
+      >
+        {s.modeOpts.map((m) => (
+          <div
+            key={m.key}
+            role="radio"
+            aria-checked={m.selected}
+            tabIndex={m.selected ? 0 : -1}
+            aria-label={`${m.label} 모드`}
+            onClick={wrap(m.onClick, `${m.label} 모드`)}
+            onKeyDown={(e) => { if (isActivateKey(e.key)) { e.preventDefault(); m.onClick(); notify(`${m.label} 모드`); } }}
+            style={{ textAlign: "center", cursor: "pointer" }}
+          >
+            <div style={m.swatchStyle} />
+            <div style={m.labelStyle}>{m.label}</div>
+          </div>
+        ))}
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderTop: "1px solid var(--surf0)" }}>
         <span>Accent color</span>
-        <div role="radiogroup" aria-label="강조색" style={{ display: "flex", gap: 8 }}>
-          {s.accentOpts.map((a) => {
-            const selected = !!a.style.boxShadow;
-            return (
-              <div
-                key={a.key}
-                role="radio"
-                aria-checked={selected}
-                tabIndex={selected ? 0 : -1}
-                aria-label="강조색 변경"
-                onClick={wrap(a.onClick, "강조색 변경")}
-                onKeyDown={(e) => { if (isActivateKey(e.key)) { e.preventDefault(); a.onClick(); notify("강조색 변경"); } }}
-                style={a.style}
-              />
-            );
-          })}
+        <div
+          role="radiogroup"
+          aria-label="강조색"
+          onKeyDown={(e) => onRadioArrow(e, s.accentOpts, (i) => { s.accentOpts[i].onClick(); notify(`강조색 ${s.accentOpts[i].name}`); })}
+          style={{ display: "flex", gap: 8 }}
+        >
+          {s.accentOpts.map((a) => (
+            <div
+              key={a.key}
+              role="radio"
+              aria-checked={a.selected}
+              tabIndex={a.selected ? 0 : -1}
+              aria-label={`강조색 ${a.name}`}
+              onClick={wrap(a.onClick, `강조색 ${a.name}`)}
+              onKeyDown={(e) => { if (isActivateKey(e.key)) { e.preventDefault(); a.onClick(); notify(`강조색 ${a.name}`); } }}
+              style={a.style}
+            />
+          ))}
         </div>
       </div>
 
@@ -463,6 +477,7 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
             aria-valuetext={`${s.gapValue}px`}
             tabIndex={0}
             onMouseDown={s.startSlider}
+            onMouseUp={() => notify(`창 간격 ${s.gapValue}px`)}
             onKeyDown={onGapKey}
             style={{ width: 120, height: 14, display: "flex", alignItems: "center", cursor: "pointer", position: "relative" }}
           >

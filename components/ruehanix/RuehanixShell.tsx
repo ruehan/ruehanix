@@ -313,19 +313,19 @@ export function RuehanixShell(content: ShellContent) {
         </div>
       )}
 
-      <ToastHost />
+      <ToastHost bottomOffset={vm.isMobile ? MOBILE_DOCK + 12 : 26} />
     </div>
   );
 }
 
-function ToastHost() {
+function ToastHost({ bottomOffset }: { bottomOffset: number }) {
   const msg = useToast();
   if (!msg) return null;
   return (
     <div
       role="status"
       aria-live="polite"
-      style={{ position: "absolute", bottom: 26, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: "var(--crust)", border: "1px solid var(--surf1)", color: "var(--text)", fontSize: 12, padding: "8px 14px", borderRadius: 9, boxShadow: "0 10px 30px rgba(0,0,0,.4)", animation: "rh-fadeup .14s ease", pointerEvents: "none", whiteSpace: "nowrap" }}
+      style={{ position: "absolute", bottom: bottomOffset, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: "80vw", background: "var(--crust)", border: "1px solid var(--surf1)", color: "var(--text)", fontSize: 12, padding: "8px 14px", borderRadius: 9, boxShadow: "0 10px 30px rgba(0,0,0,.4)", animation: "rh-fadeup .14s ease", pointerEvents: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
     >
       {msg}
     </div>

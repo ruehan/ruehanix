@@ -95,4 +95,8 @@ describe("resolveEarlyTheme", () => {
     expect(resolveEarlyTheme("not json", true)).toEqual({ light: false, accent: DEFAULT_UI.accent });
     expect(resolveEarlyTheme(wrap({ mode: "neon", accent: "#cba6f7", gap: 10 }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
   });
+  it("gap 범위 밖(0..28)이면 parseUiState가 null → 기본값 (인라인 스크립트와 드리프트 없음)", () => {
+    // 저장값이 light라도 gap이 100이면 전체가 무효 → dark 기본값. 인라인 스크립트도 동일.
+    expect(resolveEarlyTheme(wrap({ mode: "light", accent: "#cba6f7", gap: 100 }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
+  });
 });

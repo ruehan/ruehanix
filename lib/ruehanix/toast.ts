@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 /**
  * 글로벌 토스트 외부 스토어.
@@ -65,14 +65,4 @@ export function useToast(): string | null {
     getToast,
     () => null,
   );
-}
-
-/** 토스트 호스트용: 마운트 시 잔류 타이머 정리(안전망). */
-export function useToastCleanup(): void {
-  useEffect(() => () => {
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
-  }, []);
 }

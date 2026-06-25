@@ -41,8 +41,7 @@ export const viewport: Viewport = {
  * 로직은 lib/ruehanix/theme.ts 의 resolveEarlyTheme과 동일(순수 함수 테스트가 값을 수호).
  * 맵·기본값·저장 키는 import해 단일 진실 소스로 유지. ADR 0011 백로그, 0020에서 채택.
  */
-const EARLY_THEME_SCRIPT = `(function(){try{var raw=localStorage.getItem(${JSON.stringify(UI_STORAGE_KEY)});var mode=${JSON.stringify(DEFAULT_UI.mode)},accent=${JSON.stringify(DEFAULT_UI.accent)};if(raw){try{var o=JSON.parse(raw);if(o&&(o.mode==="light"||o.mode==="dark"||o.mode==="auto")&&typeof o.accent==="string"&&/^#[0-9a-fA-F]{6}$/.test(o.accent)){mode=o.mode;accent=o.accent;}}catch(e){}}var pl=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;var light=mode==="light"||(mode==="auto"&&pl);var m=${JSON.stringify(MOCHA_TO_LATTE)};var a=light?(m[accent]||accent):accent;if(light)document.documentElement.classList.add("rh-light");document.documentElement.style.setProperty("--accent",a);}catch(e){}})();`;
-
+const EARLY_THEME_SCRIPT = `(function(){try{var raw=localStorage.getItem(${JSON.stringify(UI_STORAGE_KEY)});var mode=${JSON.stringify(DEFAULT_UI.mode)},accent=${JSON.stringify(DEFAULT_UI.accent)};if(raw){try{var o=JSON.parse(raw);if(o&&(o.mode==="light"||o.mode==="dark"||o.mode==="auto")&&typeof o.accent==="string"&&/^#[0-9a-fA-F]{6}$/.test(o.accent)&&typeof o.gap==="number"&&o.gap>=0&&o.gap<=28){mode=o.mode;accent=o.accent;}}catch(e){}}var pl=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;var light=mode==="light"||(mode==="auto"&&pl);var m=${JSON.stringify(MOCHA_TO_LATTE)};var a=light?(m[accent]||accent):accent;if(light)document.documentElement.classList.add("rh-light");document.documentElement.style.setProperty("--accent",a);}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

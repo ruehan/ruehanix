@@ -49,4 +49,8 @@ describe("extractHeadings", () => {
     const noStyle = { _key: "n", _type: "block", children: [span("x")] } as unknown as PortableTextBlock;
     expect(extractHeadings([noStyle])).toEqual([]);
   });
+  it("_key가 없는 헤딩은 빈 id로 querySelector throw를 유발 → 제외", () => {
+    const noKey = { _type: "block", style: "h2", children: [span("제목")] } as unknown as PortableTextBlock;
+    expect(extractHeadings([noKey])).toEqual([]);
+  });
 });

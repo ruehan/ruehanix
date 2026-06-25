@@ -29,7 +29,8 @@ export interface Heading {
   text: string;
 }
 
-/** 본문에서 h2/h3/h4 헤딩만 추출. 빈 제목(공백만)은 건너뛴다. */
+/** 본문에서 h2/h3/h4 헤딩만 추출. 빈 제목(공백만)과 _key가 없는(빈 id) 블록은 건너뛴다
+ *  — 빈 id는 querySelector("#") throw를 유발하므로 TOC 앵커로 쓸 수 없다. */
 export function extractHeadings(body: PortableTextBlock[] | undefined | null): Heading[] {
   if (!Array.isArray(body)) return [];
   const out: Heading[] = [];
@@ -38,7 +39,8 @@ export function extractHeadings(body: PortableTextBlock[] | undefined | null): H
     if (!style || !HEADING_STYLES.has(style)) continue;
     const text = headingText((b as { children?: unknown }).children);
     if (!text) continue;
-    const id = (b as { _key?: string })._key ?? "";
+    const id = (b as { _key?: string })._key;
+    if (!id) continue;
     out.push({ id, level: Number(style.slice(1)), text });
   }
   return out;

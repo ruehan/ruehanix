@@ -125,24 +125,19 @@ export function ReaderApp({ vm }: { vm: Vm }) {
   };
 
   const changeFont = (delta: number) => {
-    setPrefs((prev) => {
-      const fontSize = Math.max(13, Math.min(22, prev.fontSize + delta));
-      notify(`글씨 ${fontSize}px`);
-      return { ...prev, fontSize };
-    });
+    const fontSize = Math.max(13, Math.min(22, prefs.fontSize + delta));
+    setPrefs((prev) => ({ ...prev, fontSize }));
+    notify(`글씨 ${fontSize}px`);
   };
   const changeWidth = (delta: number) => {
-    setPrefs((prev) => {
-      const width = Math.max(560, Math.min(960, prev.width + delta));
-      notify(`본문 폭 ${width}px`);
-      return { ...prev, width };
-    });
+    const width = Math.max(560, Math.min(960, prefs.width + delta));
+    setPrefs((prev) => ({ ...prev, width }));
+    notify(`본문 폭 ${width}px`);
   };
   const toggleFocus = () => {
-    setFocus((f) => {
-      notify(f ? "포커스 모드 끔" : "포커스 모드 켬");
-      return !f;
-    });
+    const next = !focus;
+    setFocus(next);
+    notify(next ? "포커스 모드 켬" : "포커스 모드 끔");
   };
 
   const showToc = !vm.isMobile && headings.length > 0 && !!p;
@@ -217,23 +212,25 @@ export function ReaderApp({ vm }: { vm: Vm }) {
 
         {/* TOC — 활성 섹션 하이라이트. 헤딩 있고 충분히 넓을 때. */}
         {showToc && (
-          <aside aria-label="목차" style={{ flex: "none", width: 196, background: "var(--mantle)", borderLeft: "1px solid var(--surf0)", overflow: "auto", padding: "16px 10px", fontSize: 11.5, lineHeight: 1.5 }}>
+          <nav aria-label="목차" style={{ flex: "none", width: 196, background: "var(--mantle)", borderLeft: "1px solid var(--surf0)", overflow: "auto", padding: "16px 10px", fontSize: 11.5, lineHeight: 1.5 }}>
             <div style={{ color: "var(--ov0)", fontSize: 10.5, letterSpacing: ".08em", textTransform: "uppercase", padding: "0 6px 10px" }}>목차</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {headings.map((h) => {
-                const on = h.id === activeId;
+                const on = h.id === (activeId ?? headings[0]?.id ?? null);
                 return (
                   <button
                     key={h.id}
                     type="button"
                     aria-label={`${h.text}로 이동`}
                     aria-current={on ? "true" : undefined}
+                    title={h.text}
                     onClick={() => {
                       const root = scrollRef.current;
                       if (!root) return;
                       const el = root.querySelector(`#${CSS.escape(h.id)}`) as HTMLElement | null;
                       if (!el) return;
-                      const top = el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop - 12;
+                      // sticky 툴바(약 44px) 아래로 헤딩이 오도록 오프셋.
+                      const top = el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop - 44;
                       root.scrollTo({ top, behavior: "smooth" });
                     }}
                     style={{
@@ -259,7 +256,7 @@ export function ReaderApp({ vm }: { vm: Vm }) {
                 );
               })}
             </div>
-          </aside>
+          </nav>
         )}
       </div>
     </div>

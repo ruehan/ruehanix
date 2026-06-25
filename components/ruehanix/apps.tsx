@@ -99,6 +99,8 @@ export function ReaderApp({ vm }: { vm: Vm }) {
   }, [prefs]);
 
   const headings = useMemo(() => (p ? extractHeadings(p.body) : []), [p]);
+  // 활성 헤딩 — observer가 잡으면 activeId, 아니면 첫 헤딩(초기/상단 폴백).
+  const activeHeading = activeId ?? headings[0]?.id ?? null;
 
   // 활성 섹션 추적 — 헤딩이 상단 30% 영역에 들어오면 활성(IntersectionObserver).
   useEffect(() => {
@@ -216,7 +218,7 @@ export function ReaderApp({ vm }: { vm: Vm }) {
             <div style={{ color: "var(--ov0)", fontSize: 10.5, letterSpacing: ".08em", textTransform: "uppercase", padding: "0 6px 10px" }}>목차</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {headings.map((h) => {
-                const on = h.id === (activeId ?? headings[0]?.id ?? null);
+                const on = h.id === activeHeading;
                 return (
                   <button
                     key={h.id}

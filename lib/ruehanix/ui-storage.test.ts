@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseUiState, serializeUiState } from "./ui-storage";
+import { DEFAULT_UI, parseUiState, serializeUiState } from "./ui-storage";
 import type { UiState } from "./types";
 
 const valid: UiState = { mode: "light", accent: "#89b4fa", gap: 14, rounded: false, glow: true, transp: true };
@@ -25,5 +25,15 @@ describe("parseUiState", () => {
   });
   it("gap은 정수로 반올림", () => {
     expect(parseUiState(JSON.stringify({ mode: "auto", accent: "#a6e3a1", gap: 12.7 }))?.gap).toBe(13);
+  });
+});
+
+describe("DEFAULT_UI", () => {
+  it("직렬화 → 파싱 라운드트립 (기본값도 저장 가능한 형식)", () => {
+    expect(parseUiState(serializeUiState(DEFAULT_UI))).toEqual(DEFAULT_UI);
+  });
+  it("gap은 허용 범위(0..28) 내", () => {
+    expect(DEFAULT_UI.gap).toBeGreaterThanOrEqual(0);
+    expect(DEFAULT_UI.gap).toBeLessThanOrEqual(28);
   });
 });

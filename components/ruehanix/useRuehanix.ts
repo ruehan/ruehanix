@@ -25,7 +25,7 @@ import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/t
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
-import { UI_STORAGE_KEY, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
+import { UI_STORAGE_KEY, DEFAULT_UI, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
 import type { AppKey, ArtistInfo, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
@@ -69,7 +69,7 @@ const INITIAL: CoreState = {
   open: { reader: { ws: 2 }, files: { ws: 2 }, terminal: { ws: 3 }, hotlap: { ws: 3 }, foto: { ws: 3 } },
   order: ["files", "reader", "terminal", "hotlap", "foto"],
   ratios: {},
-  ui: { mode: "dark", accent: "#cba6f7", gap: 10, rounded: true, glow: true, transp: false },
+  ui: DEFAULT_UI,
   player: PLAYER_INITIAL,
 };
 
@@ -182,6 +182,7 @@ export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
   const setAccent = (accent: string) => setSt((s) => ({ ...s, ui: { ...s.ui, accent } }));
   const toggleUi = (key: "transp" | "rounded" | "glow") => setSt((s) => ({ ...s, ui: { ...s.ui, [key]: !s.ui[key] } }));
   const setGap = (gap: number) => setSt((s) => ({ ...s, ui: { ...s.ui, gap } }));
+  const resetUi = () => setSt((s) => ({ ...s, ui: DEFAULT_UI }));
   const setRatio = (key: string, r: number) => setSt((s) => ({ ...s, ratios: { ...s.ratios, [key]: r } }));
 
   // --- 음악 플레이어 핸들러 (순수 reducer 위임) ---
@@ -388,6 +389,8 @@ export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
       setMode,
       setAccent,
       toggleUi,
+      resetUi,
+      setGap,
       reboot,
       startSlider,
       startGutter,

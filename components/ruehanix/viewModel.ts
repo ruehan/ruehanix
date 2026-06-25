@@ -296,6 +296,7 @@ export function buildVm(api: RuehanixApi) {
   const modeOpts = THEME_MODES.map((m) => ({
     key: m.k,
     label: m.label,
+    selected: ui.mode === m.k,
     onClick: () => handlers.setMode(m.k),
     swatchStyle: {
       width: 84,
@@ -312,15 +313,17 @@ export function buildVm(api: RuehanixApi) {
     } as CSSProperties,
   }));
   const accentOpts = ACCENT_PALETTE.map((c) => ({
-    key: c,
-    onClick: () => handlers.setAccent(c),
+    key: c.hex,
+    name: c.name,
+    selected: ui.accent === c.hex,
+    onClick: () => handlers.setAccent(c.hex),
     style: {
       width: 20,
       height: 20,
       borderRadius: "50%",
       cursor: "pointer",
-      background: c,
-      ...(ui.accent === c ? { boxShadow: `0 0 0 2px var(--base),0 0 0 3.5px ${c}` } : {}),
+      background: c.hex,
+      ...(ui.accent === c.hex ? { boxShadow: `0 0 0 2px var(--base),0 0 0 3.5px ${c.hex}` } : {}),
     } as CSSProperties,
   }));
   const set = {
@@ -328,7 +331,10 @@ export function buildVm(api: RuehanixApi) {
     accentOpts,
     gapPct: Math.round((ui.gap / 28) * 100) + "%",
     gapLabel: ui.gap + "px",
+    gapValue: ui.gap,
     startSlider: handlers.startSlider,
+    setGap: handlers.setGap,
+    resetUi: handlers.resetUi,
     toggles: [
       { label: "Window transparency", on: ui.transp, track: togTrack(ui.transp), knob: togKnob(ui.transp), onClick: () => handlers.toggleUi("transp") },
       { label: "Rounded corners", on: ui.rounded, track: togTrack(ui.rounded), knob: togKnob(ui.rounded), onClick: () => handlers.toggleUi("rounded") },

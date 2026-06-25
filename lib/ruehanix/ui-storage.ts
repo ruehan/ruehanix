@@ -6,6 +6,19 @@ export const UI_STORAGE_KEY = "rh-ui";
 const MODES: ThemeMode[] = ["light", "dark", "auto"];
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
+/**
+ * UiState 기본값. useRuehanix INITIAL.ui와 동일값이며 "기본값"의 단일 진실 소스.
+ * 복원·초기화(reset)가 모두 이 값을 기준으로 동작한다.
+ */
+export const DEFAULT_UI: UiState = {
+  mode: "dark",
+  accent: "#cba6f7",
+  gap: 10,
+  rounded: true,
+  glow: true,
+  transp: false,
+};
+
 /** 저장된 JSON 문자열 → UiState. 형식/범위가 어긋나면 null(저장값 무시, 기본값 사용). */
 export function parseUiState(raw: string | null | undefined): UiState | null {
   if (!raw) return null;

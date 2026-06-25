@@ -50,7 +50,14 @@ export const BOOT_SEQ: BootLine[] = [
   ["ok", "Welcome to ", "ruehanix 1.0 (kernel 6.9.2-rue)"],
 ];
 
-export const ACCENT_PALETTE = ["#f38ba8", "#fab387", "#a6e3a1", "#cba6f7", "#89b4fa", "#f5c2e7"];
+export const ACCENT_PALETTE: { hex: string; name: string }[] = [
+  { hex: "#f38ba8", name: "레드" },
+  { hex: "#fab387", name: "피치" },
+  { hex: "#a6e3a1", name: "그린" },
+  { hex: "#cba6f7", name: "보라" },
+  { hex: "#89b4fa", name: "블루" },
+  { hex: "#f5c2e7", name: "핑크" },
+];
 
 export const THEME_MODES = [
   { k: "light", label: "Light", prev: "linear-gradient(135deg,#eff1f5,#ccd0da)" },

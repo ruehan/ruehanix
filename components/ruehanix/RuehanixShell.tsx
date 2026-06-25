@@ -10,17 +10,7 @@ import { buildVm, type Vm } from "./viewModel";
 import { ART_DESK, LineIcon } from "./icons";
 import { AboutApp, FilesApp, FotoApp, HotlapApp, MusicApp, ReaderApp, SettingsApp, TerminalApp, WebApp } from "./apps";
 import { YouTubeEngine } from "./YouTubeEngine";
-
-const KEYBINDS: [string, string][] = [
-  ["Super + D", "앱 실행기"],
-  ["Super + 1-6", "워크스페이스 이동"],
-  ["Super + Q", "창 닫기"],
-  ["Super + /", "이 도움말"],
-  ["Esc", "오버레이 닫기"],
-  ["드래그", "타일 경계 크기조절"],
-  ["워크스페이스 클릭", "바에서 전환"],
-  ["앱 클릭", "포커스 이동"],
-];
+import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
 
 function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }) {
   const meta = APP_META[app];

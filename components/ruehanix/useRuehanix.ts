@@ -390,6 +390,7 @@ export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
       setAccent,
       toggleUi,
       resetUi,
+      setGap,
       reboot,
       startSlider,
       startGutter,

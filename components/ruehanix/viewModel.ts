@@ -328,7 +328,9 @@ export function buildVm(api: RuehanixApi) {
     accentOpts,
     gapPct: Math.round((ui.gap / 28) * 100) + "%",
     gapLabel: ui.gap + "px",
+    gapValue: ui.gap,
     startSlider: handlers.startSlider,
+    setGap: handlers.setGap,
     resetUi: handlers.resetUi,
     toggles: [
       { label: "Window transparency", on: ui.transp, track: togTrack(ui.transp), knob: togKnob(ui.transp), onClick: () => handlers.toggleUi("transp") },

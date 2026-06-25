@@ -6,8 +6,6 @@
  * @see docs/decisions/0019-settings-tabs-revamp.md
  */
 
-import type { UiState } from "./types";
-
 export interface SettingsTab {
   key: "general" | "appearance" | "windowrules" | "keybindings" | "displays" | "wallpaper" | "about";
   label: string;
@@ -53,13 +51,3 @@ export const ABOUT_META: AboutMeta = {
   build: "Hyprland · Catppuccin Mocha",
   stack: "Next.js · React · Sanity",
 };
-
-/** UiState 기본값(useRuehanix INITIAL.ui와 동일). 복원 책임은 ui-storage가 소유. */
-export const DEFAULT_UI = {
-  mode: "dark",
-  accent: "#cba6f7",
-  gap: 10,
-  rounded: true,
-  glow: true,
-  transp: false,
-} as const satisfies UiState;

@@ -1,5 +1,22 @@
 # 작업 로그
 
+## 2026-06-25 — 설정 앱 탭/네비 재작성
+- 브랜치: feat/settings-revamp
+- 한 일: SettingsApp 재작성. 사이드바 6개 탭이 하드코딩 bool이라 클릭 불가·항상 Appearance만
+  표시하던 것을 SETTINGS_TABS 상수 기반 실동작(탭 전환)으로. Appearance(기본값 복원 버튼 추가)·
+  Keybindings(공유 목록)·About(정적 메타) 패널 구현, 미구현 탭(General/Window Rules/Displays/Wallpaper)은
+  "준비 중" 비활성. 토글 role=switch·테마/강조색 role=radio(방향키 탐색+포커스 이동)·gap 슬라이더
+  role=slider+방향키. 변경 시 인라인 토스트 피드백. KEYBINDS를 lib/ruehanix/settings.ts로 이동해
+  shell 오버레이와 Keybindings 탭이 공유(DRY). DEFAULT_UI를 ui-storage에 두고 reset/INITIAL이 단일 소스 사용,
+  resetUi 핸들러 추가. ACCENT_PALETTE를 {hex,name}[]로 변경(색 이름 a11y 라벨/토스트).
+- 검증: verify 통과(typecheck 0·eslint 0 error/0 warn·vitest 107/107 — settings 6·ui-storage DEFAULT_UI 2·
+  data 5 신규), build 성공, smoke 22/22. WIP types.ts(ArtistMember/Album 등)는 stash로 분리 후 복원.
+- 리뷰: 통과 4라운드(R1 수정필요 P2×3·P3×2 → R2 P2-1·P3-1·P3-2 → R3 P3 리스너 강건성 → R4 통과) —
+  상세: docs/reviews/2026-06-25-settings-revamp.md
+- 가정: 미구현 탭은 제거 말고 비활성(데스크톱 셸 감성), KEYBINDS를 lib로(DRY), About은 정적 메타,
+  토스트는 SettingsApp 국소 피드백. ADR 0019.
+- 관련 결정: docs/decisions/0019-settings-tabs-revamp.md
+
 ## 2026-06-23 — .claude/ 하네스 제거 (opencode 마이그레이션)
 - 브랜치: chore/remove-claude-dir
 - 한 일: 프로젝트 로컬 `.claude/` 하네스 6파일 제거. 하네스를 opencode 글로벌(`~/.config/opencode/`)로

@@ -6,17 +6,17 @@ const mono = "'JetBrains Mono', ui-monospace, monospace";
 
 const components: PortableTextComponents = {
   block: {
-    normal: ({ children }) => <p style={{ margin: "0 0 20px", fontSize: 16, lineHeight: 1.85, color: "var(--sub1)" }}>{children}</p>,
-    h2: ({ children }) => <h2 style={{ margin: "36px 0 14px", fontSize: 22, fontWeight: 800, letterSpacing: "-.01em", color: "var(--text)" }}>{children}</h2>,
-    h3: ({ children }) => <h3 style={{ margin: "28px 0 12px", fontSize: 18, fontWeight: 700, color: "var(--text)" }}>{children}</h3>,
-    h4: ({ children }) => <h4 style={{ margin: "22px 0 10px", fontSize: 15, fontWeight: 700, color: "var(--text)" }}>{children}</h4>,
+    normal: ({ children }) => <p style={{ margin: "0 0 20px", fontSize: "var(--rh-body-fs, 16px)", lineHeight: 1.85, color: "var(--sub1)" }}>{children}</p>,
+    h2: ({ value, children }) => <h2 id={(value as { _key?: string })._key} style={{ margin: "36px 0 14px", fontSize: 22, fontWeight: 800, letterSpacing: "-.01em", color: "var(--text)", scrollMarginTop: 16 }}>{children}</h2>,
+    h3: ({ value, children }) => <h3 id={(value as { _key?: string })._key} style={{ margin: "28px 0 12px", fontSize: 18, fontWeight: 700, color: "var(--text)", scrollMarginTop: 16 }}>{children}</h3>,
+    h4: ({ value, children }) => <h4 id={(value as { _key?: string })._key} style={{ margin: "22px 0 10px", fontSize: 15, fontWeight: 700, color: "var(--text)", scrollMarginTop: 16 }}>{children}</h4>,
     blockquote: ({ children }) => (
       <blockquote style={{ margin: "0 0 20px", padding: "6px 16px", borderLeft: "3px solid var(--accent)", color: "var(--sub0)", fontStyle: "italic" }}>{children}</blockquote>
     ),
   },
   list: {
-    bullet: ({ children }) => <ul style={{ margin: "0 0 20px", paddingLeft: 22, color: "var(--sub1)", fontSize: 16, lineHeight: 1.8 }}>{children}</ul>,
-    number: ({ children }) => <ol style={{ margin: "0 0 20px", paddingLeft: 22, color: "var(--sub1)", fontSize: 16, lineHeight: 1.8 }}>{children}</ol>,
+    bullet: ({ children }) => <ul style={{ margin: "0 0 20px", paddingLeft: 22, color: "var(--sub1)", fontSize: "var(--rh-body-fs, 16px)", lineHeight: 1.8 }}>{children}</ul>,
+    number: ({ children }) => <ol style={{ margin: "0 0 20px", paddingLeft: 22, color: "var(--sub1)", fontSize: "var(--rh-body-fs, 16px)", lineHeight: 1.8 }}>{children}</ol>,
   },
   listItem: {
     bullet: ({ children }) => <li style={{ margin: "0 0 6px" }}>{children}</li>,

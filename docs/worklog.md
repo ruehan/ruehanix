@@ -1,5 +1,23 @@
 # 작업 로그
 
+## 2026-06-25 — 리더 UX(목차·진행률·포커스·표시설정) [그룹 2/4]
+- 브랜치: feat/ux-reader
+- 한 일: 9개 UX 피처 중 Reader 계열(C/D/E).
+  C — 순수 extractHeadings(lib/ruehanix/reader.ts, id=블록 _key) + PostBody h2/h3/h4에 id 부여(TOC 앵커).
+  우측 TOC(IntersectionObserver로 활성 섹션 하이라이트, 클릭 시 getBoundingClientRect 차분 부드러운 스크롤).
+  상단 진행률 바(onScroll).
+  D — 포커스 모드 토글(좌측 글 목록 사이드바 숨김 → 본문 전폭).
+  E — 폰트 크기·본문 폭 툴바(A−/A+/⇠/⇢), ReaderPrefs localStorage 영속(reader-storage, ui-storage 대칭).
+  PostBody 본문 p/ul/ol font-size를 --rh-body-fs CSS var로(/posts 라우트는 set 안 함→기본 16px 무영향).
+  변경 시 글로벌 notify(ADR 0020) 피드백.
+- 검증: verify 통과(typecheck 0·eslint 0/0·vitest 134/134 — reader 9·reader-storage 6 신규), build 성공,
+  smoke 22/22. WIP types.ts stash로 분리 후 복원.
+- 리뷰: 통과 2라운드(R1 수정필요 P1 updater 부작호·P2 빈 id throw·P3 TOC 다듬 → 반영 → R2 통과) —
+  상세: docs/reviews/2026-06-25-reader-ux-toc-focus-prefs.md
+- 가정: 헤딩 id=블록 _key(한글 slug 불안정 회피), 폰트 크기 CSS var(/posts 무영향), 포커스는 reader 내부
+  (워크스페이스 최대화는 G4와 분리), TOC 항목 native button(clickable spread는 react-hooks/refs 오탐). ADR 0021.
+- 관련 결정: docs/decisions/0021-reader-ux-toc-focus-prefs.md
+
 ## 2026-06-25 — UX 기반층(테마 플래시 제거 + 글로벌 토스트) [그룹 1/4]
 - 브랜치: feat/ux-foundation
 - 한 일: G 테마 플래시 제거 + H 글로벌 토스트(9개 UX 피처 중 기반 계열).

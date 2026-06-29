@@ -209,7 +209,7 @@ export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
       const order = s.order.includes("reader") ? s.order : [...s.order, "reader" as AppKey];
       // Reader가 최소화돼 있으면 복귀 + 다른 앱 최대화 중이면 해제(열림 가시성 보장 — openApp과 대칭).
       const minimized = s.minimized.reader ? { ...s.minimized, reader: false } : s.minimized;
-      const maximized = s.maximized === "reader" ? s.maximized : null;
+      const maximized = s.maximized === "reader" ? "reader" : null;
       return { ...s, open, order, selected: id, focused: "reader", minimized, maximized };
     });
   };

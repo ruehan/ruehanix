@@ -1,5 +1,20 @@
 # 작업 로그
 
+## 2026-06-29 — 창 관리(최소화/최대화) [그룹 4/4]
+- 브랜치: feat/ux-window-minmax
+- 한 일: 9개 UX 피처 중 마지막(창 계열 I). 순수 visibleIds(lib/ruehanix/layout.ts — 현재 ws 타일링 대상,
+  최소화 제외·최대화 시 단일). CoreState에 minimized/maximized 추가, curIds를 visibleIds로 위임.
+  핸들러 minimize/toggleMaximize + openApp/openPost가 unminimize + 다른 앱 최대화 해제(가시성 보장),
+  close/minimize가 maximized·focused 정리, gotoWs가 ws 밖 maximized 정리. 타이틀바에 —/□/✕ 버튼 +
+  더블클릭 최대화 토글(모바일은 단일 풀스크린이라 —/□·더블클릭 생략). 단일 id로 computeLayout → 전체 rect·거터 없음.
+- 검증: verify 통과(typecheck 0·eslint 0/0·vitest 162/162 — layout +6), build 성공, smoke 23/23.
+  WIP types.ts stash로 분리 후 복원.
+- 리뷰: 통과 2라운드(R1 수정필요 P1 openPost 가시성 평행경로 누락·P2 모바일 min/max 숨김·P3 title/표현 →
+  반영 → R2 통과 + N1 표현 통일) — 상세: docs/reviews/2026-06-29-window-minimize-maximize.md
+- 가정: 최대화 = 단일 id 타일(별도 fullscreen 분기 회피), 최소화 = open 유지+minimized 플래그(dock 복귀),
+  openApp/openPost가 maximized 정리(가려짐 방지), 모바일은 데스크톱 전용(이미 단일 풀스크린). ADR 0023.
+- 관련 결정: docs/decisions/0023-window-minimize-maximize.md
+
 ## 2026-06-25 — 탐색/저장(통합 검색·최근 글·북마크) [그룹 3/4]
 - 브랜치: feat/ux-search-save
 - 한 일: 9개 UX 피처 중 탐색/저장 계열(A/B/F).

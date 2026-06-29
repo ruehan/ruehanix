@@ -37,11 +37,14 @@ export interface SearchAllInput {
   artists: SearchableArtist[];
   photos: SearchablePhoto[];
 }
-export type SearchAllResult = SearchAllInput;
 
 /** 런처 통합 검색 — 앱·글·아티스트·사진을 동시에. 빈 질의는 앱만 전체 반환
- *  (기존 "모든 앱 브라우징" 동작 유지). 글은 title·excerpt, 아티스트·사진은 name·title로 매칭. */
-export function searchAll(input: SearchAllInput, query: string): SearchAllResult {
+ *  (기존 "모든 앱 브라우징" 동작 유지). 글은 title·excerpt, 아티스트·사진은 name·title로 매칭.
+ *  제네릭으로 입력 요소 타입(onClick/color 등 확장 필드)을 보존한다. */
+export function searchAll<A extends SearchableApp, P extends SearchablePost, AR extends SearchableArtist, PH extends SearchablePhoto>(
+  input: { apps: A[]; posts: P[]; artists: AR[]; photos: PH[] },
+  query: string,
+): { apps: A[]; posts: P[]; artists: AR[]; photos: PH[] } {
   const q = query.trim().toLowerCase();
   if (!q) return { apps: input.apps, posts: [], artists: [], photos: [] };
   return {

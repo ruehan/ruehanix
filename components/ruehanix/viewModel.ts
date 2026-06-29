@@ -11,7 +11,7 @@ import {
 import { accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
-import { filterApps } from "@/lib/ruehanix/search";
+import { filterApps, searchAll } from "@/lib/ruehanix/search";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 import type { RuehanixApi } from "./useRuehanix";
@@ -161,6 +161,30 @@ export function buildVm(api: RuehanixApi) {
     onClick: () => handlers.openApp(k),
   }));
   const launcherList = filterApps(appList, api.launcherQuery);
+
+  // 통합 검색 — 앱·글·아티스트·사진. 빈 질의는 앱만(기존 브라우징 유지). 결과에 onClick 부여.
+  const search = searchAll(
+    {
+      apps: appList,
+      posts: posts.map((p) => ({ slug: p.slug, title: p.title, excerpt: p.excerpt })),
+      artists: artists.map((a) => ({ id: a.id || a.name, name: a.name })),
+      photos: photoSrc.map((ph) => ({ id: ph.url, title: ph.title })),
+    },
+    api.launcherQuery,
+  );
+  const launcherResults = {
+    apps: search.apps,
+    posts: search.posts.map((p) => ({ ...p, onClick: () => handlers.openPost(p.slug) })),
+    artists: search.artists.map((a) => ({ ...a, onClick: () => handlers.openApp("music") })),
+    photos: search.photos.map((ph) => ({ ...ph, onClick: () => handlers.openApp("foto") })),
+  };
+  const openFirstResult = () => {
+    const a = launcherResults.apps[0] ?? launcherResults.posts[0] ?? launcherResults.artists[0] ?? launcherResults.photos[0];
+    a?.onClick();
+  };
+  const hasResults =
+    launcherResults.apps.length + launcherResults.posts.length + launcherResults.artists.length + launcherResults.photos.length > 0;
+  const queryActive = api.launcherQuery.trim().length > 0;
   const openFirstApp = () => {
     const first = launcherList[0];
     if (first) handlers.openApp(first.key);
@@ -443,7 +467,10 @@ export function buildVm(api: RuehanixApi) {
     appList: launcherList,
     launcherQuery: api.launcherQuery,
     setLauncherQuery: handlers.setLauncherQuery,
-    openFirstApp,
+    openFirstApp: openFirstResult,
+    launcherResults,
+    hasResults,
+    queryActive,
     isMobile: mobile,
     mobileHome: mobile && !st.booting && !st.focused,
     dock,

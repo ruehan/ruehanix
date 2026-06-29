@@ -248,25 +248,60 @@ export function RuehanixShell(content: ShellContent) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") vm.openFirstApp();
                 }}
-                placeholder="앱 검색…"
-                aria-label="앱 검색"
+                placeholder="앱·글·아티스트·사진 검색…"
+                aria-label="검색"
                 autoFocus
                 style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: "var(--text)", fontFamily: "inherit", fontSize: "13.5px" }}
               />
             </div>
             <div style={{ padding: 8, maxHeight: 340, overflow: "auto" }}>
-              {vm.appList.length === 0 && (
+              {!vm.hasResults && (
                 <div style={{ padding: "12px", fontSize: 12.5, color: "var(--ov0)", textAlign: "center" }}>결과 없음</div>
               )}
-              {vm.appList.map((a) => (
-                <div key={a.key} className="rh-launch-item" {...clickable(a.onClick, a.name)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
-                  <span style={{ color: a.color, display: "flex" }}>
-                    <LineIcon app={a.key} size={20} />
-                  </span>
-                  <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{a.name}</span>
-                  <span style={{ fontSize: 11, color: "var(--ov0)" }}>{a.hint}</span>
-                </div>
-              ))}
+              {vm.launcherResults.apps.length > 0 && (
+                <LauncherGroup label="앱">
+                  {vm.launcherResults.apps.map((a) => (
+                    <div key={a.key} className="rh-launch-item" {...clickable(a.onClick, a.name)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
+                      <span style={{ color: a.color, display: "flex" }}><LineIcon app={a.key} size={20} /></span>
+                      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{a.name}</span>
+                      <span style={{ fontSize: 11, color: "var(--ov0)" }}>{a.hint}</span>
+                    </div>
+                  ))}
+                </LauncherGroup>
+              )}
+              {vm.launcherResults.posts.length > 0 && (
+                <LauncherGroup label="글">
+                  {vm.launcherResults.posts.map((p) => (
+                    <div key={p.slug} className="rh-launch-item" {...clickable(p.onClick, `${p.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
+                      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>📄</span>
+                      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</span>
+                      <span style={{ fontSize: 11, color: "var(--ov0)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 }}>{p.excerpt}</span>
+                    </div>
+                  ))}
+                </LauncherGroup>
+              )}
+              {vm.launcherResults.artists.length > 0 && (
+                <LauncherGroup label="아티스트">
+                  {vm.launcherResults.artists.map((a) => (
+                    <div key={a.id} className="rh-launch-item" {...clickable(a.onClick, `${a.name} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
+                      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>♪</span>
+                      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{a.name}</span>
+                      <span style={{ fontSize: 11, color: "var(--ov0)" }}>music</span>
+                    </div>
+                  ))}
+                </LauncherGroup>
+              )}
+              {vm.launcherResults.photos.length > 0 && (
+                <LauncherGroup label="사진">
+                  {vm.launcherResults.photos.map((ph) => (
+                    <div key={ph.id} className="rh-launch-item" {...clickable(ph.onClick, `${ph.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
+                      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>▣</span>
+                      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{ph.title}</span>
+                      <span style={{ fontSize: 11, color: "var(--ov0)" }}>foto</span>
+                    </div>
+                  ))}
+                </LauncherGroup>
+              )}
             </div>
           </div>
         </div>
@@ -328,6 +363,15 @@ function ToastHost({ bottomOffset }: { bottomOffset: number }) {
       style={{ position: "absolute", bottom: bottomOffset, left: "50%", transform: "translateX(-50%)", zIndex: 9999, maxWidth: "80vw", background: "var(--crust)", border: "1px solid var(--surf1)", color: "var(--text)", fontSize: 12, padding: "8px 14px", borderRadius: 9, boxShadow: "0 10px 30px rgba(0,0,0,.4)", animation: "rh-fadeup .14s ease", pointerEvents: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
     >
       {msg}
+    </div>
+  );
+}
+
+function LauncherGroup({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--ov0)", padding: "8px 12px 4px" }}>{label}</div>
+      {children}
     </div>
   );
 }

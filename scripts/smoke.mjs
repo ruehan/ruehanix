@@ -156,7 +156,7 @@ try {
   // 9. 런처 검색 필터 + 키보드 접근성
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.getByTestId("launcher").click();
-  await page.locator('input[aria-label="앱 검색"]').fill("ter");
+  await page.locator('input[aria-label="검색"]').fill("ter");
   ok("런처 검색 필터", (await page.locator(".rh-launch-item").count()) === 1);
   ok("a11y 키보드 활성화(role/tabindex)", (await page.getByTestId("launcher").getAttribute("role")) === "button" && (await page.getByTestId("launcher").getAttribute("tabindex")) === "0");
   await page.keyboard.press("Escape");

@@ -20,17 +20,21 @@ function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }
       <div style={vm.chrome}>
         <div
           onMouseDown={vm.focus[app]}
-          onDoubleClick={(e) => { e.stopPropagation(); vm.toggleMaximize[app](); }}
+          onDoubleClick={vm.isMobile ? undefined : ((e: React.MouseEvent) => { e.stopPropagation(); vm.toggleMaximize[app](); })}
           style={vm.tbar}
-          title="더블클릭: 최대화/복원"
+          title={vm.isMobile ? undefined : vm.isMaximized ? "더블클릭: 복원" : "더블클릭: 최대화"}
         >
           <span style={{ display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap", color: meta.color }}>
             <LineIcon app={app} size={14} />
             <span style={{ color: "var(--text)" }}>{meta.name}</span>
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div {...clickable(vm.minimize[app], `${meta.name} 최소화`)} style={vm.wbtn}>—</div>
-            <div {...clickable(vm.toggleMaximize[app], vm.isMaximized ? `${meta.name} 복원` : `${meta.name} 최대화`)} style={vm.wbtn}>{vm.isMaximized ? "❐" : "□"}</div>
+            {!vm.isMobile && (
+              <>
+                <div {...clickable(vm.minimize[app], `${meta.name} 최소화`)} style={vm.wbtn}>—</div>
+                <div {...clickable(vm.toggleMaximize[app], vm.isMaximized ? `${meta.name} 복원` : `${meta.name} 최대화`)} style={vm.wbtn}>{vm.isMaximized ? "❐" : "□"}</div>
+              </>
+            )}
             <div {...clickable(vm.close[app], `${meta.name} 닫기`)} style={vm.xbtn}>
               ✕
             </div>

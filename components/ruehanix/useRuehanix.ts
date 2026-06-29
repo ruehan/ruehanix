@@ -169,7 +169,7 @@ export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
       // 다시 열면 최소화 해제(트레이에서 복귀).
       const minimized = s.minimized[k] ? { ...s.minimized, [k]: false } : s.minimized;
       // 다른 앱을 열면 최대화 해제(최대화 중엔 새 창이 가려지므로).
-      const maximized = s.maximized === k ? s.maximized : null;
+      const maximized = s.maximized === k ? k : null;
       return { ...s, open, order, focused: k, showLauncher: false, minimized, maximized };
     });
   };
@@ -207,7 +207,10 @@ export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
     setSt((s) => {
       const open = { ...s.open, reader: { ws: s.ws } };
       const order = s.order.includes("reader") ? s.order : [...s.order, "reader" as AppKey];
-      return { ...s, open, order, selected: id, focused: "reader" };
+      // Reader가 최소화돼 있으면 복귀 + 다른 앱 최대화 중이면 해제(열림 가시성 보장 — openApp과 대칭).
+      const minimized = s.minimized.reader ? { ...s.minimized, reader: false } : s.minimized;
+      const maximized = s.maximized === "reader" ? s.maximized : null;
+      return { ...s, open, order, selected: id, focused: "reader", minimized, maximized };
     });
   };
   const setReaderSel = (id: string) => setSt((s) => ({ ...s, selected: id }));

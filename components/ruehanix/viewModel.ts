@@ -9,7 +9,7 @@ import {
   THEME_MODES,
 } from "@/lib/ruehanix/data";
 import { accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "@/lib/ruehanix/theme";
-import { area, computeLayout } from "@/lib/ruehanix/layout";
+import { area, computeLayout, visibleIds } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
 import { searchAll } from "@/lib/ruehanix/search";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
@@ -45,8 +45,9 @@ export function buildVm(api: RuehanixApi) {
   const mobile = isMobileWidth(vp.W);
   // 데스크톱은 항상 보이는 독이 타일 창을 가리지 않게 하단 자리를 비운다.
   const reserve = mobile ? 0 : DESKTOP_DOCK_RESERVE;
-  const curIds = st.order.filter((k) => st.open[k] && st.open[k]!.ws === st.ws);
+  const curIds = visibleIds(st.order, st.open, st.ws, st.minimized, st.maximized);
   const lay = computeLayout(curIds, area(vp, ui.gap, reserve), st.ratios, st.ws, ui.gap);
+  const isMaximized = !!st.maximized && curIds.length === 1 && curIds[0] === st.maximized;
 
   // --- 창 타일 스타일 ---
   const tiles = {} as Record<AppKey, CSSProperties>;
@@ -118,11 +119,21 @@ export function buildVm(api: RuehanixApi) {
 
   const focus = {} as Record<AppKey, () => void>;
   const close = {} as Record<AppKey, (e?: React.SyntheticEvent) => void>;
+  const minimize = {} as Record<AppKey, (e?: React.SyntheticEvent) => void>;
+  const toggleMaximize = {} as Record<AppKey, (e?: React.SyntheticEvent) => void>;
   for (const k of APP_KEYS) {
     focus[k] = () => handlers.focusApp(k);
     close[k] = (e?: React.SyntheticEvent) => {
       e?.stopPropagation();
       handlers.close(k);
+    };
+    minimize[k] = (e?: React.SyntheticEvent) => {
+      e?.stopPropagation();
+      handlers.minimize(k);
+    };
+    toggleMaximize[k] = (e?: React.SyntheticEvent) => {
+      e?.stopPropagation();
+      handlers.toggleMaximize(k);
     };
   }
 
@@ -424,6 +435,20 @@ export function buildVm(api: RuehanixApi) {
     gutters,
     focus,
     close,
+    minimize,
+    toggleMaximize,
+    isMaximized,
+    wbtn: {
+      width: 18,
+      height: 18,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 5,
+      color: C.ov0,
+      fontSize: 11,
+      cursor: "pointer",
+    } as CSSProperties,
     chrome: {
       width: "100%",
       height: "100%",

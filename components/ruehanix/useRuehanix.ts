@@ -26,6 +26,7 @@ import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, DEFAULT_UI, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
+import { recordVisitStore } from "@/lib/ruehanix/visits";
 import type { AppKey, ArtistInfo, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
@@ -170,12 +171,14 @@ export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
       return { ...s, open, focused: s.focused === k ? ids[ids.length - 1] || null : s.focused };
     });
   const focusApp = (k: AppKey) => setSt((s) => ({ ...s, focused: k }));
-  const openPost = (id: string) =>
+  const openPost = (id: string) => {
+    recordVisitStore(id);
     setSt((s) => {
       const open = { ...s.open, reader: { ws: s.ws } };
       const order = s.order.includes("reader") ? s.order : [...s.order, "reader" as AppKey];
       return { ...s, open, order, selected: id, focused: "reader" };
     });
+  };
   const setReaderSel = (id: string) => setSt((s) => ({ ...s, selected: id }));
   const setFinderCat = (c: "all" | CatKey) => setSt((s) => ({ ...s, finderCat: c }));
   const setMode = (mode: ThemeMode) => setSt((s) => ({ ...s, ui: { ...s.ui, mode } }));

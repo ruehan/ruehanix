@@ -15,3 +15,42 @@ export function filterApps<T extends SearchableApp>(apps: T[], query: string): T
       a.key.toLowerCase().includes(q),
   );
 }
+
+export interface SearchablePost {
+  slug: string;
+  title: string;
+  excerpt: string;
+}
+export interface SearchableArtist {
+  id: string;
+  name: string;
+}
+export interface SearchablePhoto {
+  id: string;
+  title: string;
+}
+
+/** 통합 검색 입력. 각 도메인은 최소한의 검색 가능 필드만 필요. */
+export interface SearchAllInput {
+  apps: SearchableApp[];
+  posts: SearchablePost[];
+  artists: SearchableArtist[];
+  photos: SearchablePhoto[];
+}
+
+/** 런처 통합 검색 — 앱·글·아티스트·사진을 동시에. 빈 질의는 앱만 전체 반환
+ *  (기존 "모든 앱 브라우징" 동작 유지). 글은 title·excerpt, 아티스트·사진은 name·title로 매칭.
+ *  제네릭으로 입력 요소 타입(onClick/color 등 확장 필드)을 보존한다. */
+export function searchAll<A extends SearchableApp, P extends SearchablePost, AR extends SearchableArtist, PH extends SearchablePhoto>(
+  input: { apps: A[]; posts: P[]; artists: AR[]; photos: PH[] },
+  query: string,
+): { apps: A[]; posts: P[]; artists: AR[]; photos: PH[] } {
+  const q = query.trim().toLowerCase();
+  if (!q) return { apps: input.apps, posts: [], artists: [], photos: [] };
+  return {
+    apps: input.apps.filter((a) => a.name.toLowerCase().includes(q) || a.hint.toLowerCase().includes(q) || a.key.toLowerCase().includes(q)),
+    posts: input.posts.filter((p) => p.title.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q)),
+    artists: input.artists.filter((a) => a.name.toLowerCase().includes(q)),
+    photos: input.photos.filter((p) => p.title.toLowerCase().includes(q)),
+  };
+}

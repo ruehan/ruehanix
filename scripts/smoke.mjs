@@ -153,11 +153,13 @@ try {
   ok("모바일 독 앱 전환", true);
   ok("모바일 하단 독 표시", await page.getByTestId("dock-files").isVisible());
 
-  // 9. 런처 검색 필터 + 키보드 접근성
+  // 9. 런처 검색 필터 + 키보드 접근성 (통합검색: 매칭 없는 질의는 결과 0, 빈 질의는 앱 전체)
   await page.setViewportSize({ width: 1280, height: 820 });
   await page.getByTestId("launcher").click();
-  await page.locator('input[aria-label="앱 검색"]').fill("ter");
-  ok("런처 검색 필터", (await page.locator(".rh-launch-item").count()) === 1);
+  await page.locator('input[aria-label="검색"]').fill("__nomatch_zzz__");
+  ok("런처 검색 결과 없음", (await page.locator(".rh-launch-item").count()) === 0 && (await page.getByText("결과 없음").isVisible()));
+  await page.locator('input[aria-label="검색"]').fill("");
+  ok("런처 빈 질의 앱 전체", (await page.locator(".rh-launch-item").count()) > 0);
   ok("a11y 키보드 활성화(role/tabindex)", (await page.getByTestId("launcher").getAttribute("role")) === "button" && (await page.getByTestId("launcher").getAttribute("tabindex")) === "0");
   await page.keyboard.press("Escape");
 

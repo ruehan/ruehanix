@@ -1,5 +1,21 @@
 # 작업 로그
 
+## 2026-06-25 — 탐색/저장(통합 검색·최근 글·북마크) [그룹 3/4]
+- 브랜치: feat/ux-search-save
+- 한 일: 9개 UX 피처 중 탐색/저장 계열(A/B/F).
+  A — 순수 searchAll(앱·글·아티스트·사진 동시 검색, 빈 질의는 앱만, 제네릭으로 onClick/color 보존).
+  런처를 카테고리 그룹 렌더. 글→openPost, 아티스트→music, 사진→foto. Enter=첫 결과(앱>글>아티스트>사진).
+  B — visit-storage(순수 LRU, MAX 8) + visits 외부스토어(useSyncExternalStore, write-through). openPost가
+  기록. 리더 사이드바 '최근'. F — bookmark-storage(순수, MAX 24) + bookmarks 외부스토어. 리더 헤더 별 토글 +
+  사이드바 '북마크'. 방문/북마크는 외부스토어(토스트 패턴, CoreState 아님 — ADR 근거).
+- 검증: verify 통과(typecheck 0·eslint 0/0·vitest 156/156 — 신규 22: search 7·bookmark 8·visit 7),
+  build 성공, smoke 23/23. WIP types.ts stash로 분리 후 복원.
+- 리뷰: 통과 2라운드(R1 수정필요 P2 북마크 순서·P2 필드명 거짓말·P3 ADR/smoke 정정 → 반영 →
+  R2 통과 + dead code 3종/ADR smoke 수 폴딩 정리) — 상세: docs/reviews/2026-06-25-search-save-launcher-recent-bookmarks.md
+- 가정: 방문/북마크 외부스토어(CoreState 부풀림 회피), searchAll 제네릭(확장 필드 보존), 빈 질의 앱만
+  (기존 브라우징 회귀 방지), 방문은 openPost 단일 지점, 섹션 중복 표시는 의도(컨텍스트별 접근). ADR 0022.
+- 관련 결정: docs/decisions/0022-search-save-unified-launcher-recent-bookmarks.md
+
 ## 2026-06-25 — 리더 UX(목차·진행률·포커스·표시설정) [그룹 2/4]
 - 브랜치: feat/ux-reader
 - 한 일: 9개 UX 피처 중 Reader 계열(C/D/E).

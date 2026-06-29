@@ -8,6 +8,8 @@ import { ABOUT_META, KEYBINDINGS, SETTINGS_TABS, type SettingsTab } from "@/lib/
 import { notify } from "@/lib/ruehanix/toast";
 import { extractHeadings } from "@/lib/ruehanix/reader";
 import { DEFAULT_READER_PREFS, READER_STORAGE_KEY, parseReaderPrefs, serializeReaderPrefs, type ReaderPrefs } from "@/lib/ruehanix/reader-storage";
+import { toggleBookmarkStore, useBookmarks } from "@/lib/ruehanix/bookmarks";
+import { useVisits } from "@/lib/ruehanix/visits";
 import type { Vm } from "./viewModel";
 
 const mono = "'JetBrains Mono',monospace";
@@ -146,26 +148,7 @@ export function ReaderApp({ vm }: { vm: Vm }) {
 
   return (
     <div style={{ display: "flex", height: "100%" }}>
-      {!focus && (
-        <div style={{ flex: "none", width: 188, background: "var(--mantle)", borderRight: "1px solid var(--surf0)", overflow: "auto", padding: "12px 8px" }}>
-          <div style={{ color: "var(--ov0)", fontSize: 11, padding: "0 6px 8px" }}>posts/</div>
-          {vm.readerList.length === 0 ? (
-            <div style={{ fontSize: 11.5, color: "var(--ov0)", padding: "8px 6px" }}>아직 글 없음</div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {vm.readerList.map((it) => (
-                <div key={it.id} {...clickable(it.open, it.title)} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "8px 10px", borderRadius: 7, cursor: "pointer", background: it.bg }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", flex: "none", background: it.catColor }} />
-                    <span style={{ fontSize: 11.5, color: "var(--text)", lineHeight: 1.35 }}>{it.title}</span>
-                  </div>
-                  <span style={{ fontSize: 10.5, color: "var(--ov0)", paddingLeft: 13 }}>{it.date}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {!focus && <ReaderSidebar vm={vm} />}
 
       <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
         <div ref={scrollRef} onScroll={onScroll} style={{ flex: 1, minWidth: 0, overflow: "auto", background: "var(--base)", position: "relative", ["--rh-body-fs" as string]: `${prefs.fontSize}px` }}>
@@ -187,7 +170,10 @@ export function ReaderApp({ vm }: { vm: Vm }) {
               </div>
 
               <div className="rh-sans" style={{ maxWidth: prefs.width, margin: "0 auto", padding: "46px 56px 64px" }}>
-                <div style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, marginBottom: 18, fontFamily: mono, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: p.catColor }}>#{p.catLabel}</div>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 18 }}>
+                  <div style={{ display: "inline-block", padding: "3px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: mono, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: p.catColor }}>#{p.catLabel}</div>
+                  <BookmarkToggle slug={p.slug} />
+                </div>
                 <h1 style={{ margin: "0 0 14px", fontSize: 27, lineHeight: 1.28, fontWeight: 800, letterSpacing: "-.02em", color: "var(--text)", textWrap: "balance" }}>{p.title}</h1>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: "var(--ov0)", fontFamily: mono, paddingBottom: 24, marginBottom: 28, borderBottom: "1px solid var(--surf0)" }}>
                   <span style={{ color: "var(--sub0)" }}>ruehan</span>
@@ -276,6 +262,71 @@ function ReaderBtn({ label, onClick, pressed, children }: { label: string; onCli
       style={{ font: "inherit", fontSize: 11.5, fontWeight: 600, color: pressed ? "var(--accent)" : "var(--sub0)", background: pressed ? "color-mix(in srgb, var(--accent) 14%, transparent)" : "transparent", border: "1px solid var(--surf0)", borderRadius: 6, padding: "3px 8px", cursor: "pointer", lineHeight: 1.3 }}
     >
       {children}
+    </button>
+  );
+}
+
+function ReaderListItem({ it }: { it: Vm["readerList"][number] }) {
+  return (
+    <div {...clickable(it.open, it.title)} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "8px 10px", borderRadius: 7, cursor: "pointer", background: it.bg }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", flex: "none", background: it.catColor }} />
+        <span style={{ fontSize: 11.5, color: "var(--text)", lineHeight: 1.35, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.title}</span>
+      </div>
+      <span style={{ fontSize: 10.5, color: "var(--ov0)", paddingLeft: 13 }}>{it.date}</span>
+    </div>
+  );
+}
+
+function ReaderSidebarSection({ label, items }: { label: string; items: Vm["readerList"] }) {
+  if (items.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--ov0)", padding: "0 6px 5px" }}>{label}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {items.map((it) => <ReaderListItem key={it.id} it={it} />)}
+      </div>
+    </div>
+  );
+}
+
+function ReaderSidebar({ vm }: { vm: Vm }) {
+  const bookmarks = useBookmarks();
+  const visits = useVisits();
+  const bookmarkItems = bookmarks
+    .map((s) => vm.readerList.find((it) => it.id === s))
+    .filter((it): it is Vm["readerList"][number] => !!it);
+  const recentItems = visits.map((s) => vm.readerList.find((it) => it.id === s)).filter((it): it is Vm["readerList"][number] => !!it).slice(0, 6);
+
+  return (
+    <div style={{ flex: "none", width: 188, background: "var(--mantle)", borderRight: "1px solid var(--surf0)", overflow: "auto", padding: "12px 8px" }}>
+      <ReaderSidebarSection label="★ 북마크" items={bookmarkItems} />
+      <ReaderSidebarSection label="최근" items={recentItems} />
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--ov0)", padding: "8px 6px 5px" }}>모든 글</div>
+      {vm.readerList.length === 0 ? (
+        <div style={{ fontSize: 11.5, color: "var(--ov0)", padding: "8px 6px" }}>아직 글 없음</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {vm.readerList.map((it) => <ReaderListItem key={it.id} it={it} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BookmarkToggle({ slug }: { slug: string }) {
+  const bookmarks = useBookmarks();
+  const on = bookmarks.includes(slug);
+  return (
+    <button
+      type="button"
+      aria-label={on ? "북마크 제거" : "북마크 추가"}
+      aria-pressed={on}
+      title={on ? "북마크 제거" : "북마크 추가"}
+      onClick={() => { toggleBookmarkStore(slug); notify(on ? "북마크 해제" : "북마크 추가"); }}
+      style={{ flex: "none", font: "inherit", fontSize: 18, lineHeight: 1, color: on ? "var(--accent)" : "var(--ov0)", background: "transparent", border: "1px solid var(--surf0)", borderRadius: 8, padding: "4px 9px", cursor: "pointer" }}
+    >
+      {on ? "★" : "☆"}
     </button>
   );
 }

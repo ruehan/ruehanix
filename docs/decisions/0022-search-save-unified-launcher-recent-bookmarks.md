@@ -53,7 +53,9 @@
 - 신규: searchAll(search.ts 확장), bookmark-storage(+test 8), visit-storage(+test 7), bookmarks.ts, visits.ts.
 - 수정: useRuehanix(openPost 기록), viewModel(통합검색 결과), apps.tsx(ReaderSidebar/ReaderListItem/
   ReaderSidebarSection/BookmarkToggle), RuehanixShell(카테고리 런처 + LauncherGroup), smoke.mjs(aria-label).
-- 검증: verify 통과(typecheck 0·eslint 0·vitest 156/156 — 신규 29: search 8·bookmark 8·visit 7 + 기존),
+- 검증: verify 통과(typecheck 0·eslint 0·vitest 156/156 — 신규 22: search 7·bookmark 8·visit 7 + 기존),
   build 성공, smoke 22/22.
+- 표시 정책: 같은 글이 '최근'/'북마크' 섹션과 '모든 글'에 중복 노출될 수 있다 — 컨텍스트별 빠른 접근이
+  목적이므로 의도된 중복('모든 글'은 전체 색인 역할).
 - 백로그: 검색 결과 키보드 상하 이동(현재 Enter=첫 결과만), 방문/북마크를 런처에도 노출, 아티스트/사진 결과의
   딥 링크(현재는 해당 앱 오픈만).

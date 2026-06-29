@@ -293,7 +293,9 @@ function ReaderSidebarSection({ label, items }: { label: string; items: Vm["read
 function ReaderSidebar({ vm }: { vm: Vm }) {
   const bookmarks = useBookmarks();
   const visits = useVisits();
-  const bookmarkItems = vm.readerList.filter((it) => bookmarks.includes(it.id));
+  const bookmarkItems = bookmarks
+    .map((s) => vm.readerList.find((it) => it.id === s))
+    .filter((it): it is Vm["readerList"][number] => !!it);
   const recentItems = visits.map((s) => vm.readerList.find((it) => it.id === s)).filter((it): it is Vm["readerList"][number] => !!it).slice(0, 6);
 
   return (

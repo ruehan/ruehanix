@@ -467,7 +467,7 @@ export function buildVm(api: RuehanixApi) {
     appList: launcherList,
     launcherQuery: api.launcherQuery,
     setLauncherQuery: handlers.setLauncherQuery,
-    openFirstApp: openFirstResult,
+    openFirstResult,
     launcherResults,
     hasResults,
     queryActive,

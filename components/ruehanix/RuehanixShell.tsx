@@ -246,7 +246,7 @@ export function RuehanixShell(content: ShellContent) {
                 value={vm.launcherQuery}
                 onChange={(e) => vm.setLauncherQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") vm.openFirstApp();
+                  if (e.key === "Enter") vm.openFirstResult();
                 }}
                 placeholder="앱·글·아티스트·사진 검색…"
                 aria-label="검색"

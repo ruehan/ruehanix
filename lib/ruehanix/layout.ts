@@ -55,3 +55,20 @@ export function computeLayout(
   }
   return { rects, gutters };
 }
+
+/**
+ * 현재 워크스페이스에 실제로 타일링할 창 목록.
+ * - 열려 있고(같은 ws) 최소화되지 않은 창을 order 순으로.
+ * - maximized 가 현재 ws에 있고 최소화돼 있지 않으면 그 창만 단일로(나머지는 숨김).
+ */
+export function visibleIds(
+  order: AppKey[],
+  open: Partial<Record<AppKey, { ws: number }>>,
+  ws: number,
+  minimized: Partial<Record<AppKey, boolean>>,
+  maximized: AppKey | null,
+): AppKey[] {
+  const base = order.filter((k) => open[k] && open[k]!.ws === ws && !minimized[k]);
+  if (maximized && open[maximized] && open[maximized]!.ws === ws && !minimized[maximized]) return [maximized];
+  return base;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { area, computeLayout } from "./layout";
+import { area, computeLayout, visibleIds } from "./layout";
 import type { AppKey } from "./types";
 
 const VP = { W: 1000, H: 800 };
@@ -64,5 +64,35 @@ describe("computeLayout", () => {
     const r = computeLayout(ids, full, { "1:0": 0.7 }, 1, 10);
     expect(r.rects.files!.w).toBe(700 - 5);
     expect(r.rects.reader!.x).toBe(705);
+  });
+});
+
+describe("visibleIds", () => {
+  const order: AppKey[] = ["files", "reader", "terminal"];
+  const open: Partial<Record<AppKey, { ws: number }>> = { files: { ws: 1 }, reader: { ws: 1 }, terminal: { ws: 2 } };
+
+  it("현재 워크스페이스의 열린 창만 순서대로", () => {
+    expect(visibleIds(order, open, 1, {}, null)).toEqual(["files", "reader"]);
+    expect(visibleIds(order, open, 2, {}, null)).toEqual(["terminal"]);
+  });
+
+  it("최소화된 창은 제외", () => {
+    expect(visibleIds(order, open, 1, { files: true }, null)).toEqual(["reader"]);
+  });
+
+  it("최대화 시 그 창만 단일로 (다른 창은 숨김)", () => {
+    expect(visibleIds(order, open, 1, {}, "reader")).toEqual(["reader"]);
+  });
+
+  it("최대화 대상이 현재 ws에 없으면 일반 타일링", () => {
+    expect(visibleIds(order, open, 1, {}, "terminal")).toEqual(["files", "reader"]);
+  });
+
+  it("최대화 대상이 최소화돼 있으면 일반 타일링으로 폴백", () => {
+    expect(visibleIds(order, open, 1, { reader: true }, "reader")).toEqual(["files"]);
+  });
+
+  it("빈 워크스페이스", () => {
+    expect(visibleIds(order, open, 3, {}, null)).toEqual([]);
   });
 });

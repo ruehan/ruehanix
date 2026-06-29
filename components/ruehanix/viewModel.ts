@@ -11,7 +11,7 @@ import {
 import { accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
-import { filterApps, searchAll } from "@/lib/ruehanix/search";
+import { searchAll } from "@/lib/ruehanix/search";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 import type { RuehanixApi } from "./useRuehanix";
@@ -160,7 +160,6 @@ export function buildVm(api: RuehanixApi) {
     hint: APP_META[k].hint,
     onClick: () => handlers.openApp(k),
   }));
-  const launcherList = filterApps(appList, api.launcherQuery);
 
   // 통합 검색 — 앱·글·아티스트·사진. 빈 질의는 앱만(기존 브라우징 유지). 결과에 onClick 부여.
   const search = searchAll(
@@ -184,11 +183,6 @@ export function buildVm(api: RuehanixApi) {
   };
   const hasResults =
     launcherResults.apps.length + launcherResults.posts.length + launcherResults.artists.length + launcherResults.photos.length > 0;
-  const queryActive = api.launcherQuery.trim().length > 0;
-  const openFirstApp = () => {
-    const first = launcherList[0];
-    if (first) handlers.openApp(first.key);
-  };
 
   // 모바일 하단 독(앱 전환) + 홈(포커스 닫기).
   const dock = APP_KEYS.map((k) => ({
@@ -464,13 +458,11 @@ export function buildVm(api: RuehanixApi) {
     wsList,
     focusTitle,
     focusDot,
-    appList: launcherList,
     launcherQuery: api.launcherQuery,
     setLauncherQuery: handlers.setLauncherQuery,
     openFirstResult,
     launcherResults,
     hasResults,
-    queryActive,
     isMobile: mobile,
     mobileHome: mobile && !st.booting && !st.focused,
     dock,

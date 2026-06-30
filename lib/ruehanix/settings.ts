@@ -27,8 +27,10 @@ export const SETTINGS_TABS: SettingsTab[] = [
 export const KEYBINDINGS: [string, string][] = [
   ["Super + D", "앱 실행기"],
   ["Super + 1-6", "워크스페이스 이동"],
+  ["Super + Shift + 1-6", "창을 ws로 이동"],
   ["Super + Q", "창 닫기"],
   ["Super + F", "창 최대화/복원"],
+  ["Super + Shift + ←/→", "타일 자리바꿈"],
   ["Super + /", "이 도움말"],
   ["Esc", "오버레이 닫기"],
   ["↑ / ↓ / Enter", "런처 결과 탐색"],

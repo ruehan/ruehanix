@@ -189,10 +189,6 @@ export function buildVm(api: RuehanixApi) {
     artists: search.artists.map((a) => ({ ...a, onClick: () => handlers.openApp("music") })),
     photos: search.photos.map((ph) => ({ ...ph, onClick: () => handlers.openApp("foto") })),
   };
-  const openFirstResult = () => {
-    const a = launcherResults.apps[0] ?? launcherResults.posts[0] ?? launcherResults.artists[0] ?? launcherResults.photos[0];
-    a?.onClick();
-  };
   const hasResults =
     launcherResults.apps.length + launcherResults.posts.length + launcherResults.artists.length + launcherResults.photos.length > 0;
 
@@ -490,7 +486,6 @@ export function buildVm(api: RuehanixApi) {
     focusDot,
     launcherQuery: api.launcherQuery,
     setLauncherQuery: handlers.setLauncherQuery,
-    openFirstResult,
     launcherResults,
     hasResults,
     isMobile: mobile,

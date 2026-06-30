@@ -168,6 +168,7 @@ export function RuehanixShell(content: ShellContent) {
       <div style={{ position: "absolute", left: 46, bottom: 34, zIndex: 30, fontSize: 12, color: "var(--ov0)", lineHeight: 1.9, whiteSpace: "nowrap", textShadow: vm.widget.shadow }}>
         <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>D</span>  앱 실행기</div>
         <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>1-6</span>  워크스페이스</div>
+        <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>F</span>  최대화/복원</div>
         <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>/</span>  단축키 전체보기</div>
       </div>
         </>

@@ -252,6 +252,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         gotoWs(+k);
       }
       if ((k === "q" || k === "Q") && st.focused) close(st.focused);
+      // Super+F: 브라우저 기본 검색(Cmd/Ctrl+F) 충돌 회피 위해 preventDefault.
       if ((k === "f" || k === "F") && st.focused) {
         e.preventDefault();
         toggleMaximize(st.focused);

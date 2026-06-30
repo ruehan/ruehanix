@@ -1,7 +1,11 @@
 import type { AppKey } from "./types";
 
 /** 창 관리 상태 슬라이스. useRuehanix CoreState 중 창(windowing)에 관한 부분.
- *  순수 전환 함수들이 이 슬라이스를 받아 새 슬라이스를 반환 — 훅 밖에서 단위 테스트. */
+ *  순수 전환 함수들이 이 슬라이스를 받아 새 슬라이스를 반환 — 훅 밖에서 단위 테스트.
+ *
+ *  참고: gotoWs/close의 포커스 후보는 **가시 창(최소화 아님)**만 고려한다. 원본 인라인 로직은
+ *  minimized 무시 filter였으나, 순수 추출 과정에서 가시 창만으로 좁혔다 — 숨겨진 최소화 창에
+ *  포커스가 가는 버그를 고친 의도적 개선(회귀 테스트가 이를 수호). */
 export interface WindowState {
   open: Partial<Record<AppKey, { ws: number }>>;
   order: AppKey[];

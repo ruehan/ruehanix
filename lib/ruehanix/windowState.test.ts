@@ -47,6 +47,10 @@ describe("close", () => {
   it("포커스가 아니면 focused 유지", () => {
     expect(close(S({ focused: "files" }), "reader" as AppKey).focused).toBe("files");
   });
+  it("닫은 뒤 남은 창이 모두 최소화면 focused=null", () => {
+    const n = close(S({ focused: "reader", minimized: { files: true } }), "reader" as AppKey);
+    expect(n.focused).toBeNull();
+  });
 });
 
 describe("minimize", () => {
@@ -80,6 +84,10 @@ describe("gotoWs", () => {
   it("maximized가 대상 ws에 열려 있으면 유지, 아니면 null", () => {
     expect(gotoWs(S({ ws: 1, maximized: "reader" as AppKey, open: { reader: { ws: 1 } } }), 1).maximized).toBe("reader");
     expect(gotoWs(S({ ws: 1, maximized: "reader" as AppKey, open: { reader: { ws: 1 } } }), 2).maximized).toBeNull();
+  });
+  it("대상 ws의 가시 창이 없으면(모두 최소화) focused=null", () => {
+    const n = gotoWs(S({ ws: 1, open: { reader: { ws: 2 } }, order: ["reader"], minimized: { reader: true } }), 2);
+    expect(n.focused).toBeNull();
   });
 });
 

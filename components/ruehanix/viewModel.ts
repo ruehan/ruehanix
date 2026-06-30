@@ -36,7 +36,7 @@ export interface RowPost {
 }
 
 export function buildVm(api: RuehanixApi) {
-  const { st, sys, vp, posts, tracks, photos: photoSrc, artists, prefersLight, handlers } = api;
+  const { st, sys, vp, posts, tracks, photos: photoSrc, artists, albums, prefersLight, handlers } = api;
   const ui = st.ui;
   const accent = accentEff(ui.mode, ui.accent, prefersLight);
   const lightMode = effMode(ui.mode, prefersLight) === "light";

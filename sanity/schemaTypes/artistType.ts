@@ -25,6 +25,23 @@ export const artistType = defineType({
         }),
       ],
     }),
+    defineField({
+      name: "members",
+      title: "멤버",
+      type: "array",
+      description: "밴드/그룹 멤버. 솔로면 비워두세요.",
+      of: [
+        defineArrayMember({
+          type: "object",
+          fields: [
+            { name: "name", title: "이름", type: "string", validation: (r) => r.required() },
+            { name: "role", title: "역할", type: "string", description: "예: 보컬, 기타" },
+            { name: "photo", title: "사진", type: "image", options: { hotspot: true } },
+          ],
+          preview: { select: { title: "name", subtitle: "role", media: "photo" } },
+        }),
+      ],
+    }),
   ],
   preview: { select: { title: "name", subtitle: "genre", media: "photo" } },
 });

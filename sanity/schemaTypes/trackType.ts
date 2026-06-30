@@ -28,6 +28,13 @@ export const trackType = defineType({
       description: "연결하면 음악 앱 '아티스트' 탭에 사진·소개·링크가 표시됩니다.",
     }),
     defineField({
+      name: "albumRef",
+      title: "앨범(선택)",
+      type: "reference",
+      to: [{ type: "album" }],
+      description: "연결하면 아티스트 상세의 앨범 수록곡으로 묶입니다.",
+    }),
+    defineField({
       name: "videoId",
       title: "YouTube 영상 ID",
       type: "string",

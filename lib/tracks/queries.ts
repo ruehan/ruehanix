@@ -3,7 +3,7 @@ import { normalizeTracks } from "./normalize";
 import type { Track } from "@/lib/ruehanix/types";
 import type { SanityTrackDoc } from "./types";
 
-const TRACK_FIELDS = `videoId, title, artist, order, "artistRef": artistRef->{ "id": _id, name, "photoUrl": photo.asset->url, bio, genre, origin, links[]{ label, url } }`;
+const TRACK_FIELDS = `videoId, title, artist, order, "artistRef": artistRef->{ "id": _id, name, "photoUrl": photo.asset->url, bio, genre, origin, links[]{ label, url }, members[]{ name, role, "photoUrl": photo.asset->url } }, "albumRef": albumRef->{ "_id": _id }`;
 // order 오름차순(없으면 9999로 밀어 제목순), 동순위는 제목순.
 const ALL_TRACKS = `*[_type == "track" && defined(videoId)] | order(coalesce(order, 9999) asc, title asc){ ${TRACK_FIELDS} }`;
 

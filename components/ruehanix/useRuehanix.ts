@@ -27,7 +27,7 @@ import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, DEFAULT_UI, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
 import { recordVisitStore } from "@/lib/ruehanix/visits";
-import type { AppKey, ArtistInfo, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
+import type { AppKey, ArtistInfo, Album, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
 interface CoreState {
@@ -129,9 +129,10 @@ export interface ShellContent {
   tracks: Track[];
   photos: Photo[];
   artists: ArtistInfo[];
+  albums: Album[];
 }
 
-export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
+export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellContent) {
   const [st, setSt] = useState<CoreState>(() => ({ ...INITIAL, selected: posts[0]?.slug ?? "" }));
   const trackCount = tracks.length;
   const [launcherQuery, setLauncherQuery] = useState("");
@@ -446,6 +447,7 @@ export function useRuehanix({ posts, tracks, photos, artists }: ShellContent) {
     tracks,
     photos,
     artists,
+    albums,
     data: { APP_KEYS, APP_META, CATS, LAPS, BOOT_SEQ, ACCENT_PALETTE, THEME_MODES },
   };
 }

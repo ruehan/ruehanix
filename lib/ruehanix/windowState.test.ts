@@ -117,6 +117,14 @@ describe("moveToWs", () => {
     expect(n.open.reader).toEqual({ ws: 2 });
     expect(n.ws).toBe(2);
   });
+  it("다른 앱이 maximized면 ws 전환 시 해제(대상 ws에 없으므로), k 자신이면 유지", () => {
+    expect(moveToWs(S({ ws: 1, focused: "reader", maximized: "files" as AppKey }), "reader" as AppKey, 2).maximized).toBeNull();
+    expect(moveToWs(S({ ws: 1, focused: "reader", maximized: "reader" as AppKey }), "reader" as AppKey, 2).maximized).toBe("reader");
+  });
+  it("open에 없는 창이면 no-op", () => {
+    const s = S({ ws: 1, open: { files: { ws: 1 } } });
+    expect(moveToWs(s, "reader" as AppKey, 2)).toBe(s);
+  });
 });
 
 describe("moveTile", () => {

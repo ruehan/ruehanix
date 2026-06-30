@@ -70,10 +70,13 @@ export function openPostReader(s: WindowState, slug: string): WindowState & { se
   return { ...next, selected: slug };
 }
 
-/** 창을 다른 워크스페이스로 이동 + 현재 ws를 그쪽으로 전환(따라가기). Hyprland movetoworkspace. */
+/** 창을 다른 워크스페이스로 이동 + 현재 ws를 그쪽으로 전환(따라가기). Hyprland movetoworkspace.
+ *  k가 open에 없으면 no-op. maximized는 대상 ws에 열려 있을 때만 유지(gotoWs와 대칭). */
 export function moveToWs(s: WindowState, k: AppKey, n: number): WindowState {
+  if (!s.open[k]) return s;
   const open = { ...s.open, [k]: { ws: n } };
-  return { ...s, open, ws: n, focused: k };
+  const maximized = s.maximized && open[s.maximized] && open[s.maximized]!.ws === n ? s.maximized : null;
+  return { ...s, open, ws: n, focused: k, maximized };
 }
 
 /** 타일 자리바꿈 — 포커스 창을 order 상 인접 창과 교체(left/right). 경계/미존재면 no-op.

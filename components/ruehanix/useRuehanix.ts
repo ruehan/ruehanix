@@ -241,6 +241,8 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
     if (st.booting) return;
     if (isMobileWidth(window.innerWidth)) return; // 모바일엔 워크스페이스/런처 개념 없음
     const k = e.key;
+    // 숫자키는 e.code(물리 키)로 판정 — Shift+숫자가 e.key로는 "!@#$%^"로 와서 Super+Shift+1-6이 불발.
+    const digit = e.code.startsWith("Digit") ? +e.code.slice(5) : 0;
     if (e.metaKey || e.altKey) {
       if (k === "d" || k === "D") {
         e.preventDefault();
@@ -250,10 +252,10 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         e.preventDefault();
         toggleKeys();
       }
-      if (k >= "1" && k <= "6") {
+      if (digit >= 1 && digit <= 6) {
         e.preventDefault();
-        if (e.shiftKey && st.focused) moveToWs(st.focused, +k);
-        else gotoWs(+k);
+        if (e.shiftKey && st.focused) moveToWs(st.focused, digit);
+        else gotoWs(digit);
       }
       if ((k === "q" || k === "Q") && st.focused) close(st.focused);
       // Super+F: 브라우저 기본 검색(Cmd/Ctrl+F) 충돌 회피 위해 preventDefault.

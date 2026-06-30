@@ -166,6 +166,17 @@ try {
   ok("a11y 키보드 활성화(role/tabindex)", (await page.getByTestId("launcher").getAttribute("role")) === "button" && (await page.getByTestId("launcher").getAttribute("tabindex")) === "0");
   await page.keyboard.press("Escape");
 
+  // 9b. 단축키 — Alt+Digit2 로 ws 전환(e.code Digit 매칭 검증. Shift+digit가 e.key "!@#" 로 와서
+  //     과거 k>="1" 분기가 깨지던 회귀면). 활성 ws 버튼이 fontWeight 700 이 된다.
+  const wsFont = async (n) => page.getByTestId("ws-" + n).evaluate((el) => getComputedStyle(el).fontWeight);
+  await page.getByTestId("ws-1").click();
+  const f1a = await wsFont(1);
+  await page.keyboard.press("Alt+Digit2");
+  await page.waitForTimeout(120);
+  const f2 = await wsFont(2);
+  const f1b = await wsFont(1);
+  ok("Alt+DigitN 워크스페이스 전환(e.code)", /^7/.test(f1a) && /^7/.test(f2) && !/^7/.test(f1b));
+
   // 10. 부팅 세션 1회 — 재로드 시 부팅 애니메이션 건너뜀
   await page.reload();
   await page.waitForTimeout(800);

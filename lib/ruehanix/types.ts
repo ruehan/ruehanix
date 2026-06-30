@@ -51,15 +51,32 @@ export interface ArtistLink {
   url: string;
 }
 
+/** 밴드 멤버(이름·역할·사진). */
+export interface ArtistMember {
+  name: string;
+  role: string; // 없으면 ""
+  photoUrl: string; // 없으면 ""
+}
+
 /** 가수 정보(Sanity artist 문서/참조에서 정규화). */
 export interface ArtistInfo {
   id: string; // Sanity _id (디렉터리 key·강조 비교용, 없으면 "")
   name: string;
-  photoUrl: string; // 없으면 ""
+  photoUrl: string; // 대표 사진, 없으면 ""
   bio: string;
   genre: string;
   origin: string;
   links: ArtistLink[];
+  members: ArtistMember[];
+}
+
+/** 앨범(Sanity album 문서에서 정규화). */
+export interface Album {
+  id: string;
+  title: string;
+  coverUrl: string; // 없으면 ""
+  year: string; // 발매연도 표시용, 없으면 ""
+  artistId: string; // 소속 아티스트 _id
 }
 
 export interface Track {
@@ -67,6 +84,30 @@ export interface Track {
   title: string;
   artist: string; // 표시 라벨(참조 없어도 유지)
   artistInfo: ArtistInfo | null; // artistRef 참조가 있을 때만
+  albumId: string | null; // albumRef 참조가 있을 때만
+}
+
+/** 조인 결과: 가수 상세에 쓰는 노래 참조(재생 인덱스 = 전체 tracks 내 위치). */
+export interface SongRef {
+  index: number;
+  title: string;
+  artist: string;
+}
+
+/** 조인 결과: 앨범 + 수록곡. */
+export interface AlbumView {
+  id: string;
+  title: string;
+  coverUrl: string;
+  year: string;
+  songs: SongRef[];
+}
+
+/** 조인 결과: 아티스트 상세(카드 + 앨범 + 노래). */
+export interface ArtistView {
+  info: ArtistInfo;
+  albums: AlbumView[];
+  songs: SongRef[];
 }
 
 /** 반복 모드: 끔 · 전체 반복 · 한 곡 반복. */

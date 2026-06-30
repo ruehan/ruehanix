@@ -17,6 +17,7 @@ export function normalizeTracks(docs: SanityTrackDoc[] | undefined): Track[] {
       title: d.title ?? "(제목 없음)",
       artist: d.artist ?? "",
       artistInfo: toArtistInfo(d.artistRef),
+      albumId: d.albumRef && typeof d.albumRef._id === "string" ? d.albumRef._id : null,
     });
   }
   return out;

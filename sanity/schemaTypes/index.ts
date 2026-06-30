@@ -3,5 +3,6 @@ import { postType } from "./postType";
 import { trackType } from "./trackType";
 import { photoType } from "./photoType";
 import { artistType } from "./artistType";
+import { albumType } from "./albumType";
 
-export const schemaTypes: SchemaTypeDefinition[] = [postType, trackType, photoType, artistType];
+export const schemaTypes: SchemaTypeDefinition[] = [postType, trackType, photoType, artistType, albumType];

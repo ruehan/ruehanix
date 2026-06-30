@@ -12,6 +12,7 @@ import { accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "@/lib/r
 import { area, computeLayout, visibleIds } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
 import { searchAll } from "@/lib/ruehanix/search";
+import { buildArtistViews } from "@/lib/artists/views";
 import type { AppKey, CatKey } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 import type { RuehanixApi } from "./useRuehanix";
@@ -36,7 +37,7 @@ export interface RowPost {
 }
 
 export function buildVm(api: RuehanixApi) {
-  const { st, sys, vp, posts, tracks, photos: photoSrc, artists, prefersLight, handlers } = api;
+  const { st, sys, vp, posts, tracks, photos: photoSrc, artists, albums, prefersLight, handlers } = api;
   const ui = st.ui;
   const accent = accentEff(ui.mode, ui.accent, prefersLight);
   const lightMode = effMode(ui.mode, prefersLight) === "light";
@@ -387,7 +388,9 @@ export function buildVm(api: RuehanixApi) {
     current: curTrack ? { title: curTrack.title, artist: curTrack.artist } : null,
     artistInfo: curTrack?.artistInfo ?? null,
     artists, // 전체 아티스트 디렉터리
+    artistViews: buildArtistViews(artists, albums, tracks), // 아티스트별 앨범+수록곡 조인(상세 표시용)
     currentArtistId: curTrack?.artistInfo?.id ?? null, // 재생 중 가수 강조용
+    play: (i: number) => handlers.playerSelect(i),
     popoverOpen: st.showMusic,
     togglePopover: handlers.toggleMusic,
     tracks: tracks.map((t, i) => ({

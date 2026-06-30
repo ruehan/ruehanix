@@ -25,14 +25,29 @@ describe("toArtistInfo", () => {
       genre: "lo-fi",
       origin: "파리",
       links: [{ label: "공식", url: "https://x" }],
+      members: [],
     });
   });
   it("이름 없으면 null", () => {
     expect(toArtistInfo({})).toBeNull();
     expect(toArtistInfo(null)).toBeNull();
   });
-  it("선택 필드 누락 시 안전 기본값(id·문자열은 빈, links []) ", () => {
-    expect(toArtistInfo({ name: "A" })).toEqual({ id: "", name: "A", photoUrl: "", bio: "", genre: "", origin: "", links: [] });
+  it("선택 필드 누락 시 안전 기본값(id·문자열은 빈, links/members []) ", () => {
+    expect(toArtistInfo({ name: "A" })).toEqual({ id: "", name: "A", photoUrl: "", bio: "", genre: "", origin: "", links: [], members: [] });
+  });
+  it("members: name 있는 것만, role·photoUrl은 선택(빈 문자열 폴백)", () => {
+    const info = toArtistInfo({
+      name: "밴드",
+      members: [
+        { name: "리더", role: "보컬", photoUrl: "p1" },
+        { role: "이름 없음" }, // name 없음 → 제외
+        { name: "멤버2" }, // role·photo 없음 → 빈 문자열
+      ],
+    });
+    expect(info!.members).toEqual([
+      { name: "리더", role: "보컬", photoUrl: "p1" },
+      { name: "멤버2", role: "", photoUrl: "" },
+    ]);
   });
 });
 

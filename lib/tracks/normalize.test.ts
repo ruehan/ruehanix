@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { normalizeTracks } from "./normalize";
 
 describe("normalizeTracks", () => {
-  it("완전한 문서를 Track으로 매핑(참조 없으면 artistInfo null)", () => {
+  it("완전한 문서를 Track으로 매핑(참조 없으면 artistInfo null, albumId null)", () => {
     const out = normalizeTracks([{ videoId: "jfKfPfyJRdk", title: "lofi", artist: "Lofi Girl", order: 1 }]);
-    expect(out).toEqual([{ videoId: "jfKfPfyJRdk", title: "lofi", artist: "Lofi Girl", artistInfo: null }]);
+    expect(out).toEqual([{ videoId: "jfKfPfyJRdk", title: "lofi", artist: "Lofi Girl", artistInfo: null, albumId: null }]);
   });
   it("videoId 형식이 어긋난 곡은 제외(11자 영숫자/-/_ 아님)", () => {
     const out = normalizeTracks([
@@ -12,11 +12,16 @@ describe("normalizeTracks", () => {
       { videoId: "https://youtu.be/jfKfPfyJRdk", title: "c", artist: "d" }, // URL 통째
       { videoId: "jfKfPfyJRdk", title: "ok", artist: "e" }, // 정상
     ]);
-    expect(out).toEqual([{ videoId: "jfKfPfyJRdk", title: "ok", artist: "e", artistInfo: null }]);
+    expect(out).toEqual([{ videoId: "jfKfPfyJRdk", title: "ok", artist: "e", artistInfo: null, albumId: null }]);
   });
   it("제목/아티스트 누락 시 안전 기본값", () => {
     const out = normalizeTracks([{ videoId: "dQw4w9WgXcQ" }]);
-    expect(out).toEqual([{ videoId: "dQw4w9WgXcQ", title: "(제목 없음)", artist: "", artistInfo: null }]);
+    expect(out).toEqual([{ videoId: "dQw4w9WgXcQ", title: "(제목 없음)", artist: "", artistInfo: null, albumId: null }]);
+  });
+  it("albumRef._id → albumId, 없으면 null", () => {
+    expect(normalizeTracks([{ videoId: "jfKfPfyJRdk", title: "t", artist: "a", albumRef: { _id: "alb1" } }])[0].albumId).toBe("alb1");
+    expect(normalizeTracks([{ videoId: "jfKfPfyJRdk", title: "t", artist: "a" }])[0].albumId).toBeNull();
+    expect(normalizeTracks([{ videoId: "jfKfPfyJRdk", title: "t", artist: "a", albumRef: null }])[0].albumId).toBeNull();
   });
   it("빈/비배열 입력은 빈 배열", () => {
     expect(normalizeTracks([])).toEqual([]);
@@ -53,6 +58,7 @@ describe("normalizeTracks", () => {
         genre: "lo-fi",
         origin: "파리",
         links: [{ label: "공식", url: "https://x" }],
+        members: [],
       });
     });
     it("이름 없는 참조는 null(역참조 실패/빈 참조)", () => {
@@ -68,6 +74,7 @@ describe("normalizeTracks", () => {
         genre: "",
         origin: "",
         links: [],
+        members: [],
       });
     });
   });

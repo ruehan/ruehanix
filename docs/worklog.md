@@ -1,5 +1,21 @@
 # 작업 로그
 
+## 2026-06-29 — 음악 앨범·멤버 (A) — WIP 마무리
+- 브랜치: feat/music-albums-members
+- 한 일: working tree에 잔존하던 WIP types.ts(ArtistMember·Album·SongRef·AlbumView·ArtistView +
+  ArtistInfo.members·Track.albumId, typecheck red)를 end-to-end으로 마무리. 새 album 문서(title/cover/year/
+  artistRef) + track albumRef + artist members 배열. 순수 buildArtistViews(lib/artists/views.ts — 앨범별 수록곡
+  그룹화·재생인덱스·year 정렬·앨범 밖 폴백) + 테스트. Sanity 스키마(members·albumRef·albumType) + GROQ 투영 +
+  lib/albums 도메인(queries/source). page.tsx·useRuehanix ShellContent에 albums 주입. 아티스트 상세에 멤버·앨범
+  (표지/연도/수록곡)·bio/링크 표시 + 수록곡 클릭 재생.
+- 검증: verify 통과(typecheck 0·eslint 0/0·vitest 174/174 — artists members·tracks albumId·albums 3·views 7 신규),
+  build 성공, smoke 23/23. (이번엔 WIP가 곧 첫 커밋이라 stash 분리 없이 진행.)
+- 리뷰: 통과 2라운드(R1 수정필요 P2 교차 아티스트 앨범 곡 증발·P3 정리 → 반영 → R2 통과 + aid! 단언 제거) —
+  상세: docs/reviews/2026-06-29-music-albums-members.md
+- 가정: album 별도 문서 + track albumRef(중복 회피), members 선택(솔로면 빈 배열), 조인을 순수 함수로(회귀 권고),
+  교차 아티스트 앨범은 songs 폴백. ADR 0024.
+- 관련 결정: docs/decisions/0024-music-albums-members.md
+
 ## 2026-06-29 — 창 관리(최소화/최대화) [그룹 4/4]
 - 브랜치: feat/ux-window-minmax
 - 한 일: 9개 UX 피처 중 마지막(창 계열 I). 순수 visibleIds(lib/ruehanix/layout.ts — 현재 ws 타일링 대상,

@@ -28,9 +28,9 @@ export function buildArtistViews(artists: ArtistInfo[], albums: Album[], tracks:
       const aid = m.track.albumId;
       const album = aid ? albumById.get(aid) : undefined;
       if (album && album.artistId === info.id) {
-        const arr = byAlbum.get(aid!) ?? [];
+        const arr = byAlbum.get(album.id) ?? [];
         arr.push(songRef(m));
-        byAlbum.set(aid!, arr);
+        byAlbum.set(album.id, arr);
       } else {
         loose.push(songRef(m));
       }

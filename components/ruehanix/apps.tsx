@@ -799,7 +799,7 @@ function ArtistAvatar({ photoUrl, name, size }: { photoUrl: string; name: string
   );
 }
 
-function ArtistDirectory({ views, currentId, accent, onPlay }: { views: NonNullable<Vm["player"]["artistViews"]>; currentId: string | null; accent: string; onPlay: (i: number) => void }) {
+function ArtistDirectory({ views, currentId, accent, onPlay }: { views: Vm["player"]["artistViews"]; currentId: string | null; accent: string; onPlay: (i: number) => void }) {
   const [openId, setOpenId] = useState<string | null>(null);
   if (views.length === 0) {
     return (

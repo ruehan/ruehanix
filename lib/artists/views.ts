@@ -20,15 +20,17 @@ export function buildArtistViews(artists: ArtistInfo[], albums: Album[], tracks:
       artist: track.artist,
     });
 
-    // 앨범별 수록곡 그룹화(albums 에 존재하는 앨범만).
+    // 앨범별 수록곡 그룹화 — album이 존재하고 **소속 아티스트가 같을 때만** 앨범에 붙인다.
+    // (컴필레이션/피처링 등 앨범 artistId가 다르면 그 곡은 앨범에서 빼고 songs 로 폴백 — 증발 방지.)
     const byAlbum = new Map<string, SongRef[]>();
     const loose: SongRef[] = [];
     for (const m of mine) {
       const aid = m.track.albumId;
-      if (aid && albumById.has(aid)) {
-        const arr = byAlbum.get(aid) ?? [];
+      const album = aid ? albumById.get(aid) : undefined;
+      if (album && album.artistId === info.id) {
+        const arr = byAlbum.get(aid!) ?? [];
         arr.push(songRef(m));
-        byAlbum.set(aid, arr);
+        byAlbum.set(aid!, arr);
       } else {
         loose.push(songRef(m));
       }
@@ -36,7 +38,7 @@ export function buildArtistViews(artists: ArtistInfo[], albums: Album[], tracks:
 
     const artistAlbums = albums
       .filter((a) => a.artistId === info.id)
-      .map((a) => ({ ...a, songs: byAlbum.get(a.id) ?? [] }))
+      .map((a) => ({ id: a.id, title: a.title, coverUrl: a.coverUrl, year: a.year, songs: byAlbum.get(a.id) ?? [] }))
       .sort((x, y) => yearCmp(x.year, y.year));
 
     return { info, albums: artistAlbums, songs: loose };
@@ -44,7 +46,7 @@ export function buildArtistViews(artists: ArtistInfo[], albums: Album[], tracks:
 }
 
 function yearCmp(a: string, b: string): number {
-  // 빈 year는 뒤로. 숫자면 수치 비교, 아니면 문자열 사전순(안정).
+  // 빈 year는 뒤로. 같은 형식(4자리 연도) 가정해 문자열 사전순 비교.
   const ay = a.trim();
   const by = b.trim();
   if (!ay && !by) return 0;

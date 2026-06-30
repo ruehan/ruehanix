@@ -64,6 +64,16 @@ describe("buildArtistViews", () => {
     expect(a.songs.map((s) => s.title)).toEqual(["고아"]);
   });
 
+  it("track의 앨범이 다른 아티스트 소속(컴필/피처링)이면 songs 로 폴백(증발 방지)", () => {
+    const views = buildArtistViews(
+      [{ ...artists[0], id: "feat" }],
+      [{ id: "al9", title: "컴필", coverUrl: "", year: "2024", artistId: "comp" }],
+      [{ videoId: "v9", title: "피처곡", artist: "F", artistInfo: { ...artists[0], id: "feat" }, albumId: "al9" }],
+    );
+    expect(views[0].albums).toHaveLength(0);
+    expect(views[0].songs.map((s) => s.title)).toEqual(["피처곡"]);
+  });
+
   it("빈 입력", () => {
     expect(buildArtistViews([], [], [])).toEqual([]);
   });

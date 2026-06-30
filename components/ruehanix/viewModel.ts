@@ -202,6 +202,8 @@ export function buildVm(api: RuehanixApi) {
     name: APP_META[k].name,
     color: APP_META[k].color,
     active: st.focused === k,
+    open: !!st.open[k],
+    minimized: !!st.minimized[k],
     onClick: () => handlers.openApp(k),
   }));
   const homeClick = () => {

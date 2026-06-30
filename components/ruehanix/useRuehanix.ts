@@ -296,6 +296,10 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         gotoWs(+k);
       }
       if ((k === "q" || k === "Q") && st.focused) close(st.focused);
+      if ((k === "f" || k === "F") && st.focused) {
+        e.preventDefault();
+        toggleMaximize(st.focused);
+      }
     }
     if (k === "Escape") {
       setLauncherQuery("");

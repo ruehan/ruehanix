@@ -1,5 +1,19 @@
 # 작업 로그
 
+## 2026-06-30 — 백로그 소화(B) + 상태 리팩터(D)
+- 브랜치: feat/ux-backlog
+- 한 일: B — 런처 키보드 탐색(Launcher 컴포넌트 추출, ↑↓ 순환/Enter 활성 오픈/활성 스크롤/aria-activedescendant),
+  DesktopDock 실행 점(open)+최소화 흐림, Super+F 최대화 단축키, KEYBINDINGS·데스크톱 위젯 힌트 갱신.
+  D — 창 상태전환(openApp/close/minimize/toggleMaximize/gotoWs/openPostReader)을 lib/ruehanix/windowState.ts
+  순수 함수로 추출 + 17 테스트. useRuehanix가 위임. 회귀 방어(G4 openPost 가시성·minimize/close maximized·
+  gotoWs ws밖 maximized). 라운드1에서 gotoWs/close의 가시 창-only 포커스를 의도적 버그 수정으로 인정+엣지.
+- 검증: verify 통과(typecheck 0·eslint 0/0·vitest 191/191 — windowState 17 신규), build 성공, smoke 23/23.
+- 리뷰: 통과 2라운드(R1 수정필요 P2 gotoWs/close 발산 인정+엣지·P3 dead code/주석/힌트 → 반영 → R2 통과) —
+  상세: docs/reviews/2026-06-30-ux-backlog-quality.md
+- 가정: B+D 한 브랜치(D가 B의 창 흐름 회귀 방어), gotoWs/close 가시 창-only는 버그 수정, Super+F preventDefault는
+  브라우저 검색 충돌 회피. ADR 대신 windowState 헤더 주석으로 의도 기록(사소).
+- 관련 결정: (ADR 신규 없음 — windowState 헤더 주석으로 의도 명시)
+
 ## 2026-06-29 — 음악 앨범·멤버 (A) — WIP 마무리
 - 브랜치: feat/music-albums-members
 - 한 일: working tree에 잔존하던 WIP types.ts(ArtistMember·Album·SongRef·AlbumView·ArtistView +

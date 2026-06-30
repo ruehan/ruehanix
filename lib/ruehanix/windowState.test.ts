@@ -1,0 +1,106 @@
+import { describe, expect, it } from "vitest";
+import type { AppKey } from "./types";
+import { close, gotoWs, minimize, openApp, openPostReader, toggleMaximize, type WindowState } from "./windowState";
+
+const S = (over: Partial<WindowState> = {}): WindowState => ({
+  open: { reader: { ws: 1 }, files: { ws: 1 } },
+  order: ["files", "reader"],
+  minimized: {},
+  maximized: null,
+  focused: "reader",
+  ws: 1,
+  ...over,
+});
+
+describe("openApp", () => {
+  it("앱을 현재 ws에 열고 포커스 + order에 추가", () => {
+    const n = openApp(S({ open: { files: { ws: 1 } }, order: ["files"], focused: "files" }), "reader" as AppKey);
+    expect(n.open.reader).toEqual({ ws: 1 });
+    expect(n.order).toEqual(["files", "reader"]);
+    expect(n.focused).toBe("reader");
+  });
+  it("이미 열린 앱도 포커스(중복 추가 없음)", () => {
+    const n = openApp(S(), "files" as AppKey);
+    expect(n.order).toEqual(["files", "reader"]);
+    expect(n.focused).toBe("files");
+  });
+  it("최소화된 앱 재오픈 시 unminimize", () => {
+    const n = openApp(S({ minimized: { reader: true } }), "reader" as AppKey);
+    expect(n.minimized.reader).toBe(false);
+  });
+  it("다른 앱을 열면 최대화 해제(가려짐 방지), 같은 앱이면 유지", () => {
+    expect(openApp(S({ maximized: "files" as AppKey }), "reader" as AppKey).maximized).toBeNull();
+    expect(openApp(S({ maximized: "reader" as AppKey }), "reader" as AppKey).maximized).toBe("reader");
+  });
+});
+
+describe("close", () => {
+  it("open/minimized에서 제거 + 포커스를 다음 가시 창으로", () => {
+    const n = close(S({ focused: "reader", minimized: { reader: true } }), "reader" as AppKey);
+    expect(n.open.reader).toBeUndefined();
+    expect(n.minimized.reader).toBeUndefined();
+    expect(n.focused).toBe("files"); // 같은 ws의 마지막 가시 창
+  });
+  it("maximized===k면 maximized 해제", () => {
+    expect(close(S({ maximized: "reader" as AppKey }), "reader" as AppKey).maximized).toBeNull();
+  });
+  it("포커스가 아니면 focused 유지", () => {
+    expect(close(S({ focused: "files" }), "reader" as AppKey).focused).toBe("files");
+  });
+  it("닫은 뒤 남은 창이 모두 최소화면 focused=null", () => {
+    const n = close(S({ focused: "reader", minimized: { files: true } }), "reader" as AppKey);
+    expect(n.focused).toBeNull();
+  });
+});
+
+describe("minimize", () => {
+  it("minimized=true + 포커스를 다음 가시 창으로", () => {
+    const n = minimize(S({ focused: "reader" }), "reader" as AppKey);
+    expect(n.minimized.reader).toBe(true);
+    expect(n.focused).toBe("files");
+  });
+  it("maximized===k면 maximized 해제", () => {
+    expect(minimize(S({ focused: "reader", maximized: "reader" as AppKey }), "reader" as AppKey).maximized).toBeNull();
+  });
+});
+
+describe("toggleMaximize", () => {
+  it("최대화 안 됐으면 최대화 + 포커스", () => {
+    const n = toggleMaximize(S({ maximized: null, focused: "files" }), "reader" as AppKey);
+    expect(n.maximized).toBe("reader");
+    expect(n.focused).toBe("reader");
+  });
+  it("이미 최대화면 복원(null)", () => {
+    expect(toggleMaximize(S({ maximized: "reader" as AppKey }), "reader" as AppKey).maximized).toBeNull();
+  });
+});
+
+describe("gotoWs", () => {
+  it("ws 전환 + 포커스를 새 ws 첫 가시 창으로", () => {
+    const n = gotoWs(S({ ws: 1, open: { reader: { ws: 2 } }, order: ["reader"], focused: null }), 2);
+    expect(n.ws).toBe(2);
+    expect(n.focused).toBe("reader");
+  });
+  it("maximized가 대상 ws에 열려 있으면 유지, 아니면 null", () => {
+    expect(gotoWs(S({ ws: 1, maximized: "reader" as AppKey, open: { reader: { ws: 1 } } }), 1).maximized).toBe("reader");
+    expect(gotoWs(S({ ws: 1, maximized: "reader" as AppKey, open: { reader: { ws: 1 } } }), 2).maximized).toBeNull();
+  });
+  it("대상 ws의 가시 창이 없으면(모두 최소화) focused=null", () => {
+    const n = gotoWs(S({ ws: 1, open: { reader: { ws: 2 } }, order: ["reader"], minimized: { reader: true } }), 2);
+    expect(n.focused).toBeNull();
+  });
+});
+
+describe("openPostReader", () => {
+  it("reader 열고 selected+포커스 + unminimize + 다른 앱 최대화 해제 (G4 회귀)", () => {
+    const n = openPostReader(S({ focused: "files", minimized: { reader: true }, maximized: "files" as AppKey }), "post-1");
+    expect(n.open.reader).toEqual({ ws: 1 });
+    expect(n.focused).toBe("reader");
+    expect((n as WindowState & { selected: string }).selected).toBe("post-1");
+    expect(n.minimized.reader).toBe(false);
+    expect(n.maximized).toBeNull(); // reader가 아니었으므로 해제
+  });
+  it("reader 자기 최대화 상태면 유지", () => {
+    expect(openPostReader(S({ maximized: "reader" as AppKey }), "x").maximized).toBe("reader");
+  });
+});

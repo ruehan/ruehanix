@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { APP_META } from "@/lib/ruehanix/data";
 import { DESKTOP_DOCK, MOBILE_DOCK, MOBILE_TOPBAR } from "@/lib/ruehanix/responsive";
 import type { AppKey } from "@/lib/ruehanix/types";
@@ -97,9 +97,11 @@ function DesktopDock({ vm }: { vm: Vm }) {
   return (
     <div data-testid="desktop-dock" style={{ position: "absolute", left: "50%", bottom: 14, transform: "translateX(-50%)", height: DESKTOP_DOCK, zIndex: 400, display: "flex", alignItems: "center", gap: 4, padding: "0 8px", borderRadius: 16, background: "color-mix(in srgb, var(--mantle) 80%, transparent)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid var(--surf0)", boxShadow: "0 12px 36px rgba(0,0,0,.4)" }}>
       {vm.dock.map((d) => (
-        <div key={d.key} data-testid={"ddock-" + d.key} {...clickable(d.onClick, d.name)} className="rh-dock-item" style={{ position: "relative", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 42, borderRadius: 11, cursor: "pointer", color: d.color, background: d.active ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "transparent" }}>
+        <div key={d.key} data-testid={"ddock-" + d.key} {...clickable(d.onClick, d.name)} className="rh-dock-item" title={d.minimized ? `${d.name} (최소화됨)` : d.name} style={{ position: "relative", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 42, borderRadius: 11, cursor: "pointer", color: d.color, opacity: d.minimized ? 0.5 : 1, background: d.active ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "transparent" }}>
           <LineIcon app={d.key} size={22} />
           <span className="rh-dock-label">{d.name}</span>
+          {/* 실행 중 표시 — macOS식 점. 포커스면 강조. */}
+          {d.open && <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: d.active ? 6 : 4, height: d.active ? 6 : 4, borderRadius: "50%", background: d.active ? "var(--accent)" : "var(--ov0)" }} />}
         </div>
       ))}
     </div>
@@ -166,6 +168,7 @@ export function RuehanixShell(content: ShellContent) {
       <div style={{ position: "absolute", left: 46, bottom: 34, zIndex: 30, fontSize: 12, color: "var(--ov0)", lineHeight: 1.9, whiteSpace: "nowrap", textShadow: vm.widget.shadow }}>
         <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>D</span>  앱 실행기</div>
         <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>1-6</span>  워크스페이스</div>
+        <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>F</span>  최대화/복원</div>
         <div><span style={{ color: vm.widget.mauve }}>Super</span> + <span style={{ color: vm.widget.blue }}>/</span>  단축키 전체보기</div>
       </div>
         </>
@@ -250,75 +253,7 @@ export function RuehanixShell(content: ShellContent) {
       )}
 
       {/* LAUNCHER */}
-      {!vm.isMobile && vm.showLauncher && (
-        <div onClick={vm.toggleLauncher} style={{ position: "absolute", inset: 0, zIndex: 9000, background: "rgba(17,17,27,.55)", backdropFilter: "blur(3px)", display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 118 }}>
-          <div onClick={vm.stop} style={{ width: 420, background: "color-mix(in srgb, var(--mantle) 97%, transparent)", border: "1px solid var(--surf1)", borderRadius: 14, overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,.55)", animation: "rh-fadeup .16s ease" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "13px 16px", borderBottom: "1px solid var(--surf0)", color: "var(--ov0)" }}>
-              <span style={{ color: "var(--accent)" }}>❯</span>
-              <input
-                value={vm.launcherQuery}
-                onChange={(e) => vm.setLauncherQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") vm.openFirstResult();
-                }}
-                placeholder="앱·글·아티스트·사진 검색…"
-                aria-label="검색"
-                autoFocus
-                style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: "var(--text)", fontFamily: "inherit", fontSize: "13.5px" }}
-              />
-            </div>
-            <div style={{ padding: 8, maxHeight: 340, overflow: "auto" }}>
-              {!vm.hasResults && (
-                <div style={{ padding: "12px", fontSize: 12.5, color: "var(--ov0)", textAlign: "center" }}>결과 없음</div>
-              )}
-              {vm.launcherResults.apps.length > 0 && (
-                <LauncherGroup label="앱">
-                  {vm.launcherResults.apps.map((a) => (
-                    <div key={a.key} className="rh-launch-item" {...clickable(a.onClick, a.name)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
-                      <span style={{ color: a.color, display: "flex" }}><LineIcon app={a.key} size={20} /></span>
-                      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{a.name}</span>
-                      <span style={{ fontSize: 11, color: "var(--ov0)" }}>{a.hint}</span>
-                    </div>
-                  ))}
-                </LauncherGroup>
-              )}
-              {vm.launcherResults.posts.length > 0 && (
-                <LauncherGroup label="글">
-                  {vm.launcherResults.posts.map((p) => (
-                    <div key={p.slug} className="rh-launch-item" {...clickable(p.onClick, `${p.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
-                      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>📄</span>
-                      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</span>
-                      <span style={{ fontSize: 11, color: "var(--ov0)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 }}>{p.excerpt}</span>
-                    </div>
-                  ))}
-                </LauncherGroup>
-              )}
-              {vm.launcherResults.artists.length > 0 && (
-                <LauncherGroup label="아티스트">
-                  {vm.launcherResults.artists.map((a) => (
-                    <div key={a.id} className="rh-launch-item" {...clickable(a.onClick, `${a.name} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
-                      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>♪</span>
-                      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{a.name}</span>
-                      <span style={{ fontSize: 11, color: "var(--ov0)" }}>music</span>
-                    </div>
-                  ))}
-                </LauncherGroup>
-              )}
-              {vm.launcherResults.photos.length > 0 && (
-                <LauncherGroup label="사진">
-                  {vm.launcherResults.photos.map((ph) => (
-                    <div key={ph.id} className="rh-launch-item" {...clickable(ph.onClick, `${ph.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}>
-                      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>▣</span>
-                      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{ph.title}</span>
-                      <span style={{ fontSize: 11, color: "var(--ov0)" }}>foto</span>
-                    </div>
-                  ))}
-                </LauncherGroup>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {!vm.isMobile && vm.showLauncher && <Launcher vm={vm} />}
 
       {/* KEYBIND OVERLAY */}
       {!vm.isMobile && vm.showKeys && (
@@ -385,6 +320,102 @@ function LauncherGroup({ label, children }: { label: string; children: ReactNode
     <div style={{ marginBottom: 4 }}>
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--ov0)", padding: "8px 12px 4px" }}>{label}</div>
       {children}
+    </div>
+  );
+}
+
+function Launcher({ vm }: { vm: Vm }) {
+  const res = vm.launcherResults;
+  // 평면 순서: 앱 > 글 > 아티스트 > 사진. 오프셋으로 카테고리 내 인덱스 → 전체 인덱스.
+  const offsets = {
+    app: 0,
+    post: res.apps.length,
+    artist: res.apps.length + res.posts.length,
+    photo: res.apps.length + res.posts.length + res.artists.length,
+  };
+  const total = offsets.photo + res.photos.length;
+  const [active, setActive] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
+  // 결과 수 축소 시 범위 밖이면 클램프(파생값 — setState-in-effect 회피).
+  const safeActive = total > 0 ? Math.min(active, total - 1) : 0;
+  // 활성 항목이 보이도록 스크롤.
+  useEffect(() => {
+    const el = listRef.current?.querySelector(`[data-launch-idx="${safeActive}"]`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [safeActive]);
+
+  const onInputKey = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((a) => (total > 0 ? (a + 1) % total : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((a) => (total > 0 ? (a - 1 + total) % total : 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const pick = [res.apps, res.posts, res.artists, res.photos].flat()[safeActive];
+      (pick as { onClick?: () => void } | undefined)?.onClick?.();
+    }
+  };
+
+  const activeStyle = (idx: number): CSSProperties => (idx === safeActive ? { background: "var(--surf0)" } : {});
+
+  const appItem = (a: Vm["launcherResults"]["apps"][number], i: number) => (
+    <div key={a.key} data-launch-idx={offsets.app + i} id={"launch-" + (offsets.app + i)} className="rh-launch-item" {...clickable(() => { a.onClick(); }, a.name)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer", ...activeStyle(offsets.app + i) }}>
+      <span style={{ color: a.color, display: "flex" }}><LineIcon app={a.key} size={20} /></span>
+      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{a.name}</span>
+      <span style={{ fontSize: 11, color: "var(--ov0)" }}>{a.hint}</span>
+    </div>
+  );
+  const postItem = (p: Vm["launcherResults"]["posts"][number], i: number) => (
+    <div key={p.slug} data-launch-idx={offsets.post + i} id={"launch-" + (offsets.post + i)} className="rh-launch-item" {...clickable(() => { p.onClick(); }, `${p.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer", ...activeStyle(offsets.post + i) }}>
+      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>📄</span>
+      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</span>
+      <span style={{ fontSize: 11, color: "var(--ov0)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 }}>{p.excerpt}</span>
+    </div>
+  );
+  const artistItem = (a: Vm["launcherResults"]["artists"][number], i: number) => (
+    <div key={a.id} data-launch-idx={offsets.artist + i} id={"launch-" + (offsets.artist + i)} className="rh-launch-item" {...clickable(() => { a.onClick(); }, `${a.name} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer", ...activeStyle(offsets.artist + i) }}>
+      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>♪</span>
+      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{a.name}</span>
+      <span style={{ fontSize: 11, color: "var(--ov0)" }}>music</span>
+    </div>
+  );
+  const photoItem = (ph: Vm["launcherResults"]["photos"][number], i: number) => (
+    <div key={ph.id} data-launch-idx={offsets.photo + i} id={"launch-" + (offsets.photo + i)} className="rh-launch-item" {...clickable(() => { ph.onClick(); }, `${ph.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 9, cursor: "pointer", ...activeStyle(offsets.photo + i) }}>
+      <span style={{ color: "var(--accent)", display: "flex", fontSize: 16 }}>▣</span>
+      <span style={{ fontSize: 13.5, color: "var(--text)", flex: 1 }}>{ph.title}</span>
+      <span style={{ fontSize: 11, color: "var(--ov0)" }}>foto</span>
+    </div>
+  );
+
+  return (
+    <div onClick={vm.toggleLauncher} style={{ position: "absolute", inset: 0, zIndex: 9000, background: "rgba(17,17,27,.55)", backdropFilter: "blur(3px)", display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 118 }}>
+      <div onClick={vm.stop} style={{ width: 420, background: "color-mix(in srgb, var(--mantle) 97%, transparent)", border: "1px solid var(--surf1)", borderRadius: 14, overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,.55)", animation: "rh-fadeup .16s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "13px 16px", borderBottom: "1px solid var(--surf0)", color: "var(--ov0)" }}>
+          <span style={{ color: "var(--accent)" }}>❯</span>
+          <input
+            value={vm.launcherQuery}
+            onChange={(e) => { vm.setLauncherQuery(e.target.value); setActive(0); }}
+            onKeyDown={onInputKey}
+            placeholder="앱·글·아티스트·사진 검색…"
+            aria-label="검색"
+            aria-autocomplete="list"
+            aria-activedescendant={total > 0 ? `launch-${safeActive}` : undefined}
+            autoFocus
+            style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: "var(--text)", fontFamily: "inherit", fontSize: "13.5px" }}
+          />
+        </div>
+        <div ref={listRef} style={{ padding: 8, maxHeight: 340, overflow: "auto" }}>
+          {!vm.hasResults && (
+            <div style={{ padding: "12px", fontSize: 12.5, color: "var(--ov0)", textAlign: "center" }}>결과 없음</div>
+          )}
+          {res.apps.length > 0 && <LauncherGroup label="앱">{res.apps.map(appItem)}</LauncherGroup>}
+          {res.posts.length > 0 && <LauncherGroup label="글">{res.posts.map(postItem)}</LauncherGroup>}
+          {res.artists.length > 0 && <LauncherGroup label="아티스트">{res.artists.map(artistItem)}</LauncherGroup>}
+          {res.photos.length > 0 && <LauncherGroup label="사진">{res.photos.map(photoItem)}</LauncherGroup>}
+        </div>
+      </div>
     </div>
   );
 }

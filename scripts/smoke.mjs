@@ -176,6 +176,8 @@ try {
   const f2 = await wsFont(2);
   const f1b = await wsFont(1);
   ok("Alt+DigitN 워크스페이스 전환(e.code)", /^7/.test(f1a) && /^7/.test(f2) && !/^7/.test(f1b));
+  // 참고: Shift+digit(moveToWs) 분기는 순수 함수 테스트가 커버. Playwright Shift+모디파이어+digit
+  // 키 합성이 플랫폼 의존적이라 여기선 Alt 단독(e.code 매칭 회귀면)만 검증한다.
 
   // 10. 부팅 세션 1회 — 재로드 시 부팅 애니메이션 건너뜀
   await page.reload();

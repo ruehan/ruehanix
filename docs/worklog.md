@@ -1,5 +1,19 @@
 # 작업 로그
 
+## 2026-06-30 — 창 자유도 G1 — ws/타일 제어 + 기본 빈 워크스페이스
+- 브랜치: feat/ux-window-control
+- 한 일: 창 자유도 개선 3사이클 중 G1. 기본 빈 워크스페이스(INITIAL.open/order 비움 — Hyprland 첫 로그인처럼
+  깨끗한 시작). moveToWs(Super+Shift+1-6 — 포커스 창을 대상 ws로 이동+따라가기). moveTile(Super+Shift+←/→ —
+  order 상 인접 타일과 자리바꿈, 1D dwindle 근사). 순수 전환 lib/ruehanix/windowState.ts(+moveToWs/moveTile)
+  + 테스트. KEYBINDINGS 갱신. 라운드1에서 Super+Shift+1-6 가 Shift+digit=e.key '!@#' 로 안 되던 결함을
+  e.code(Digit1-6) 기반 판정으로 수정, moveToWs maximized 정리(gotoWs와 대칭)+open 가드.
+- 검증: verify 통과(typecheck 0·eslint 0/0·vitest 199/199 — windowState 25), build 성공, smoke 24/24.
+- 리뷰: 통과 2라운드(R1 수정필요 P1 단축키 결함·P2 maximized 발산·P3 가드 → 반영 → R2 통과) —
+  상세: docs/reviews/2026-06-30-window-control-g1.md
+- 가정: moveToWs는 ws 전환+따라가기, moveTile은 1D 근사(공간 up/down는 백로그), e.code 기반 숫자키(국제화 견고),
+  기본 빈 ws. windowState 헤더 주석으로 1D 한계 명시.
+- 관련 결정: (ADR 신규 없음 — windowState 헤더/커밋으로 의도 명시)
+
 ## 2026-06-30 — 백로그 소화(B) + 상태 리팩터(D)
 - 브랜치: feat/ux-backlog
 - 한 일: B — 런처 키보드 탐색(Launcher 컴포넌트 추출, ↑↓ 순환/Enter 활성 오픈/활성 스크롤/aria-activedescendant),

@@ -799,9 +799,9 @@ function ArtistAvatar({ photoUrl, name, size }: { photoUrl: string; name: string
   );
 }
 
-function ArtistDirectory({ artists, currentId, accent }: { artists: Vm["player"]["artists"]; currentId: string | null; accent: string }) {
+function ArtistDirectory({ views, currentId, accent, onPlay }: { views: NonNullable<Vm["player"]["artistViews"]>; currentId: string | null; accent: string; onPlay: (i: number) => void }) {
   const [openId, setOpenId] = useState<string | null>(null);
-  if (artists.length === 0) {
+  if (views.length === 0) {
     return (
       <div style={{ height: "100%", minHeight: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--ov0)", padding: 24, textAlign: "center" }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sub1)" }}>아티스트가 없습니다</div>
@@ -811,11 +811,12 @@ function ArtistDirectory({ artists, currentId, accent }: { artists: Vm["player"]
   }
   return (
     <div>
-      {artists.map((a) => {
+      {views.map((view) => {
+        const a = view.info;
         const open = openId === a.id;
         const isCurrent = !!currentId && a.id === currentId;
         const meta = [a.genre, a.origin].filter(Boolean).join(" · ");
-        const hasDetail = !!a.bio || a.links.length > 0;
+        const hasDetail = !!a.bio || a.links.length > 0 || a.members.length > 0 || view.albums.length > 0 || view.songs.length > 0;
         return (
           <div key={a.id || a.name} style={{ borderBottom: "1px solid var(--surf0)", background: isCurrent ? "color-mix(in srgb, var(--accent) 10%, transparent)" : "transparent" }}>
             <div {...clickable(() => setOpenId(open ? null : a.id), `${a.name} ${open ? "접기" : "펼치기"}`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", cursor: "pointer" }}>
@@ -834,8 +835,67 @@ function ArtistDirectory({ artists, currentId, accent }: { artists: Vm["player"]
             {open && hasDetail ? (
               <div style={{ padding: "0 18px 16px 72px" }}>
                 {a.bio ? <p style={{ margin: "0 0 12px", fontSize: 12.5, lineHeight: 1.7, color: "var(--sub1)", whiteSpace: "pre-wrap" }}>{a.bio}</p> : null}
+
+                {a.members.length > 0 ? (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--ov0)", marginBottom: 7 }}>멤버</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {a.members.map((m) => (
+                        <div key={m.name} style={{ display: "flex", alignItems: "center", gap: 7, padding: "4px 9px 4px 4px", borderRadius: 20, background: "var(--surf0)" }}>
+                          <ArtistAvatar photoUrl={m.photoUrl} name={m.name} size={22} />
+                          <span style={{ fontSize: 11.5, color: "var(--text)" }}>{m.name}</span>
+                          {m.role ? <span style={{ fontSize: 10.5, color: "var(--ov0)" }}>· {m.role}</span> : null}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {view.albums.map((al) => (
+                  <div key={al.id} style={{ display: "flex", gap: 11, marginBottom: 12, padding: 10, borderRadius: 9, background: "var(--mantle)", border: "1px solid var(--surf0)" }}>
+                    <div style={{ width: 52, height: 52, flex: "none", borderRadius: 7, overflow: "hidden", background: "var(--surf1)" }}>
+                      {al.coverUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN
+                        <img src={al.coverUrl} alt={al.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ov0)", fontSize: 18 }}>♪</div>
+                      )}
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{al.title}</span>
+                        {al.year ? <span style={{ fontSize: 10.5, color: "var(--ov0)" }}>{al.year}</span> : null}
+                      </div>
+                      {al.songs.length > 0 ? (
+                        <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 1 }}>
+                          {al.songs.map((s) => (
+                            <button key={s.index} type="button" onClick={() => onPlay(s.index)} title={`${s.title} 재생`} style={{ font: "inherit", textAlign: "left", background: "transparent", border: "none", cursor: "pointer", padding: "2px 0", fontSize: 11.5, color: "var(--sub1)" }}>
+                              <span style={{ color: "var(--ov0)", marginRight: 6 }}>▸</span>{s.title}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 11, color: "var(--ov0)", marginTop: 4 }}>수록곡 없음</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {view.songs.length > 0 ? (
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--ov0)", marginBottom: 5 }}>{view.albums.length > 0 ? "기타 곡" : "곡"}</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      {view.songs.map((s) => (
+                        <button key={s.index} type="button" onClick={() => onPlay(s.index)} title={`${s.title} 재생`} style={{ font: "inherit", textAlign: "left", background: "transparent", border: "none", cursor: "pointer", padding: "2px 0", fontSize: 11.5, color: "var(--sub1)" }}>
+                          <span style={{ color: "var(--ov0)", marginRight: 6 }}>▸</span>{s.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 {a.links.length > 0 ? (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 12 }}>
                     {a.links.map((l) => (
                       <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 600, padding: "5px 11px", borderRadius: 7, textDecoration: "none", background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accent }}>
                         {l.label} ↗
@@ -932,7 +992,7 @@ export function MusicApp({ vm }: { vm: Vm }) {
                 </div>
               </div>
             ))
-          : <ArtistDirectory artists={p.artists} currentId={p.currentArtistId} accent={accent} />}
+          : <ArtistDirectory views={p.artistViews} currentId={p.currentArtistId} accent={accent} onPlay={p.play} />}
       </div>
     </div>
   );

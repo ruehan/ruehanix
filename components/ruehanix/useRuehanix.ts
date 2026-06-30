@@ -27,6 +27,7 @@ import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, DEFAULT_UI, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
 import { recordVisitStore } from "@/lib/ruehanix/visits";
+import { close as closeState, gotoWs as gotoWsState, minimize as minimizeState, openApp as openAppState, openPostReader as openPostReaderState, toggleMaximize as toggleMaximizeState } from "@/lib/ruehanix/windowState";
 import type { AppKey, ArtistInfo, Album, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
@@ -153,65 +154,20 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   };
   const toggleKeys = () => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false, showMusic: false }));
   const toggleMusic = () => setSt((s) => ({ ...s, showMusic: !s.showMusic, showLauncher: false, showKeys: false }));
-  const gotoWs = (n: number) =>
-    setSt((s) => {
-      const ids = s.order.filter((k) => s.open[k] && s.open[k]!.ws === n);
-      // 최대화는 해당 ws에 열린 창일 때만 유지.
-      const maximized = s.maximized && s.open[s.maximized] && s.open[s.maximized]!.ws === n ? s.maximized : null;
-      return { ...s, ws: n, focused: ids[0] || null, showLauncher: false, maximized };
-    });
+  const gotoWs = (n: number) => setSt((s) => ({ ...s, ...gotoWsState(s, n), showLauncher: false }));
   const openApp = (k: AppKey) => {
     setLauncherQuery("");
-    setSt((s) => {
-      const open = { ...s.open };
-      let order = s.order;
-      open[k] = { ws: s.ws };
-      if (!order.includes(k)) order = [...order, k];
-      // 다시 열면 최소화 해제(트레이에서 복귀).
-      const minimized = s.minimized[k] ? { ...s.minimized, [k]: false } : s.minimized;
-      // 다른 앱을 열면 최대화 해제(최대화 중엔 새 창이 가려지므로).
-      const maximized = s.maximized === k ? k : null;
-      return { ...s, open, order, focused: k, showLauncher: false, minimized, maximized };
-    });
+    setSt((s) => ({ ...s, ...openAppState(s, k), showLauncher: false }));
   };
-  const close = (k: AppKey) =>
-    setSt((s) => {
-      const open = { ...s.open };
-      delete open[k];
-      const minimized = { ...s.minimized };
-      delete minimized[k];
-      const ids = s.order.filter((x) => open[x] && open[x]!.ws === s.ws);
-      return {
-        ...s,
-        open,
-        minimized,
-        maximized: s.maximized === k ? null : s.maximized,
-        focused: s.focused === k ? ids[ids.length - 1] || null : s.focused,
-      };
-    });
+  const close = (k: AppKey) => setSt((s) => ({ ...s, ...closeState(s, k) }));
   const focusApp = (k: AppKey) => setSt((s) => ({ ...s, focused: k }));
-  const minimize = (k: AppKey) =>
-    setSt((s) => {
-      const minimized = { ...s.minimized, [k]: true };
-      const ids = s.order.filter((x) => s.open[x] && s.open[x]!.ws === s.ws && !minimized[x]);
-      return {
-        ...s,
-        minimized,
-        maximized: s.maximized === k ? null : s.maximized,
-        focused: s.focused === k ? ids[ids.length - 1] || null : s.focused,
-      };
-    });
-  const toggleMaximize = (k: AppKey) =>
-    setSt((s) => ({ ...s, maximized: s.maximized === k ? null : k, focused: k }));
+  const minimize = (k: AppKey) => setSt((s) => ({ ...s, ...minimizeState(s, k) }));
+  const toggleMaximize = (k: AppKey) => setSt((s) => ({ ...s, ...toggleMaximizeState(s, k) }));
   const openPost = (id: string) => {
     recordVisitStore(id);
     setSt((s) => {
-      const open = { ...s.open, reader: { ws: s.ws } };
-      const order = s.order.includes("reader") ? s.order : [...s.order, "reader" as AppKey];
-      // Reader가 최소화돼 있으면 복귀 + 다른 앱 최대화 중이면 해제(열림 가시성 보장 — openApp과 대칭).
-      const minimized = s.minimized.reader ? { ...s.minimized, reader: false } : s.minimized;
-      const maximized = s.maximized === "reader" ? "reader" : null;
-      return { ...s, open, order, selected: id, focused: "reader", minimized, maximized };
+      const w = openPostReaderState(s, id);
+      return { ...s, ...w, showLauncher: false };
     });
   };
   const setReaderSel = (id: string) => setSt((s) => ({ ...s, selected: id }));

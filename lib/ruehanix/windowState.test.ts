@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AppKey } from "./types";
-import { close, gotoWs, minimize, openApp, openPostReader, toggleMaximize, type WindowState } from "./windowState";
+import { close, gotoWs, minimize, moveTile, moveToWs, openApp, openPostReader, toggleMaximize, type WindowState } from "./windowState";
 
 const S = (over: Partial<WindowState> = {}): WindowState => ({
   open: { reader: { ws: 1 }, files: { ws: 1 } },
@@ -102,5 +102,37 @@ describe("openPostReader", () => {
   });
   it("reader 자기 최대화 상태면 유지", () => {
     expect(openPostReader(S({ maximized: "reader" as AppKey }), "x").maximized).toBe("reader");
+  });
+});
+
+describe("moveToWs", () => {
+  it("창을 대상 ws로 이동 + ws 전환 + 포커스 유지(따라가기)", () => {
+    const n = moveToWs(S({ ws: 1, focused: "reader" }), "reader" as AppKey, 3);
+    expect(n.open.reader).toEqual({ ws: 3 });
+    expect(n.ws).toBe(3);
+    expect(n.focused).toBe("reader");
+  });
+  it("다른 ws로 가면 현재 ws엔 더이상 없음 → visibleIds가 반영", () => {
+    const n = moveToWs(S({ ws: 1, open: { reader: { ws: 1 }, files: { ws: 1 } }, order: ["files", "reader"], focused: "reader" }), "reader" as AppKey, 2);
+    expect(n.open.reader).toEqual({ ws: 2 });
+    expect(n.ws).toBe(2);
+  });
+});
+
+describe("moveTile", () => {
+  it("right: 포커스 창을 order 상 다음과 자리바꿈", () => {
+    const n = moveTile(S({ order: ["files", "reader", "terminal"], focused: "reader" }), "reader" as AppKey, "right");
+    expect(n.order).toEqual(["files", "terminal", "reader"]);
+  });
+  it("left: 이전과 자리바꿈", () => {
+    const n = moveTile(S({ order: ["files", "reader", "terminal"], focused: "reader" }), "reader" as AppKey, "left");
+    expect(n.order).toEqual(["reader", "files", "terminal"]);
+  });
+  it("경계(맨 끝)면 no-op", () => {
+    expect(moveTile(S({ order: ["files", "reader"], focused: "reader" }), "reader" as AppKey, "right").order).toEqual(["files", "reader"]);
+    expect(moveTile(S({ order: ["files", "reader"], focused: "files" }), "files" as AppKey, "left").order).toEqual(["files", "reader"]);
+  });
+  it("order에 없으면 no-op", () => {
+    expect(moveTile(S({ order: ["files"], focused: "reader" }), "reader" as AppKey, "right").order).toEqual(["files"]);
   });
 });

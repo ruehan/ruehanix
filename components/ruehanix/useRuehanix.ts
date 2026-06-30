@@ -27,7 +27,7 @@ import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, DEFAULT_UI, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
 import { recordVisitStore } from "@/lib/ruehanix/visits";
-import { close as closeState, gotoWs as gotoWsState, minimize as minimizeState, openApp as openAppState, openPostReader as openPostReaderState, toggleMaximize as toggleMaximizeState } from "@/lib/ruehanix/windowState";
+import { close as closeState, gotoWs as gotoWsState, minimize as minimizeState, moveTile as moveTileState, moveToWs as moveToWsState, openApp as openAppState, openPostReader as openPostReaderState, toggleMaximize as toggleMaximizeState } from "@/lib/ruehanix/windowState";
 import type { AppKey, ArtistInfo, Album, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
@@ -70,8 +70,9 @@ const INITIAL: CoreState = {
   showLauncher: false,
   showKeys: false,
   showMusic: false,
-  open: { reader: { ws: 2 }, files: { ws: 2 }, terminal: { ws: 3 }, hotlap: { ws: 3 }, foto: { ws: 3 } },
-  order: ["files", "reader", "terminal", "hotlap", "foto"],
+  // 기본 빈 워크스페이스(Hyprland 첫 로그인처럼 깨끗한 시작). 앱은 런처/독에서 사용자가 엶.
+  open: {},
+  order: [],
   ratios: {},
   minimized: {},
   maximized: null,
@@ -163,6 +164,8 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   const focusApp = (k: AppKey) => setSt((s) => ({ ...s, focused: k }));
   const minimize = (k: AppKey) => setSt((s) => ({ ...s, ...minimizeState(s, k) }));
   const toggleMaximize = (k: AppKey) => setSt((s) => ({ ...s, ...toggleMaximizeState(s, k) }));
+  const moveToWs = (k: AppKey, n: number) => setSt((s) => ({ ...s, ...moveToWsState(s, k, n), showLauncher: false }));
+  const moveTile = (k: AppKey, dir: "left" | "right") => setSt((s) => ({ ...s, ...moveTileState(s, k, dir) }));
   const openPost = (id: string) => {
     recordVisitStore(id);
     setSt((s) => {
@@ -249,13 +252,19 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       }
       if (k >= "1" && k <= "6") {
         e.preventDefault();
-        gotoWs(+k);
+        if (e.shiftKey && st.focused) moveToWs(st.focused, +k);
+        else gotoWs(+k);
       }
       if ((k === "q" || k === "Q") && st.focused) close(st.focused);
       // Super+F: 브라우저 기본 검색(Cmd/Ctrl+F) 충돌 회피 위해 preventDefault.
       if ((k === "f" || k === "F") && st.focused) {
         e.preventDefault();
         toggleMaximize(st.focused);
+      }
+      // Super+Shift+←/→: 포커스 창을 order 상 인접 타일과 자리바꿈.
+      if (e.shiftKey && st.focused && (k === "ArrowLeft" || k === "ArrowRight")) {
+        e.preventDefault();
+        moveTile(st.focused, k === "ArrowLeft" ? "left" : "right");
       }
     }
     if (k === "Escape") {
@@ -384,6 +393,8 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       focusApp,
       minimize,
       toggleMaximize,
+      moveToWs,
+      moveTile,
       openPost,
       setReaderSel,
       setFinderCat,

@@ -65,7 +65,10 @@ try {
 
   ok("waybar 런처 버튼", await page.getByTestId("launcher").isVisible());
 
+  // 기본 빈 워크스페이스 — ws2로 이동 후 런처로 Files를 열어 타일링 확인.
   await page.getByTestId("ws-2").click();
+  await page.getByTestId("launcher").click();
+  await page.getByText("Files파일 탐색").click();
   await page.getByText("~/blog").first().waitFor({ timeout: 4000 }); // Files 사이드바(글 유무 무관)
   ok("ws2 타일링", true);
 

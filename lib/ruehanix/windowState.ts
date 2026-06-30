@@ -69,3 +69,21 @@ export function openPostReader(s: WindowState, slug: string): WindowState & { se
   const next = openApp(s, "reader");
   return { ...next, selected: slug };
 }
+
+/** 창을 다른 워크스페이스로 이동 + 현재 ws를 그쪽으로 전환(따라가기). Hyprland movetoworkspace. */
+export function moveToWs(s: WindowState, k: AppKey, n: number): WindowState {
+  const open = { ...s.open, [k]: { ws: n } };
+  return { ...s, open, ws: n, focused: k };
+}
+
+/** 타일 자리바꿈 — 포커스 창을 order 상 인접 창과 교체(left/right). 경계/미존재면 no-op.
+ *  1D dwindle 근사(공간적 up/down는 별도 레이아웃 필요 — 백로그). */
+export function moveTile(s: WindowState, k: AppKey, dir: "left" | "right"): WindowState {
+  const i = s.order.indexOf(k);
+  if (i < 0) return s;
+  const j = dir === "right" ? i + 1 : i - 1;
+  if (j < 0 || j >= s.order.length) return s;
+  const order = s.order.slice();
+  [order[i], order[j]] = [order[j], order[i]];
+  return { ...s, order };
+}

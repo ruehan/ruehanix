@@ -7,4 +7,5 @@ export interface SanityArtistDoc {
   genre?: string;
   origin?: string;
   links?: { label?: string; url?: string }[];
+  members?: { name?: string; role?: string; photoUrl?: string }[];
 }

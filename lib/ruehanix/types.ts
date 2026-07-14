@@ -23,6 +23,10 @@ export interface Photo {
   url: string;
   title: string;
   tag: string;
+  /** Sanity photoType.folder (string, optional). 미지정 시 groupByFolder 가 "(미분류)"로 모음. */
+  folder?: string;
+  /** Sanity photoType.description (text, optional). 1줄 권장. */
+  description?: string;
 }
 
 export interface Lap {

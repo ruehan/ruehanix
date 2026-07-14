@@ -1,5 +1,14 @@
 # 작업 로그
 
+## 2026-07-14 — 사진 폴더 뷰 + 우측 info 패널 + lightbox (ADR 0037)
+- 브랜치: feat/photo-folder-view
+- 한 일: Sanity photoType 에 folder (string, optional) + description (text, 1줄) 필드. GROQ 에 folder/description 추가. Photo 타입 + normalize 확장. `lib/photos/group-by-folder.ts` 순수 함수 — 명시 folder 사전순(localeCompare "ko") + UNCATEGORIZED 항상 마지막. FotoApp 2-depth (folders grid → folder view) — 우측 info 패널 + lightbox (←/→/ESC). 모바일 분기(`vm.isMobile`): column 스택 + 그리드 2-col + info 하단 100%. 모바일 lightbox 진입은 info 패널의 "크게 보기" 버튼. view derive — useEffect+setView 의 setState-in-effect cascade 회피(React 19 lint). normalize 회귀 테스트 4 케이스 추가.
+- 검증: typecheck 0 / eslint 0 / vitest 32 files / 241 tests (group-by-folder 5/5 + normalize 4/4 신규) / build 11/11 / smoke 24/24.
+- 리뷰: 통과 2라운드(R1 수정필요 P1 모바일 레이아웃·P1 모바일 lightbox 진입·P2 view reset·P2 normalize 회귀·P3 EOF/lightbox desc → 반영 → R2 수정필요 P2 docs 3건 → 반영) — 상세: docs/reviews/2026-07-14-photo-folder-view.md
+- 가정: folder 자유 입력 채택(predefined list 강제 안 함). 미분류 폴더 자동 모음(기존 데이터 호환). next/image 그대로(fill+priority). lightbox title/description/hint 모두 image container 내부 하단 오버레이(viewport 밖 잘림 회피).
+- 후속 작업: 폴더 진입 키보드(← 폴더, Enter). 슬라이드쇼 자동 진행. subfolder(2단계). P3 "크게 보기" 버튼 모바일 한정 + `?? 0` 정리.
+- 관련 결정: docs/decisions/0037-photo-folder-view.md
+
 ## 2026-07-14 — 창/워크스페이스 layout 영속화 (ADR 0036)
 - 브랜치: feat/window-state-persistence
 - 한 일: `lib/ruehanix/layout-storage.ts` — localStorage `rh-layout` 키로 ws/open/order/ratios/minimized/maximized 슬라이스 영속. schema version 1 + DEFAULT 폴백 + 6개 필드 validator (APP_KEYS 화이트리스트, ws 1..6, finite 강제). `useRuehanix` post-mount useEffect 1회 read+setSt + 변경 시 200ms debounce write. layoutSavedRef 로 첫 redundant skip. SSR safe (typeof window 가드 + read try/catch).

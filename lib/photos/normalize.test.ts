@@ -19,4 +19,20 @@ describe("normalizePhotos", () => {
     expect(normalizePhotos([])).toEqual([]);
     expect(normalizePhotos(undefined)).toEqual([]);
   });
+  it("folder 공백 trim → undefined (groupByFolder UNCATEGORIZED 분기)", () => {
+    const out = normalizePhotos([{ url: "https://cdn/a.jpg", folder: "   " }]);
+    expect(out[0].folder).toBeUndefined();
+  });
+  it("folder undefined → undefined", () => {
+    const out = normalizePhotos([{ url: "https://cdn/a.jpg" }]);
+    expect(out[0].folder).toBeUndefined();
+  });
+  it("description 공백 trim → undefined", () => {
+    const out = normalizePhotos([{ url: "https://cdn/a.jpg", description: "  \n  " }]);
+    expect(out[0].description).toBeUndefined();
+  });
+  it("description 유효 값은 trim 후 보존", () => {
+    const out = normalizePhotos([{ url: "https://cdn/a.jpg", description: "  hello world  " }]);
+    expect(out[0].description).toBe("hello world");
+  });
 });

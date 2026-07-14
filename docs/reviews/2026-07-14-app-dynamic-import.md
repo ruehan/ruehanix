@@ -41,6 +41,14 @@
 - ADR 에 MusicApp chunk 공유 명시.
 - 본 리뷰 파일 + worklog 항목 추가.
 
+## 3라운드
+
+- 판정: 통과
+- 검증: 모두 green (typecheck·eslint·vitest 214·build 11/11·smoke).
+- 변경: docs-only (ADR magnitude 최종 정정 + 라운드 이력 섹션).
+- 산식 일치: 232,935 − 231,301 = 1,634 B ✓, 42,806 − 31,138 = 11,668 B ✓.
+- 신규 결함: 없음.
+
 ## 후속 가능 작업 (다음 단계)
 
 - `Win` 의 children 을 `visibleIds` 기반으로 조건부 마운트 → dynamic 3앱이 정말 가시

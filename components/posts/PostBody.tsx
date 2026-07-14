@@ -1,7 +1,7 @@
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
 import { urlFor } from "@/lib/sanity/image";
-import { CodeCopyButton } from "./CodeCopyButton";
+import { CodeBlockClient } from "./CodeBlockClient";
 
 const mono = "'JetBrains Mono', ui-monospace, monospace";
 
@@ -45,50 +45,16 @@ const components: PortableTextComponents = {
       // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그.
       return <img src={urlFor(value).width(1400).fit("max").auto("format").url()} alt={v.alt ?? ""} style={{ display: "block", maxWidth: "100%", height: "auto", borderRadius: 10, margin: "8px 0 22px" }} />;
     },
-    // codeBlock: 빌드 시점(sync-posts.mjs) 에서 shiki 듀얼 테마 HTML 이 `highlightedCode` 로 미리 박혀 있다.
-    // PostBody 는 그 HTML 을 그대로 주입만 하면 끝 — 클라이언트 JS 토큰화 없음.
+    // codeBlock: highlightedCode 가 있으면 그대로, 없으면 CodeBlockClient 가 클라이언트
+    // shiki 동적 import 로 폴백. ADR 0035.
     codeBlock: ({ value }) => {
       const v = value as { language?: string; code?: string; highlightedCode?: string };
       return (
-        <div style={{ position: "relative", margin: "0 0 22px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "7px 12px",
-              borderTopLeftRadius: 10,
-              borderTopRightRadius: 10,
-              background: "var(--crust)",
-              border: "1px solid var(--surf0)",
-              borderBottom: "none",
-              fontFamily: mono,
-              fontSize: 10.5,
-              color: "var(--ov0)",
-              letterSpacing: ".08em",
-              textTransform: "uppercase",
-            }}
-          >
-            <span>{v.language ?? "text"}</span>
-            <CodeCopyButton code={v.code ?? ""} />
-          </div>
-          <div
-            className="rh-codeblock"
-            // eslint-disable-next-line react/no-danger -- shiki 가 escape 한 HTML. XSS 안전.
-            dangerouslySetInnerHTML={{ __html: v.highlightedCode ?? `<pre><code>${v.code ?? ""}</code></pre>` }}
-            style={{
-              padding: "14px 16px",
-              borderBottomLeftRadius: 10,
-              borderBottomRightRadius: 10,
-              border: "1px solid var(--surf0)",
-              borderTop: "none",
-              background: "var(--crust)",
-              overflow: "auto",
-              fontSize: 13,
-              lineHeight: 1.6,
-            }}
-          />
-        </div>
+        <CodeBlockClient
+          language={v.language}
+          code={v.code ?? ""}
+          highlightedCode={v.highlightedCode}
+        />
       );
     },
   },

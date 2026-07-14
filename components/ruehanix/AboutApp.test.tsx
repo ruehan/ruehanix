@@ -1,12 +1,8 @@
 // @vitest-environment happy-dom
 import "@testing-library/jest-dom/vitest";
-import { render, screen, cleanup } from "@testing-library/react";
-import { describe, it, expect, afterEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
 import { AboutApp } from "./AboutApp";
-
-afterEach(() => {
-  cleanup();
-});
 
 describe("AboutApp", () => {
   it("시스템 타이틀과 부제목을 렌더한다", () => {

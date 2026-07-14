@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import "@testing-library/jest-dom/vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type * as React from "react";
@@ -17,7 +17,6 @@ describe("AppErrorBoundary", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
   afterEach(() => {
-    cleanup();
     vi.restoreAllMocks();
   });
 

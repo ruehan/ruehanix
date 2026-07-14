@@ -1,12 +1,8 @@
 // @vitest-environment happy-dom
 import "@testing-library/jest-dom/vitest";
-import { render, screen, cleanup } from "@testing-library/react";
-import { describe, it, expect, afterEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
 import { TerminalApp } from "./TerminalApp";
-
-afterEach(() => {
-  cleanup();
-});
 
 describe("TerminalApp", () => {
   it("프롬프트 줄을 렌더한다", () => {

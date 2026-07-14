@@ -1,5 +1,14 @@
 # 작업 로그
 
+## 2026-07-14 — 창/워크스페이스 layout 영속화 (ADR 0036)
+- 브랜치: feat/window-state-persistence
+- 한 일: `lib/ruehanix/layout-storage.ts` — localStorage `rh-layout` 키로 ws/open/order/ratios/minimized/maximized 슬라이스 영속. schema version 1 + DEFAULT 폴백 + 6개 필드 validator (APP_KEYS 화이트리스트, ws 1..6, finite 강제). `useRuehanix` post-mount useEffect 1회 read+setSt + 변경 시 200ms debounce write. layoutSavedRef 로 첫 redundant skip. SSR safe (typeof window 가드 + read try/catch).
+- 검증: typecheck 0 / eslint 0 / vitest 31 files / 232 tests (layout-storage 12/12) / build 11/11 / smoke 24/24.
+- 리뷰: 통과 2라운드(R1 수정필요 P1 SSR mismatch·P1 layoutSavedRef·P2 parser·P2 ws·P3 ADR 보강 → 반영 → R2 수정필요 P2 read try/catch → 반영) — 상세: docs/reviews/2026-07-14-window-state-persistence.md
+- 가정: floating G2 미머지 — 별도 슬라이스 + version 2 bump 정책. focused 슬라이스 미저장(ephemeral). v1→v2 migration 시 전체 DEFAULT(사용자 layout 손실, 안전 우선). read+write 모두 try/catch (Safari 프라이빗·iframe sandboxed 안전).
+- 후속 작업: G2 floating 슬라이스 통합. 다중 디바이스 sync.
+- 관련 결정: docs/decisions/0036-window-state-persistence.md
+
 ## 2026-07-14 — CodeBlockClient shiki 폴백 (ADR 0035)
 - 브랜치: feat/codeblock-client-fallback
 - 한 일: `components/posts/CodeBlockClient.tsx` 신설. PostBody 의 codeBlock renderer 위임. `highlightedCode` 가 있으면 그대로 주입, 없으면 useEffect + dynamic import shiki 로 lazy highlight. SSR 시 plain → hydration 후 color. PostBody 자체는 server component 유지. 3 케이스 테스트(있다 / 없다 / 라벨+복사 버튼).

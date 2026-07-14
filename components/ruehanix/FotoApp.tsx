@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Vm } from "./viewModel";
 
 export function FotoApp({ vm }: { vm: Vm }) {
@@ -17,9 +18,14 @@ export function FotoApp({ vm }: { vm: Vm }) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 9 }}>
         {vm.photos.map((ph) => (
-          <div key={ph.id} style={ph.tileStyle}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그. */}
-            <img src={ph.url} alt={ph.title} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          <div key={ph.id} style={{ position: "relative", overflow: "hidden", ...ph.tileStyle }}>
+            <Image
+              src={ph.url}
+              alt={ph.title}
+              fill
+              sizes="(max-width: 768px) 33vw, 200px"
+              style={{ objectFit: "cover" }}
+            />
             {ph.tag ? <span style={{ position: "absolute", top: 7, left: 7, padding: "2px 8px", borderRadius: 6, fontSize: 10, fontWeight: 700, background: "rgba(17,17,27,.5)", color: "var(--text)", backdropFilter: "blur(3px)" }}>#{ph.tag}</span> : null}
             <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "20px 9px 8px", fontSize: 11.5, color: "#fff", background: "linear-gradient(transparent,rgba(0,0,0,.6))" }}>{ph.title}</div>
           </div>

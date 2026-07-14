@@ -8,11 +8,17 @@ import { useRuehanix, type ShellContent } from "./useRuehanix";
 import { clickable } from "./clickable";
 import { buildVm, type Vm } from "./viewModel";
 import { ART_DESK, LineIcon } from "./icons";
-import { AboutApp, FilesApp, FotoApp, HotlapApp, MusicApp, ReaderApp, SettingsApp, TerminalApp, WebApp } from "./apps";
+import { AboutApp, FilesApp, FotoApp, HotlapApp, TerminalApp, WebApp } from "./apps";
 import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
 import { useToast } from "@/lib/ruehanix/toast";
 import { AppErrorBoundary } from "./AppErrorBoundary";
 import dynamic from "next/dynamic";
+
+// 큰 콘텐츠 앱 3개 — 초기 번들에서 chunk 분리. 첫 사용 시점에 다운로드(ADR 0033).
+// ssr: false 로 클라이언트 전용. 작은 앱 6개(About/Files/Foto/Hotlap/Terminal/Web) 정적 유지.
+const ReaderApp = dynamic(() => import("./ReaderApp").then((m) => m.ReaderApp), { ssr: false });
+const MusicApp = dynamic(() => import("./MusicApp").then((m) => m.MusicApp), { ssr: false });
+const SettingsApp = dynamic(() => import("./SettingsApp").then((m) => m.SettingsApp), { ssr: false });
 
 // YouTube IFrame Player API + 138줄 엔진 — 초기 번들에서 제외. 재생 시작 시 lazy 로드.
 // ssr: false — "use client" 컴포넌트지만 더 작은 초기 핸드오프를 위해 클라이언트 전용까지 강제.

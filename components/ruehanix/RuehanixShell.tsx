@@ -9,10 +9,17 @@ import { clickable } from "./clickable";
 import { buildVm, type Vm } from "./viewModel";
 import { ART_DESK, LineIcon } from "./icons";
 import { AboutApp, FilesApp, FotoApp, HotlapApp, MusicApp, ReaderApp, SettingsApp, TerminalApp, WebApp } from "./apps";
-import { YouTubeEngine } from "./YouTubeEngine";
 import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
 import { useToast } from "@/lib/ruehanix/toast";
 import { AppErrorBoundary } from "./AppErrorBoundary";
+import dynamic from "next/dynamic";
+
+// YouTube IFrame Player API + 138줄 엔진 — 초기 번들에서 제외. 재생 시작 시 lazy 로드.
+// ssr: false — "use client" 컴포넌트지만 더 작은 초기 핸드오프를 위해 클라이언트 전용까지 강제.
+const YouTubeEngine = dynamic(
+  () => import("./YouTubeEngine").then((m) => m.YouTubeEngine),
+  { ssr: false },
+);
 
 function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }) {
   const meta = APP_META[app];

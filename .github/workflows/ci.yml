@@ -17,6 +17,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # least-privilege: 기본 GITHUB_TOKEN 의 광범위 권한을 read-only 로 좁힘.
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 

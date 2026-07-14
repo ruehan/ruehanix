@@ -18,6 +18,7 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHighlighter } from "shiki";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const POSTS_DIR = join(__dirname, "..", "content", "posts");
@@ -25,6 +26,34 @@ const args = new Set(process.argv.slice(2));
 const DRY = args.has("--dry-run");
 
 const REQUIRED = ["title", "slug", "category", "publishedAt", "readingTime", "excerpt"];
+
+// shiki 듀얼 테마. catppuccin mocha (다크) + latte (라이트). 사이트 기존 팔레트 정합.
+const SHIKI_LANGS = [
+  "rust", "ts", "tsx", "js", "jsx", "json", "bash", "shell", "html", "css",
+  "markdown", "yaml", "toml", "sql", "python", "go", "swift", "kotlin", "java",
+  "ruby", "php", "diff", "text",
+];
+
+let highlighterPromise;
+function getHighlighter() {
+  if (!highlighterPromise) {
+    highlighterPromise = createHighlighter({
+      themes: ["catppuccin-mocha", "catppuccin-latte"],
+      langs: SHIKI_LANGS,
+    });
+  }
+  return highlighterPromise;
+}
+
+async function highlightCode(code, lang) {
+  const hl = await getHighlighter();
+  const resolved = lang && hl.getLoadedLanguages().includes(lang) ? lang : "text";
+  return hl.codeToHtml(code, {
+    lang: resolved,
+    themes: { dark: "catppuccin-mocha", light: "catppuccin-latte" },
+    defaultColor: false,
+  });
+}
 
 /**
  * frontmatter 파서 — lib/posts/frontmatter.ts 와 동기화 필수.
@@ -65,7 +94,7 @@ function codeBlock(language, code, key) {
   return { _type: "codeBlock", _key: key, language, code };
 }
 
-function toPortableText(md) {
+async function toPortableText(md) {
   const lines = md.replace(/\r\n/g, "\n").split("\n");
   const blocks = [];
   let i = 0;
@@ -79,7 +108,9 @@ function toPortableText(md) {
       i++;
       while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
       if (i < lines.length) i++;
-      blocks.push(codeBlock(language, buf.join("\n"), key()));
+      const code = buf.join("\n");
+      const highlighted = await highlightCode(code, language);
+      blocks.push({ _type: "codeBlock", _key: key(), language, code, highlightedCode: highlighted });
       continue;
     }
     if (/^## /.test(ln)) { blocks.push(block("h2", ln.slice(3), key())); i++; continue; }
@@ -89,7 +120,9 @@ function toPortableText(md) {
     if (/^\|/.test(ln)) {
       const buf = [];
       while (i < lines.length && /^\|/.test(lines[i])) buf.push(lines[i++]);
-      blocks.push(codeBlock("text", buf.join("\n"), key()));
+      const code = buf.join("\n");
+      const highlighted = await highlightCode(code, "text");
+      blocks.push({ _type: "codeBlock", _key: key(), language: "text", code, highlightedCode: highlighted });
       continue;
     }
     const buf = [ln];
@@ -102,7 +135,7 @@ function toPortableText(md) {
   return blocks;
 }
 
-function buildDoc(meta, body) {
+function buildDoc(meta, body, portable) {
   return {
     _type: "post",
     _id: `post.${meta.slug}`,
@@ -112,7 +145,7 @@ function buildDoc(meta, body) {
     publishedAt: meta.publishedAt,
     readingTime: meta.readingTime,
     excerpt: meta.excerpt,
-    body: toPortableText(body),
+    body: portable,
   };
 }
 
@@ -123,11 +156,12 @@ function validate(meta, file) {
   }
 }
 
-function syncFile(file) {
+async function syncFile(file) {
   const src = readFileSync(join(POSTS_DIR, file), "utf8");
   const { meta, body } = parsePostFrontmatter(src);
   validate(meta, file);
-  const doc = buildDoc(meta, body);
+  const portable = await toPortableText(body);
+  const doc = buildDoc(meta, body, portable);
   const ndjson = JSON.stringify(doc) + "\n";
   const out = join(POSTS_DIR, `${meta.slug}.ndjson`);
   if (DRY) {
@@ -138,13 +172,13 @@ function syncFile(file) {
   process.stdout.write(`synced ${file} -> ${out}\n`);
 }
 
-function main() {
+async function main() {
   const files = readdirSync(POSTS_DIR).filter((f) => f.endsWith(".md"));
   if (files.length === 0) {
     process.stderr.write("content/posts 에 .md 가 없습니다.\n");
     process.exit(1);
   }
-  for (const f of files) syncFile(f);
+  for (const f of files) await syncFile(f);
 }
 
 main();

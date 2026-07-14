@@ -65,4 +65,61 @@ describe("layout-storage", () => {
   it("LAYOUT_STORAGE_KEY 는 'rh-layout'", () => {
     expect(LAYOUT_STORAGE_KEY).toBe("rh-layout");
   });
+
+  it("ws 가 범위 밖(0, 7, NaN) 이면 DEFAULT.ws 로 폴백", () => {
+    const raw = JSON.stringify({ version: 1, ws: 7, open: {}, order: [], ratios: {}, minimized: {}, maximized: null });
+    expect(parseLayoutSnapshot(raw).ws).toBe(1);
+    const raw2 = JSON.stringify({ version: 1, ws: 0, open: {}, order: [], ratios: {}, minimized: {}, maximized: null });
+    expect(parseLayoutSnapshot(raw2).ws).toBe(1);
+  });
+
+  it("open 에 foreign key / 잘못된 ws 가 섞여도 유효한 항목만 살린다", () => {
+    const raw = JSON.stringify({
+      version: 1,
+      ws: 1,
+      open: { files: { ws: 1 }, bogus: { ws: 1 }, reader: { ws: 99 }, music: "x" },
+      order: [],
+      ratios: {},
+      minimized: {},
+      maximized: null,
+    });
+    const parsed = parseLayoutSnapshot(raw);
+    expect(parsed.open).toEqual({ files: { ws: 1 } });
+  });
+
+  it("order 의 foreign 값은 무시", () => {
+    const raw = JSON.stringify({
+      version: 1,
+      ws: 1,
+      open: {},
+      order: ["files", "evil", "reader"],
+      ratios: {},
+      minimized: {},
+      maximized: null,
+    });
+    const parsed = parseLayoutSnapshot(raw);
+    expect(parsed.order).toEqual(["files", "reader"]);
+  });
+
+  it("minimized 의 foreign key 와 non-bool 값은 무시", () => {
+    const raw = JSON.stringify({
+      version: 1,
+      ws: 1,
+      open: {},
+      order: [],
+      ratios: {},
+      minimized: { files: true, bogus: true, reader: "yes" },
+      maximized: null,
+    });
+    const parsed = parseLayoutSnapshot(raw);
+    expect(parsed.minimized).toEqual({ files: true });
+  });
+
+  it("maximized 가 foreign 문자열이면 null", () => {
+    const raw = JSON.stringify({
+      version: 1, ws: 1, open: {}, order: [], ratios: {}, minimized: {},
+      maximized: "evil",
+    });
+    expect(parseLayoutSnapshot(raw).maximized).toBeNull();
+  });
 });

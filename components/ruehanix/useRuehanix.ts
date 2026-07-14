@@ -85,27 +85,6 @@ const INITIAL: CoreState = {
   player: PLAYER_INITIAL,
 };
 
-/** 부팅 시(localStorage 복원) INITIAL 의 layout 슬라이스만 교체.
- *  다른 필드(booting, selected, ui, player)는 INITIAL 그대로 유지.
- *  SSR 안전 — typeof window 체크. */
-function loadInitialLayout(): Pick<CoreState, "ws" | "open" | "order" | "ratios" | "minimized" | "maximized"> {
-  if (typeof window === "undefined") {
-    return {
-      ws: INITIAL.ws, open: INITIAL.open, order: INITIAL.order,
-      ratios: INITIAL.ratios, minimized: INITIAL.minimized, maximized: INITIAL.maximized,
-    };
-  }
-  const snap = parseLayoutSnapshot(window.localStorage.getItem(LAYOUT_STORAGE_KEY));
-  return {
-    ws: snap.ws,
-    open: snap.open,
-    order: snap.order,
-    ratios: snap.ratios,
-    minimized: snap.minimized,
-    maximized: snap.maximized,
-  };
-}
-
 // --- 외부 스토어: 뷰포트 크기 (resize 구독) ---
 const VP_SERVER = { W: 1280, H: 800 };
 let vpCache = { W: 1280, H: 800 };
@@ -161,10 +140,7 @@ export interface ShellContent {
 }
 
 export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellContent) {
-  const [st, setSt] = useState<CoreState>(() => {
-    const layout = loadInitialLayout();
-    return { ...INITIAL, ...layout, selected: posts[0]?.slug ?? "" };
-  });
+  const [st, setSt] = useState<CoreState>(() => ({ ...INITIAL, selected: posts[0]?.slug ?? "" }));
   const trackCount = tracks.length;
   const [launcherQuery, setLauncherQuery] = useState("");
 
@@ -176,6 +152,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   const bootTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const uiSavedRef = useRef(false);
   const playerSavedRef = useRef(false);
+  const layoutSavedRef = useRef(false);
 
   // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
   const toggleLauncher = () => {
@@ -313,9 +290,26 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
 
   // --- layout 영속 — ws/open/order/ratios/minimized/maximized 변경 시
   //     localStorage `rh-layout` 에 저장. drag/resize 중 매 프레임 저장을 피하려
-  //     200ms debounce. SSR 안전 (typeof window 가드).
+  //     200ms debounce. ui/player 와 동일 패턴 — post-mount useEffect 에서
+  //     1회 read-then-setSt (SSR safe) + 이후 변경 시 debounce write.
+  //     첫 effect 실행은 layoutSavedRef 로 skip (mount 후 INITIAL → 복원
+  //     setSt 직전 1회의 redundant write 방지).
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!layoutSavedRef.current) {
+      const snap = parseLayoutSnapshot(window.localStorage.getItem(LAYOUT_STORAGE_KEY));
+      setSt((p) => ({
+        ...p,
+        ws: snap.ws,
+        open: snap.open,
+        order: snap.order,
+        ratios: snap.ratios,
+        minimized: snap.minimized,
+        maximized: snap.maximized,
+      }));
+      layoutSavedRef.current = true;
+      return;
+    }
     const t = setTimeout(() => {
       try {
         const snap = {

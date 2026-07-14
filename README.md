@@ -63,6 +63,10 @@ excerpt: ...
 같은 폴더에 `<slug>.ndjson` 으로 저장한다. `--dry-run` 으로 미리보기 가능.
 생성된 ndjson 을 Sanity dataset 에 import 하면 사이트에 노출된다.
 
+NDJSON 은 `npm run sync-posts` 의 출력 산물이지만 **git 추적 대상**이다 — Sanity
+dataset 의 백업이자 PR 단위로 변경 이력을 본다는 운영 의도. 무시하려면
+`.gitignore` 에 `content/posts/*.ndjson` 추가 검토.
+
 ## Sanity Studio
 
 `/studio` 경로에서 컨텐츠를 직접 편집할 수 있다. Studio 변경 →

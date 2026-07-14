@@ -1,5 +1,18 @@
 # 작업 로그
 
+## 2026-07-14 — 잔여 4개 작업 묶음 (3·4·5·6)
+- 브랜치: (작업별 feat-a11y-tests / feat-sc-cleanup / feat-readme-sync-posts / feat-perf-dynamic-image, 모두 main 머지 완료)
+- 한 일: 4 작업을 한 세션에서 차례로 수행.
+  - **3번 deps** — `styled-components` 미사용 0건 확인 후 deps 제거(코드 변경 0). lockfile 의 peer 패키지들 동시 정리. ADR 0029.
+  - **4번 a11y 테스트** — `eslint-config-next/core-web-vitals` 가 jsx-a11y 권장 이미 활성(lint 0 깨끗). 보강 가치 있는 것은 컴포넌트 스모크. `TerminalApp.test.tsx`·`AboutApp.test.tsx` 각 2 케이스 추가 — vm 의존 0 이라 가장 단순한 회귀 베이스.
+  - **5번 README + sync-posts** — `lib/posts/frontmatter.ts`(정본, 4 테스트) + `scripts/sync-posts.mjs`(frontmatter 자동 인식, Sanity Portable Text NDJSON 일괄 변환) + `npm run sync-posts` + `README.md`(quick start·폴더·콘텐츠 운영·CI·라이선스). 기존 `daily-md-local-standup.ndjson` 재생성 + `ruehanix-desktop-blog.ndjson` 신규. ADR 0030.
+  - **6번 perf** — `next.config.mjs` 에 `cdn.sanity.io` remotePatterns 추가 + FotoApp 그리드 `<img>` → `next/image fill` + `sizes` + YouTubeEngine을 `next/dynamic` `ssr:false` 로 lazy 분리. ADR 0031.
+- 검증: typecheck 0 / eslint 0 / vitest 28 files / 214 tests / build 11/11 / smoke 24/24.
+- 리뷰: 통과 1 통합 라운드(라운드 3·6 자체 통과, 라운드 4·5·6 P3 일부 즉시 반영 — setupFile 추출·README NDJSON 정책 1줄·ADR 0031 문구 좁힘) — 상세: docs/reviews/2026-07-14-remix-3-6.md
+- 가정: styled-components 결정은 거의 명백(사용 0)이라 reviewer self-merge. sync-posts.mjs 의 frontmatter 파서는 .ts 직접 import 불가로 인라인(드프트 위험 — 후속 작업에서 진단 모드 또는 gray-matter 검토). MusicApp 작은 아바타는 next/image 변환 가성비 적음(22~42px). YouTubeEngine lazy 의 "비용 0" 은 트랙 0개일 때만 진실 — ADR 표현 수정.
+- 후속 작업: frontmatter 파서 드프트 메커니즘(옵션: sync-posts 자체 진단 모드). README 공개 후 유지보수. 콘텐츠 자동 운영 워크플로 점검.
+- 관련 결정: docs/decisions/0029·0030·0031
+
 ## 2026-07-14 — CI 워크플로 + Node v22 고정
 - 브랜치: feat/ci-workflow
 - 한 일: `.github/workflows/ci.yml` 추가 — PR·main 푸시 트리거, 같은 ref 중복 실행 cancel-in-progress, Node 22 (`.nvmrc` 잠금 + actions/setup-node node-version-file), npm 캐시, typecheck·lint·test·build 4 센서. 잡 권한은 least-privilege (`contents: read`). build 시 `NEXT_TELEMETRY_DISABLED=1`. `.nvmrc` 로 로컬·CI 의 Node 버전 일치.

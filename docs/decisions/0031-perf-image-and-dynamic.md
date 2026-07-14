@@ -23,7 +23,9 @@
 
 ### YouTubeEngine
 - `next/dynamic` 으로 lazy 로드. `ssr: false` 로 클라이언트 전용.
-- 첫 곡 재생 시점에 chunk 다운로드. 음악을 전혀 듣지 않는 세션은 비용 0.
+- 게이팅은 `vm.player.hasTracks` (트랙 0개일 때만 엔진 미마운트). 트랙이 한 번이라도
+  있으면 이후 모든 세션에서 chunk 가 로드된다. 즉 "음악 미사용 세션 비용 0" 은
+  트랙이 0개인 사용자에 한해 진실.
 
 ### 변경하지 않음
 - MusicApp 의 작은 아바타/앨범 커버 — 현재 22~42px. next/image 변환 시 width/height 가

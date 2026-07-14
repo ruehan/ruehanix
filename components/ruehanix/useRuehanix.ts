@@ -297,7 +297,15 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!layoutSavedRef.current) {
-      const snap = parseLayoutSnapshot(window.localStorage.getItem(LAYOUT_STORAGE_KEY));
+      // read 도 try/catch — Safari 프라이빗/iframe sandboxed 등에서 SecurityError 가능.
+      // ui/player 복원 패턴과 일관.
+      let raw: string | null = null;
+      try {
+        raw = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
+      } catch {
+        // 무시 — parseLayoutSnapshot(null) 가 DEFAULT 로 폴백.
+      }
+      const snap = parseLayoutSnapshot(raw);
       setSt((p) => ({
         ...p,
         ws: snap.ws,

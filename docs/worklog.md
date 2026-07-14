@@ -4,7 +4,7 @@
 - 브랜치: feat/app-dynamic-import
 - 한 일: `components/ruehanix/RuehanixShell.tsx` — ReaderApp·MusicApp·SettingsApp 3개를 `next/dynamic` + `ssr:false` 로 lazy 분리. 작은 6개(About/Files/Foto/Hotlap/Terminal/Web) 정적 유지. `apps.tsx` 배럴 그대로.
 - 검증: typecheck 0 / eslint 0 / vitest 28 files / 214 tests / build 11/11 / smoke 24/24.
-- 리뷰: 통과 2라운드(R1 수정필요 P1-1 동적 5→3 좁힘·P1-2 사이즈 영향 실측치 교체 → 반영 → R2 수정필요 P2 magnitude 재정정(+47KB→+1.6KB/+11.7KB) + P3 worklog/review 부재·MusicApp 표현 → 반영) — 상세: docs/reviews/2026-07-14-app-dynamic-import.md
+- 리뷰: 통과 3라운드(R1 수정필요 P1-1 동적 5→3 좁힘·P1-2 사이즈 영향 실측치 교체 → 반영 → R2 수정필요 P2 magnitude 재정정(+47KB→+1.6KB/+11.7KB) + P3 worklog/review 부재·MusicApp 표현 → 반영 → R3 통과, docs-only 변경, 신규 결함 없음) — 상세: docs/reviews/2026-07-14-app-dynamic-import.md
 - 가정: 진정한 초기 전송량 감소는 아님 — Turbopack이 3앱 chunk 도 `index.html` 의 `<script>` 에 포함, 9개 `<Win>` 항상 마운트로 dynamic wrapper 가 사실상 즉시 마운트. chunk 그래프 분리·manifest 생성만. 진정한 lazy 효과는 후속 visible-기반 lazy mount 에서 실현.
 - 후속 작업: `Win` children `visibleIds` 기반 조건부 마운트(별도 ADR). 9개 전부 dynamic 일관성 검토.
 - 관련 결정: docs/decisions/0033-app-dynamic-import.md

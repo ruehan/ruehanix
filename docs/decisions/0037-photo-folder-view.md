@@ -35,6 +35,21 @@
   + setState cascade 회피 (Next 16 React 19 의 새 lint "Calling setState
   synchronously within an effect" 대응).
 
+### 모바일 분기 (라운드 1 P1-1 반영)
+- `vm.isMobile` 일 때: `flexDirection: column`, 그리드 `repeat(2,1fr)`, info
+  패널 `width: 100%` + `maxHeight: 45%` + `borderTop: 1px solid var(--surf0)`.
+  데스크톱은 기존 `row` + 240px 사이드바 + `repeat(3,1fr)`.
+
+### 모바일 lightbox 진입 (라운드 1 P1-2 반영)
+- 모바일은 `onDoubleClick` 이 비표준. info 패널에 "크게 보기" 명시 버튼 + 힌트
+  메시지 분기. 데스크톱은 더블클릭 유지.
+
+### view derive (라운드 1 P2-1 반영)
+- `useEffect+setView` 의 setState-in-effect cascade 회피. `effectiveView` 를
+  groups 데이터에 대해 derive — `view.kind === "folder" && groups.find((g) =>
+  g.name === view.group.name)` 이면 view 그대로, 아니면 `{ kind: "folders" }`
+  폴백. 데이터 변경 시 stale group 즉시 폴백(useState 호출 X). React 19 lint 회피.
+
 ## 이유와 대안
 
 - **folder predefined list** — 자유 입력 채택. list 강제는 사용자가 Studio 매번

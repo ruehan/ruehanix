@@ -1,5 +1,14 @@
 # 작업 로그
 
+## 2026-07-14 — frontmatter 파서 드프트 진단 (ADR 0032)
+- 브랜치: feat/frontmatter-drift-check
+- 한 일: `scripts/check-frontmatter-drift.mjs` 신설 — `.ts` 정본(`lib/posts/frontmatter.ts`)과 `.mjs` 인라인(`scripts/sync-posts.mjs`)을 동일 md 에서 호출해 JSON 비교. 차이 시 파일별 diff + exit 1. `npm run sync-posts:check`. CI 의 Build 다음 step 으로 추가해 PR/푸시마다 자동 차단. .ts import 는 Node 22 `--experimental-strip-types` 로 옵트인(외부 의존성 0).
+- 검증: vitest 28 files / 214 tests 통과. 로컬 `sync-posts:check` — `2 파일 일치. ✓`.
+- 리뷰: 통과 1라운드(self-review, 작은 변경) — 상세: docs/reviews/2026-07-14-frontmatter-drift-check.md
+- 가정: Node 22 의 experimental strip-types 경고([MODULE_TYPELESS_PACKAGE_JSON])는 무해. 비교는 JSON.stringify 동등성 — 현 시점 두 파서가 같은 키 순서로 생성하므로 OK.
+- 후속 작업: `package.json` `type: "module"` 도입 검토(경고 제거), 키 순서 정규화 비교로 강화.
+- 관련 결정: docs/decisions/0032-frontmatter-drift-check.md
+
 ## 2026-07-14 — 잔여 4개 작업 묶음 (3·4·5·6)
 - 브랜치: (작업별 feat-a11y-tests / feat-sc-cleanup / feat-readme-sync-posts / feat-perf-dynamic-image, 모두 main 머지 완료)
 - 한 일: 4 작업을 한 세션에서 차례로 수행.

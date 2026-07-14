@@ -1,5 +1,14 @@
 # 작업 로그
 
+## 2026-07-14 — CodeBlockClient shiki 폴백 (ADR 0035)
+- 브랜치: feat/codeblock-client-fallback
+- 한 일: `components/posts/CodeBlockClient.tsx` 신설. PostBody 의 codeBlock renderer 위임. `highlightedCode` 가 있으면 그대로 주입, 없으면 useEffect + dynamic import shiki 로 lazy highlight. SSR 시 plain → hydration 후 color. PostBody 자체는 server component 유지. 3 케이스 테스트(있다 / 없다 / 라벨+복사 버튼).
+- 검증: typecheck 0 / eslint 0 / vitest 28 files / 217 tests / build 11/11 / smoke 24/24.
+- 리뷰: 통과 1라운드(self-review) — 상세: docs/reviews/2026-07-14-codeblock-client-fallback.md
+- 가정: shiki dynamic import 가 첫 폴백 시점만 chunk 다운로드. singleton 재사용. SSR ↔ hydration 사이 시각적 미세 flicker (수십 ms) 는 의도된 trade-off.
+- 후속 작업: Sanity dataset auto import. Studio publish 시 highlightedCode 자동 생성 plugin.
+- 관련 결정: docs/decisions/0035-codeblock-client-fallback.md
+
 ## 2026-07-14 — shiki 코드 하이라이트 (ADR 0034)
 - 브랜치: feat/code-highlight
 - 한 일: 빌드 시점(sync-posts.mjs) 에서 shiki 듀얼 테마 HTML 생성 → codeBlock.highlightedCode 필드. PostBody 는 dangerouslySetInnerHTML 로 주입만 — 클라이언트 JS 0. 테마: catppuccin mocha(다크) + latte(라이트). globals.css 의 `.rh-codeblock` + `html.rh-light` 로 CSS 변수 토글. 언어 라벨 상단 + `CodeCopyButton` (작은 client island, navigator.clipboard). lib/posts/highlight.ts (highlightCode 순수 + 3 케이스 테스트).

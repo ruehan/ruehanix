@@ -4,4 +4,6 @@ export interface SanityPhotoDoc {
   title?: string;
   tag?: string;
   order?: number;
+  folder?: string;
+  description?: string;
 }

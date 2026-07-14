@@ -7,7 +7,13 @@ export function normalizePhotos(docs: SanityPhotoDoc[] | undefined): Photo[] {
   const out: Photo[] = [];
   for (const d of docs) {
     if (typeof d?.url !== "string" || !d.url) continue;
-    out.push({ url: d.url, title: d.title ?? "", tag: d.tag ?? "" });
+    out.push({
+      url: d.url,
+      title: d.title ?? "",
+      tag: d.tag ?? "",
+      folder: typeof d.folder === "string" && d.folder.trim() ? d.folder.trim() : undefined,
+      description: typeof d.description === "string" && d.description.trim() ? d.description.trim() : undefined,
+    });
   }
   return out;
 }

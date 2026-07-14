@@ -8,11 +8,19 @@ import { useRuehanix, type ShellContent } from "./useRuehanix";
 import { clickable } from "./clickable";
 import { buildVm, type Vm } from "./viewModel";
 import { ART_DESK, LineIcon } from "./icons";
-import { AboutApp, FilesApp, FotoApp, HotlapApp, MusicApp, ReaderApp, SettingsApp, TerminalApp, WebApp } from "./apps";
+import { AboutApp, FotoApp, HotlapApp, TerminalApp } from "./apps";
 import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
 import { useToast } from "@/lib/ruehanix/toast";
 import { AppErrorBoundary } from "./AppErrorBoundary";
 import dynamic from "next/dynamic";
+
+// 큰 콘텐츠 앱 5개 — 초기 번들에서 제외, 첫 사용 시점에 chunk 로드(ADR 0033).
+// ssr: false 로 클라이언트 전용. 작은 앱 4개(About/Foto/Hotlap/Terminal)는 정적 유지 — 코드량 적어 분할 이득 미미.
+const FilesApp = dynamic(() => import("./FilesApp").then((m) => m.FilesApp), { ssr: false });
+const ReaderApp = dynamic(() => import("./ReaderApp").then((m) => m.ReaderApp), { ssr: false });
+const WebApp = dynamic(() => import("./WebApp").then((m) => m.WebApp), { ssr: false });
+const MusicApp = dynamic(() => import("./MusicApp").then((m) => m.MusicApp), { ssr: false });
+const SettingsApp = dynamic(() => import("./SettingsApp").then((m) => m.SettingsApp), { ssr: false });
 
 // YouTube IFrame Player API + 138줄 엔진 — 초기 번들에서 제외. 재생 시작 시 lazy 로드.
 // ssr: false — "use client" 컴포넌트지만 더 작은 초기 핸드오프를 위해 클라이언트 전용까지 강제.

@@ -1,5 +1,14 @@
 # 작업 로그
 
+## 2026-07-14 — shiki 코드 하이라이트 (ADR 0034)
+- 브랜치: feat/code-highlight
+- 한 일: 빌드 시점(sync-posts.mjs) 에서 shiki 듀얼 테마 HTML 생성 → codeBlock.highlightedCode 필드. PostBody 는 dangerouslySetInnerHTML 로 주입만 — 클라이언트 JS 0. 테마: catppuccin mocha(다크) + latte(라이트). globals.css 의 `.rh-codeblock` + `html.rh-light` 로 CSS 변수 토글. 언어 라벨 상단 + `CodeCopyButton` (작은 client island, navigator.clipboard). lib/posts/highlight.ts (highlightCode 순수 + 3 케이스 테스트).
+- 검증: typecheck 0 / eslint 0 / vitest 28 files / 214 tests (highlightCode 3/3 신규) / build 11/11 / smoke 24/24. 로컬 `npm run sync-posts` 2 파일 재생성(highlightedCode 포함). `sync-posts:check` 2 파일 일치 ✓.
+- 리뷰: 통과 1라운드(self-review) — 상세: docs/reviews/2026-07-14-shiki-code-highlight.md
+- 가정: PostBody 가 client context(ReaderApp 자식)라 async 못 함 → 빌드 시점 분리. shiki 가 escape 한 HTML 만 주입 — XSS 안전. `prefers-color-scheme` 자동 토글은 사이트 정책(html.rh-light 명시) 우선이므로 미반영.
+- 후속 작업: shiki grammar lazy load(24개 pre-load 적정, 추가 시). 줄 번호는 사용자 요청 시.
+- 관련 결정: docs/decisions/0034-shiki-code-highlight.md
+
 ## 2026-07-14 — 셸 콘텐츠 앱 3개 lazy 분리 (ADR 0033)
 - 브랜치: feat/app-dynamic-import
 - 한 일: `components/ruehanix/RuehanixShell.tsx` — ReaderApp·MusicApp·SettingsApp 3개를 `next/dynamic` + `ssr:false` 로 lazy 분리. 작은 6개(About/Files/Foto/Hotlap/Terminal/Web) 정적 유지. `apps.tsx` 배럴 그대로.

@@ -12,6 +12,7 @@ import { AboutApp, FilesApp, FotoApp, HotlapApp, MusicApp, ReaderApp, SettingsAp
 import { YouTubeEngine } from "./YouTubeEngine";
 import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
 import { useToast } from "@/lib/ruehanix/toast";
+import { AppErrorBoundary } from "./AppErrorBoundary";
 
 function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }) {
   const meta = APP_META[app];
@@ -40,7 +41,7 @@ function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }
             </div>
           </div>
         </div>
-        <div style={vm.bodyWrap}>{children}</div>
+        <div style={vm.bodyWrap}><AppErrorBoundary appName={meta.name}>{children}</AppErrorBoundary></div>
       </div>
     </div>
   );

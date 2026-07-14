@@ -9,12 +9,19 @@ html.rh-light {
 }
 
 /* Shiki 듀얼 테마 (catppuccin mocha / latte).
-   sync-posts.mjs 빌드 시점에 highlightedCode 가 --shiki-dark/--shiki-light CSS 변수를 출력.
-   기본은 다크(mocha), html.rh-light 활성 시 라이트(latte). */
-.rh-codeblock pre,
-.rh-codeblock code { color: var(--shiki-dark); }
-html.rh-light .rh-codeblock pre,
-html.rh-light .rh-codeblock code { color: var(--shiki-light); }
+   sync-posts.mjs 빌드 시점 + CodeBlockClient 클라이언트 폴백 양쪽 출력:
+   `<pre class="shiki shiki-themes" style="--shiki-dark:#x;--shiki-light:#y">` + 토큰별
+   `<span style="--shiki-dark:#token1;--shiki-light:#token2">`.
+   토큰별 색을 살리려면 .shiki span 까지 color 가 각자의 --shiki-* 변수를 가리켜야. */
+.shiki,
+.shiki span { color: var(--shiki-dark); }
+.shiki { background-color: var(--shiki-dark-bg, transparent); }
+html.rh-light .shiki,
+html.rh-light .shiki span { color: var(--shiki-light); }
+html.rh-light .shiki { background-color: var(--shiki-light-bg, transparent); }
+
+/* rh-codeblock wrapper (PostBody 가 강조 영역) — 위 shiki 룰이 pre/code 의 색을
+   결정하므로 wrapper 자체는 transparent. */
 .rh-codeblock pre { background: transparent !important; margin: 0; padding: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.6; }
 .rh-codeblock code { display: block; white-space: pre; }
 * { box-sizing: border-box; }

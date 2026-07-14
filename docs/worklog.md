@@ -1,5 +1,13 @@
 # 작업 로그
 
+## 2026-07-14 — apps.tsx 분리 + AppErrorBoundary + 컴포넌트 테스트 인프라
+- 브랜치: feat/apps-split-boundary
+- 한 일: 컴포넌트 단위 테스트 인프라 도입(happy-dom + RTL, vitest `node` 기본 유지 + 파일 상단 `// @vitest-environment happy-dom` 오버라이드 패턴 — ADR 0027). `components/ruehanix/AppErrorBoundary.tsx` 추가 — class component, `componentDidCatch` 시 notify + console.error, fallback UI role=alert + alertRef focus 마이그레이션(tabIndex=-1 + outline:none), onRetry prop 지원. `RuehanixShell.tsx` 의 Win body 를 `<AppErrorBoundary appName={meta.name}>` 으로 래핑 → 단일 앱 throw 가 셸 전체 백지로 번지지 않게. `apps.tsx` 1042→13줄, 9개 앱 파일로 분리(AboutApp/FilesApp/FotoApp/HotlapApp/MusicApp/ReaderApp/SettingsApp/TerminalApp/WebApp), 13개 단일 앱 헬퍼는 각 앱 파일 안에 머무름, EmptyPosts 는 Files/Web 두 곳 공유라 별도 추출, apps.tsx 는 배럴(재수출 only)로 환원.
+- 검증: typecheck 0 / eslint 0 / vitest 25 files / 206 tests (AppErrorBoundary 7 신규 — 정상·throw·retry·onRetry·onRetry 미지정·연속 throw·null children) / next build 성공 / smoke 24/24.
+- 리뷰: 통과 2라운드(R1 수정필요 P1 CSS 변수 오타·P2 focus 부재·P2 retry 순서·P3 테스트 보강·P3 배럴 주석 → 반영 → R2 통과 + 신규 결함 없음, 보강 제안 2건은 차기 작업용) — 상세: docs/reviews/2026-07-14-apps-split-boundary.md
+- 가정: EmptyPosts 는 2곳 공유라 단일 앱 헬퍼 규칙에서 합리적 이탈(별도 모듈로 추출). onRetry 미전달 경로는 현재 Win 통합에서 사용처 없음(시맨틱만 보장). happy-dom + RTL 채택 — jsdom 대비 가볍고 React 19 호환. ADR 0027.
+- 관련 결정: docs/decisions/0027-component-test-infra.md
+
 ## 2026-06-30 — 창 자유도 G1 — ws/타일 제어 + 기본 빈 워크스페이스
 - 브랜치: feat/ux-window-control
 - 한 일: 창 자유도 개선 3사이클 중 G1. 기본 빈 워크스페이스(INITIAL.open/order 비움 — Hyprland 첫 로그인처럼

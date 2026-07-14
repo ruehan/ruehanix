@@ -1,5 +1,13 @@
 # 작업 로그
 
+## 2026-07-14 — CI 워크플로 + Node v22 고정
+- 브랜치: feat/ci-workflow
+- 한 일: `.github/workflows/ci.yml` 추가 — PR·main 푸시 트리거, 같은 ref 중복 실행 cancel-in-progress, Node 22 (`.nvmrc` 잠금 + actions/setup-node node-version-file), npm 캐시, typecheck·lint·test·build 4 센서. 잡 권한은 least-privilege (`contents: read`). build 시 `NEXT_TELEMETRY_DISABLED=1`. `.nvmrc` 로 로컬·CI 의 Node 버전 일치.
+- 검증: typecheck 0 / eslint 0 / vitest 206/206 / build 11/11 / smoke 24/24. CI yaml 스크립트명 = package.json 스크립트명 일치 → verify.sh 와 의미 동치. 푸시 후 GitHub Actions 첫 실행으로 실제 게이트 동작 확인 예정.
+- 리뷰: 통과 1라운드(P3 trailing newline·permissions 누락·ADR 후보 → 같은 커밋에서 즉시 반영) — 상세: docs/reviews/2026-07-14-ci-workflow.md
+- 가정: smoke(playwright chromium) 는 본 잡에서 제외. 시간·리소스 비용 vs 라운드 속도 트레이드오프. 별도 야간/수동 잡 도입은 차기 작업. ADR 0028.
+- 관련 결정: docs/decisions/0028-smoke-out-of-ci.md
+
 ## 2026-07-14 — apps.tsx 분리 + AppErrorBoundary + 컴포넌트 테스트 인프라
 - 브랜치: feat/apps-split-boundary
 - 한 일: 컴포넌트 단위 테스트 인프라 도입(happy-dom + RTL, vitest `node` 기본 유지 + 파일 상단 `// @vitest-environment happy-dom` 오버라이드 패턴 — ADR 0027). `components/ruehanix/AppErrorBoundary.tsx` 추가 — class component, `componentDidCatch` 시 notify + console.error, fallback UI role=alert + alertRef focus 마이그레이션(tabIndex=-1 + outline:none), onRetry prop 지원. `RuehanixShell.tsx` 의 Win body 를 `<AppErrorBoundary appName={meta.name}>` 으로 래핑 → 단일 앱 throw 가 셸 전체 백지로 번지지 않게. `apps.tsx` 1042→13줄, 9개 앱 파일로 분리(AboutApp/FilesApp/FotoApp/HotlapApp/MusicApp/ReaderApp/SettingsApp/TerminalApp/WebApp), 13개 단일 앱 헬퍼는 각 앱 파일 안에 머무름, EmptyPosts 는 Files/Web 두 곳 공유라 별도 추출, apps.tsx 는 배럴(재수출 only)로 환원.

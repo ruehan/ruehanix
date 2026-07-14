@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke": "node scripts/smoke.mjs",
-    "sync-posts": "node scripts/sync-posts.mjs"
+    "sync-posts": "node scripts/sync-posts.mjs",
+    "sync-posts:check": "node --experimental-strip-types scripts/check-frontmatter-drift.mjs"
   },
   "dependencies": {
     "@sanity/image-url": "^2.1.1",

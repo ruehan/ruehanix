@@ -18,14 +18,19 @@ export function FotoApp({ vm }: { vm: Vm }) {
   const [view, setView] = useState<View>({ kind: "folders" });
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
-  // 폴더 진입/이탈 시 선택 인덱스(파생) — view 와 함께 묶어 cascade 회피.
-  // selectedIdx 는 useState 대신 view 에 인덱스 동봉하는 setter 사용.
-  const currentPhotos = view.kind === "folder" ? view.group.photos : [];
-  const selectedIdx = view.kind === "folder" ? view.selectedIdx ?? 0 : 0;
+  // vm.photos 가 바뀌어 view.group 이 groups 에 없으면 folders 로 폴백(파생).
+  // useEffect + setView 는 React 19 의 "setState in effect" cascade 회피.
+  // 데이터 변경 시 즉시 folders 로 보여 사용자에게 깨진 view 노출 안 함.
+  const effectiveView: View =
+    view.kind === "folder" && groups.find((g) => g.name === view.group.name)
+      ? view
+      : { kind: "folders" };
+  const currentPhotos = effectiveView.kind === "folder" ? effectiveView.group.photos : [];
+  const selectedIdx = effectiveView.kind === "folder" ? effectiveView.selectedIdx ?? 0 : 0;
 
   const openFolder = (g: PhotoGroup) => setView({ kind: "folder", group: g, selectedIdx: 0 });
   const setSelected = (i: number) => {
-    if (view.kind === "folder") setView({ ...view, selectedIdx: i });
+    if (effectiveView.kind === "folder") setView({ ...effectiveView, selectedIdx: i });
   };
   const backToFolders = () => setView({ kind: "folders" });
 
@@ -50,16 +55,22 @@ export function FotoApp({ vm }: { vm: Vm }) {
     );
   }
 
-  if (view.kind === "folders") {
+  if (effectiveView.kind === "folders") {
     return <FolderGrid groups={groups} totalCount={vm.photos.length} onPick={openFolder} />;
   }
 
   const sel = currentPhotos[Math.max(0, Math.min(selectedIdx, currentPhotos.length - 1))];
 
   return (
-    <div style={{ display: "flex", height: "100%" }}>
-      {/* 좌측 사진 그리드 */}
-      <div style={{ flex: 1, minWidth: 0, padding: 14, overflow: "auto" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: vm.isMobile ? "column" : "row",
+        height: "100%",
+      }}
+    >
+      {/* 사진 그리드 (좌측 / 모바일 상단) */}
+      <div style={{ flex: 1, minWidth: 0, minHeight: 0, padding: 14, overflow: "auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <div
             {...{ onClick: backToFolders }}
@@ -68,10 +79,16 @@ export function FotoApp({ vm }: { vm: Vm }) {
           >
             ← 폴더
           </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{view.group.name}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{effectiveView.group.name}</div>
           <div style={{ fontSize: 11, color: "var(--ov0)" }}>{currentPhotos.length}장</div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 9 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: vm.isMobile ? "repeat(2,1fr)" : "repeat(3,1fr)",
+            gap: 9,
+          }}
+        >
           {currentPhotos.map((p, i) => {
             const isSel = i === selectedIdx;
             return (
@@ -94,7 +111,7 @@ export function FotoApp({ vm }: { vm: Vm }) {
                   src={p.url}
                   alt={p.title}
                   fill
-                  sizes="(max-width: 768px) 33vw, 200px"
+                  sizes={vm.isMobile ? "(max-width: 768px) 50vw, 33vw" : "(max-width: 768px) 33vw, 200px"}
                   style={{ objectFit: "cover" }}
                 />
                 <div
@@ -120,12 +137,14 @@ export function FotoApp({ vm }: { vm: Vm }) {
         </div>
       </div>
 
-      {/* 우측 info 패널 */}
+      {/* info 패널 (우측 240px / 모바일 하단 풀폭) */}
       <aside
         style={{
           flex: "none",
-          width: 240,
-          borderLeft: "1px solid var(--surf0)",
+          width: vm.isMobile ? "100%" : 240,
+          maxHeight: vm.isMobile ? "45%" : "100%",
+          borderLeft: vm.isMobile ? "none" : "1px solid var(--surf0)",
+          borderTop: vm.isMobile ? "1px solid var(--surf0)" : "none",
           background: "var(--mantle)",
           padding: "16px 16px",
           display: "flex",
@@ -158,8 +177,27 @@ export function FotoApp({ vm }: { vm: Vm }) {
               {sel.tag ? <div>태그: {sel.tag}</div> : null}
               <div>폴더: {sel.folder ?? UNCATEGORIZED}</div>
             </div>
+            {/* 모바일은 더블클릭이 비표준 — 명시적 버튼으로 lightbox 진입 */}
+            <button
+              type="button"
+              onClick={() => setLightboxIdx(selectedIdx)}
+              style={{
+                font: "inherit",
+                fontSize: 12,
+                fontWeight: 700,
+                color: "var(--text)",
+                background: "var(--surf0)",
+                border: "1px solid var(--surf1)",
+                borderRadius: 6,
+                padding: "6px 10px",
+                cursor: "pointer",
+                marginTop: 4,
+              }}
+            >
+              크게 보기
+            </button>
             <div style={{ fontSize: 10.5, color: "var(--ov0)", lineHeight: 1.5, marginTop: 4 }}>
-              더블클릭 시 크게 보기 · ←/→ 키로 이동 · ESC 닫기
+              {vm.isMobile ? "위 버튼으로 크게 보기" : "더블클릭 시 크게 보기"} · ←/→ 키 이동 · ESC 닫기
             </div>
           </>
         ) : (
@@ -299,35 +337,30 @@ function Lightbox({
         <div
           style={{
             position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: -34,
+            left: 12,
+            right: 12,
+            bottom: 10,
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-end",
             justifyContent: "space-between",
-            color: "rgba(255,255,255,.85)",
+            gap: 12,
+            color: "rgba(255,255,255,.9)",
             fontSize: 12,
             fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            textShadow: "0 1px 2px rgba(0,0,0,.6)",
+            pointerEvents: "none",
           }}
         >
-          <span>{photo.title}</span>
-          <span>{hint}</span>
-        </div>
-        {photo.description ? (
-          <div
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: -58,
-              color: "rgba(255,255,255,.7)",
-              fontSize: 11.5,
-              textAlign: "center",
-            }}
-          >
-            {photo.description}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{photo.title}</span>
+            {photo.description ? (
+              <span style={{ fontSize: 11, opacity: 0.8, whiteSpace: "pre-wrap", wordBreak: "break-word", color: "rgba(255,255,255,.8)" }}>
+                {photo.description}
+              </span>
+            ) : null}
           </div>
-        ) : null}
+          <span style={{ flex: "none" }}>{hint}</span>
+        </div>
       </div>
       <button
         type="button"

@@ -77,4 +77,50 @@ describe("AppErrorBoundary", () => {
     await user.click(screen.getByRole("button", { name: "다시 시도" }));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
+
+  it("onRetry 미지정이어도 재시도 시 setState 만으로 동작한다", async () => {
+    const user = userEvent.setup();
+    let shouldThrow = true;
+    function Toggle(): React.ReactElement {
+      if (shouldThrow) throw new Error("boom");
+      return <div>recovered</div>;
+    }
+    render(
+      <AppErrorBoundary appName="files">
+        <Toggle />
+      </AppErrorBoundary>,
+    );
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    shouldThrow = false;
+    await user.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByText("recovered")).toBeInTheDocument();
+  });
+
+  it("연속 throw 도 매번 catch 된다", () => {
+    function Boom(): never { throw new Error("boom"); }
+    const { rerender } = render(
+      <AppErrorBoundary appName="files">
+        <Boom />
+      </AppErrorBoundary>,
+    );
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    // 같은 boundary 를 throw 하는 새 children 으로 재마운트해도 alert 가 유지된다.
+    rerender(
+      <AppErrorBoundary appName="files">
+        <Boom />
+      </AppErrorBoundary>,
+    );
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+  });
+
+  it("children 이 null / falsy 여도 정상 렌더한다", () => {
+    const { container } = render(
+      <AppErrorBoundary appName="files">
+        {null as unknown as React.ReactElement}
+      </AppErrorBoundary>,
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(container).toBeInTheDocument();
+  });
 });

@@ -21,6 +21,11 @@ import {
   toggle,
 } from "@/lib/ruehanix/player";
 import { PLAYER_STORAGE_KEY, parsePlayerState, serializePlayerState } from "@/lib/ruehanix/player-storage";
+import {
+  LAYOUT_STORAGE_KEY,
+  parseLayoutSnapshot,
+  serializeLayoutSnapshot,
+} from "@/lib/ruehanix/layout-storage";
 import { accentEff, catColors, effMode, hexA, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout } from "@/lib/ruehanix/layout";
 import { isMobileWidth } from "@/lib/ruehanix/responsive";
@@ -147,6 +152,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   const bootTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const uiSavedRef = useRef(false);
   const playerSavedRef = useRef(false);
+  const layoutSavedRef = useRef(false);
 
   // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
   const toggleLauncher = () => {
@@ -281,6 +287,55 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
     document.documentElement.classList.toggle("rh-light", light);
     document.documentElement.style.setProperty("--accent", accentEff(st.ui.mode, st.ui.accent, prefersLight));
   }, [st.ui.mode, st.ui.accent, prefersLight]);
+
+  // --- layout 영속 — ws/open/order/ratios/minimized/maximized 변경 시
+  //     localStorage `rh-layout` 에 저장. drag/resize 중 매 프레임 저장을 피하려
+  //     200ms debounce. ui/player 와 동일 패턴 — post-mount useEffect 에서
+  //     1회 read-then-setSt (SSR safe) + 이후 변경 시 debounce write.
+  //     첫 effect 실행은 layoutSavedRef 로 skip (mount 후 INITIAL → 복원
+  //     setSt 직전 1회의 redundant write 방지).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!layoutSavedRef.current) {
+      // read 도 try/catch — Safari 프라이빗/iframe sandboxed 등에서 SecurityError 가능.
+      // ui/player 복원 패턴과 일관.
+      let raw: string | null = null;
+      try {
+        raw = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
+      } catch {
+        // 무시 — parseLayoutSnapshot(null) 가 DEFAULT 로 폴백.
+      }
+      const snap = parseLayoutSnapshot(raw);
+      setSt((p) => ({
+        ...p,
+        ws: snap.ws,
+        open: snap.open,
+        order: snap.order,
+        ratios: snap.ratios,
+        minimized: snap.minimized,
+        maximized: snap.maximized,
+      }));
+      layoutSavedRef.current = true;
+      return;
+    }
+    const t = setTimeout(() => {
+      try {
+        const snap = {
+          version: 1 as const,
+          ws: st.ws,
+          open: st.open,
+          order: st.order,
+          ratios: st.ratios,
+          minimized: st.minimized,
+          maximized: st.maximized,
+        };
+        window.localStorage.setItem(LAYOUT_STORAGE_KEY, serializeLayoutSnapshot(snap));
+      } catch {
+        // quota/permission — 무시.
+      }
+    }, 200);
+    return () => clearTimeout(t);
+  }, [st.ws, st.open, st.order, st.ratios, st.minimized, st.maximized]);
 
   // --- 마우스 드래그 / 키보드 리스너 (마운트 1회) ---
   useEffect(() => {

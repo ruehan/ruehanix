@@ -346,6 +346,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         ratios: snap.ratios,
         minimized: snap.minimized,
         maximized: snap.maximized,
+        floating: snap.floating ?? {},
       }));
       layoutSavedRef.current = true;
       return;
@@ -353,13 +354,14 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
     const t = setTimeout(() => {
       try {
         const snap = {
-          version: 1 as const,
+          version: 2 as const,
           ws: st.ws,
           open: st.open,
           order: st.order,
           ratios: st.ratios,
           minimized: st.minimized,
           maximized: st.maximized,
+          floating: st.floating,
         };
         window.localStorage.setItem(LAYOUT_STORAGE_KEY, serializeLayoutSnapshot(snap));
       } catch {
@@ -367,7 +369,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       }
     }, 200);
     return () => clearTimeout(t);
-  }, [st.ws, st.open, st.order, st.ratios, st.minimized, st.maximized]);
+  }, [st.ws, st.open, st.order, st.ratios, st.minimized, st.maximized, st.floating]);
 
   // --- 마우스 드래그 / 키보드 리스너 (마운트 1회) ---
   useEffect(() => {

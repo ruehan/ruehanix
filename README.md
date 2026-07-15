@@ -17,6 +17,15 @@ npm run dev             # http://localhost:3000
 npm run studio          # /studio — Sanity Studio
 ```
 
+## 셸 UX
+
+- 데스크톱 6개 워크스페이스 (Super+1-6), 각 ws 별 타일 + floating
+- Hyprland 토글: `Super+G` floating, `Super+F` maximize, `Super+Q` close,
+  `Super+Shift+1-6` move-to-ws, `Super+Shift+←/→` tile swap
+- 9개 앱 모두 dynamic lazy — 첫 진입 시 visibleIds 가 비어 chunk 0회
+  다운로드. 가시 시점 + dynamic loader 캐시로 minimize/restore 즉시.
+- 단축키 전체: `/` 키 → Keybindings 탭.
+
 ## 스크립트
 
 | 명령 | 설명 |
@@ -29,26 +38,26 @@ npm run studio          # /studio — Sanity Studio
 | `npm run test` | vitest 한 회 실행 |
 | `npm run test:watch` | vitest 워치 |
 | `npm run smoke` | Playwright 통합 스모크 (chromium 필요) |
-| `npm run sync-posts` | `content/posts/*.md` → Sanity NDJSON 일괄 변환 |
+| `npm run sync-posts` | md → NDJSON + Sanity dataset 일괄 import |
+| `npm run sync-posts:check` | NDJSON 정합성 검사 (드리프트 감지) |
 
 ## 폴더 구조
 
 ```
 app/                    Next.js App Router (페이지·레이아웃·메타)
-components/ruehanix/    데스크톱 셸 — Win·Dock·9개 앱·ErrorBoundary
-components/posts/       SSR 포스트 본문 렌더링
-content/posts/          마크다운 원본 + 동기화된 NDJSON
-lib/posts/              포스트 정규화·frontmatter 파싱
-lib/ruehanix/           셸 상태·테마·키바인딩·스토리지·a11y 등 순수 로직
-sanity/                 Sanity 스키마
-scripts/                smoke·md→Sanity 변환·기타 운영 스크립트
-docs/                   ADR·리뷰 기록·worklog
+components/ruehanix/    데스크톱 셸 — Win·Dock·9개 앱·ErrorBoundary·YouTubeEngine
+components/posts/       SSR 포스트 본문 렌더링 (shiki 하이라이트 + CodeBlockClient)
+content/posts/          마크다운 원본 + 동기화된 NDJSON (git 추적)
+lib/posts/              포스트 정규화·frontmatter·shiki·group-by-folder
+lib/ruehanix/           셸 상태(순수)·테마·키바인딩·스토리지·a11y·win-visibility
+sanity/                 Sanity 스키마 (post/track/photo/artist/album)
+scripts/                smoke·sync-posts·check-drift·기타 운영 스크립트
+docs/                   ADR(0027~0042)·라운드별 리뷰·worklog
 ```
 
 ## 콘텐츠 운영
 
-`content/posts/<slug>.md` 가 단일 진실 공급원이다. frontmatter 는 다음 키를
-필수로 한다.
+`content/posts/<slug>.md` 가 단일 진실. frontmatter 키:
 
 ```yaml
 title: ...
@@ -59,30 +68,45 @@ readingTime: 8분
 excerpt: ...
 ```
 
-`npm run sync-posts` 가 모든 md 를 읽어 Sanity Portable Text NDJSON 으로 변환해
-같은 폴더에 `<slug>.ndjson` 으로 저장한다. `--dry-run` 으로 미리보기 가능.
-생성된 ndjson 을 Sanity dataset 에 import 하면 사이트에 노출된다.
+`npm run sync-posts` 가 md → Sanity Portable Text NDJSON 변환 + **Sanity dataset
+일괄 import** (ADR 0039). 토큰은 `SANITY_IMPORT_TOKEN` env. 미설정 시 ndjson
+만 생성. `--no-import` / `--dry-run` 플래그로 import skip. 실패 시 throw.
 
-NDJSON 은 `npm run sync-posts` 의 출력 산물이지만 **git 추적 대상**이다 — Sanity
-dataset 의 백업이자 PR 단위로 변경 이력을 본다는 운영 의도. 무시하려면
-`.gitignore` 에 `content/posts/*.ndjson` 추가 검토.
+코드 블록은 빌드 시점에 shiki 듀얼 테마(mocha/latte) HTML로 변환 +
+`highlightedCode` 필드. Studio 직접 편집(필드 부재)시는 클라이언트
+`CodeBlockClient` 가 lazy shiki 폴백. `lib/photos/groupByFolder` 가 folder
+필드로 사진 분류, 빈 folder 는 `(미분류)` 자동 모음.
 
 ## Sanity Studio
 
-`/studio` 경로에서 컨텐츠를 직접 편집할 수 있다. Studio 변경 →
-production dataset 으로 publish 가 일반 운영 흐름이다.
-`npm run sync-posts` 는 md → Sanity 단방향이며 Sanity → md 다운로드는
-지원하지 않는다.
+`/studio` 에서 직접 편집. photoType 에 `folder` (string) + `description` (text)
+필드 추가됨. `npm run sync-posts` 는 md → Sanity 단방향, Sanity → md
+다운로드는 미지원.
+
+## 영속화
+
+- `rh-ui` (테마·액센트·UI 토글) — `lib/ruehanix/ui-storage.ts`
+- `rh-player` (음악 플레이어 상태) — `lib/ruehanix/player-storage.ts`
+- `rh-layout` v2 (창/워크스페이스/floating 위치) — `lib/ruehanix/layout-storage.ts`
+  debounce 200ms 자동 저장, 부팅 1회 복원 (ADR 0036). v1→v2 마이그레이션은
+  전체 DEFAULT 폴백(ADR 0036).
 
 ## CI
 
-`.github/workflows/ci.yml` — PR·main 푸시마다 typecheck·lint·test·build 4 센서
-자동 실행. smoke 는 별도 잡 분리 시 추가 예정.
+`.github/workflows/ci.yml` — PR·main 푸시마다 typecheck·lint·test·build 4
+센서 + frontmatter 드프트 검사 자동 실행.
+
+## 번들
+
+- dynamic lazy 9개 앱 — 첫 진입 시 visibleIds 비어있어 chunk 0회 다운로드.
+  가시 시점 + dynamic loader 캐시로 즉시.
+- 측정 결과(2026-07-15): app-only chunks gzip **2.98MB** (raw 14.35MB,
+  79% 압축). 상세: ADR 0042.
 
 ## 결정 기록
 
-중요한 결정은 `docs/decisions/` 아래 ADR 로 남긴다. 새 결정을 내릴 때 함께
-작성한다.
+중요한 결정은 `docs/decisions/` 아래 ADR 로 남긴다. 라운드별 리뷰는
+`docs/reviews/`, 작업 일지는 `docs/worklog.md`.
 
 ## 라이선스
 

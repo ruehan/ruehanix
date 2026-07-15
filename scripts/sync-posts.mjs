@@ -18,6 +18,7 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import { createHighlighter } from "shiki";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -26,6 +27,14 @@ const args = new Set(process.argv.slice(2));
 const DRY = args.has("--dry-run");
 
 const REQUIRED = ["title", "slug", "category", "publishedAt", "readingTime", "excerpt"];
+
+// Sanity dataset import. _id 가 "post.${slug}" 로 동일 → 같은 slug 재실행은
+// upsert(덮어쓰기). 운영 안전을 위해 SANITY_IMPORT_TOKEN 미설정 시 import skip
+// + 경고 (CI 에서만 token 주입, 로컬 dry-run 가능).
+const PROJECT_ID = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const DATASET = process.env.NEXT_PUBLIC_SANITY_DATASET;
+const IMPORT_TOKEN = process.env.SANITY_IMPORT_TOKEN;
+const SKIP_IMPORT = args.has("--no-import") || DRY;
 
 // shiki 듀얼 테마. catppuccin mocha (다크) + latte (라이트). 사이트 기존 팔레트 정합.
 const SHIKI_LANGS = [
@@ -172,6 +181,55 @@ async function syncFile(file) {
   process.stdout.write(`synced ${file} -> ${out}\n`);
 }
 
+async function importToSanity() {
+  if (SKIP_IMPORT) {
+    process.stdout.write("[import] --no-import 또는 --dry-run. import skip.\n");
+    return;
+  }
+  if (!IMPORT_TOKEN) {
+    process.stderr.write(
+      "[import] SANITY_IMPORT_TOKEN 미설정. ndjson 만 생성. token 주입 후 재실행.\n",
+    );
+    return;
+  }
+  if (!PROJECT_ID || !DATASET) {
+    process.stderr.write("[import] projectId / dataset env 미설정. skip.\n");
+    return;
+  }
+  const files = readdirSync(POSTS_DIR).filter((f) => f.endsWith(".ndjson"));
+  if (files.length === 0) {
+    process.stdout.write("[import] ndjson 없음. skip.\n");
+    return;
+  }
+  // sanity dataset import 는 한 번에 한 ndjson. --replace 는 동일 _id 의
+  // createOrReplace 로 동작 (upsert). 다른 doc(photo/artist/album) 은
+  // ndjson 에 없으므로 건드리지 않음 — dataset replace 와는 의미 다름.
+  for (const f of files) {
+    const src = join(POSTS_DIR, f);
+    process.stdout.write(`[import] ${f} → dataset "${DATASET}"\n`);
+    const r = spawnSync(
+      "npx",
+      [
+        "sanity",
+        "dataset",
+        "import",
+        src,
+        DATASET,
+        "--project",
+        PROJECT_ID,
+        "--token",
+        IMPORT_TOKEN,
+        "--replace",
+      ],
+      { stdio: "inherit" },
+    );
+    if (r.status !== 0) {
+      throw new Error(`[import] sanity dataset import 실패: ${f}`);
+    }
+  }
+  process.stdout.write(`[import] ${files.length}개 문서 import 완료.\n`);
+}
+
 async function main() {
   const files = readdirSync(POSTS_DIR).filter((f) => f.endsWith(".md"));
   if (files.length === 0) {
@@ -179,6 +237,7 @@ async function main() {
     process.exit(1);
   }
   for (const f of files) await syncFile(f);
+  await importToSanity();
 }
 
 main();

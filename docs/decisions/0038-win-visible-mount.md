@@ -30,6 +30,17 @@ FotoApp 만 `preserveLocalState={true}` — hidden 일 때도 children 마운트
 는 chunk 캐시로 즉시 재로드되므로 reset 이 자연스럽고, 정적 4개(About/Hotlap/
 Terminal/Web) 는 hooks 가 없거나 local state 가 무의미.
 
+### close 케이스 의도 (라운드 2 P1-2)
+
+`vm.close[k]` (X 버튼) 으로 명시적 close 후에도 FotoApp subtree 는 mounted
+유지. close → reopen 시 `view` (폴더 진입 상태)·`lightboxIdx` 가 유지됨.
+설계 의도: FotoApp 의 local state 는 "탐색 흐름"의 일부로 보존. fresh state
+를 원하면 폴더 진입 후 명시적 backToFolders / ESC 로 닫기. close 자체는
+"앱 사용 종료" 가 아니라 "현재 시점 dismiss" 로 모델링. 다른 8개 앱은
+preserveLocalState=false 라 close → reopen 시 fresh state.
+
+## 사용한 패턴 회피 (ADR 0038 작성 중 검토한 대안)
+
 ## 사용한 패턴 회피 (ADR 0038 작성 중 검토한 대안)
 
 - **useState + useEffect `setHasMounted(true)`** — React 19 의 "Calling setState

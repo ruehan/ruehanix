@@ -1,5 +1,14 @@
 # 작업 로그
 
+## 2026-07-15 — Win visible-기반 children mount (ADR 0038)
+- 브랜치: feat/win-visible-mount
+- 한 일: `lib/ruehanix/win-visibility.ts` — `isHidden(style)` 헬퍼 (`display: "none"` 만). `Win` 컴포넌트 inline 수정 — hidden 시 chrome+children 미렌더, outer div + aria-hidden 만. visible 일 때만 mount. dynamic loader 가 chunk 캐시하므로 minimize/restore 시 즉시 재로드. `preserveLocalState` prop — FotoApp 한 곳만 true 로 ws 전환·minimize·close 사이 local state 보호. ADR 0038.
+- 검증: typecheck 0 / eslint 0 / vitest 33 files / 245 tests (isHidden 4/4 신규) / build 11/11 / smoke 24/24.
+- 리뷰: 통과 2라운드(R1 P1-2 FotoApp 회귀·P1 사실 오류 → 반영 → R2 P1 커밋 메시지 정정·P1 close 케이스 ADR 보강 → 반영) — 상세: docs/reviews/2026-07-15-win-visible-mount.md
+- 가정: 단순 visible-기반 게이트 채택(useState/useRef/useSyncExternalStore 모두 React 19 lint 회피 불가). minimize 와 ws 전환은 동일하게 "hidden" — preserve 가 양쪽 모두 cover. close 케이스도 preserve — FotoApp 는 "탐색 흐름" 보존, fresh state 원하면 명시적 backToFolders/ESC.
+- 후속 작업: Win 컴포넌트 단위 테스트. dynamic 3개 chunk 즉시 재로드 실제 비용 측정.
+- 관련 결정: docs/decisions/0038-win-visible-mount.md
+
 ## 2026-07-14 — 사진 폴더 뷰 + 우측 info 패널 + lightbox (ADR 0037)
 - 브랜치: feat/photo-folder-view
 - 한 일: Sanity photoType 에 folder (string, optional) + description (text, 1줄) 필드. GROQ 에 folder/description 추가. Photo 타입 + normalize 확장. `lib/photos/group-by-folder.ts` 순수 함수 — 명시 folder 사전순(localeCompare "ko") + UNCATEGORIZED 항상 마지막. FotoApp 2-depth (folders grid → folder view) — 우측 info 패널 + lightbox (←/→/ESC). 모바일 분기(`vm.isMobile`): column 스택 + 그리드 2-col + info 하단 100%. 모바일 lightbox 진입은 info 패널의 "크게 보기" 버튼. view derive — useEffect+setView 의 setState-in-effect cascade 회피(React 19 lint). normalize 회귀 테스트 4 케이스 추가.

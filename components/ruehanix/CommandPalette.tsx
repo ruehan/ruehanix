@@ -41,9 +41,11 @@ export function CommandPalette({
       onClose();
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
+      if (matches.length === 0) return;
       setSelected(safeSelected + 1);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      if (matches.length === 0) return;
       setSelected(safeSelected - 1);
     } else if (e.key === "Enter") {
       e.preventDefault();
@@ -58,6 +60,7 @@ export function CommandPalette({
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="명령 팔레트"
       onClick={onClose}
       style={{
@@ -74,7 +77,6 @@ export function CommandPalette({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={onKey}
         style={{
           width: "min(640px, 92vw)",
           background: "var(--mantle)",

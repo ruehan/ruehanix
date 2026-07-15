@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   ACCENT_PALETTE,
   APP_KEYS,
@@ -162,25 +162,25 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   const layoutSavedRef = useRef(false);
 
   // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
-  const toggleLauncher = () => {
+  const toggleLauncher = useCallback(() => {
     setLauncherQuery("");
     setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false, showMusic: false, showCommandPalette: false }));
-  };
-  const toggleKeys = () => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false, showMusic: false, showCommandPalette: false }));
-  const toggleMusic = () => setSt((s) => ({ ...s, showMusic: !s.showMusic, showLauncher: false, showKeys: false, showCommandPalette: false }));
-  const toggleCommandPalette = () => setSt((s) => ({ ...s, showCommandPalette: !s.showCommandPalette, showLauncher: false, showKeys: false, showMusic: false }));
-  const gotoWs = (n: number) => setSt((s) => ({ ...s, ...gotoWsState(s, n), showLauncher: false }));
-  const openApp = (k: AppKey) => {
+  }, [setSt, setLauncherQuery]);
+  const toggleKeys = useCallback(() => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false, showMusic: false, showCommandPalette: false })), [setSt]);
+  const toggleMusic = useCallback(() => setSt((s) => ({ ...s, showMusic: !s.showMusic, showLauncher: false, showKeys: false, showCommandPalette: false })), [setSt]);
+  const toggleCommandPalette = useCallback(() => setSt((s) => ({ ...s, showCommandPalette: !s.showCommandPalette, showLauncher: false, showKeys: false, showMusic: false })), [setSt]);
+  const gotoWs = useCallback((n: number) => setSt((s) => ({ ...s, ...gotoWsState(s, n), showLauncher: false })), [setSt]);
+  const openApp = useCallback((k: AppKey) => {
     setLauncherQuery("");
     setSt((s) => ({ ...s, ...openAppState(s, k), showLauncher: false }));
-  };
-  const close = (k: AppKey) => setSt((s) => ({ ...s, ...closeState(s, k) }));
-  const focusApp = (k: AppKey) => setSt((s) => ({ ...s, focused: k }));
-  const minimize = (k: AppKey) => setSt((s) => ({ ...s, ...minimizeState(s, k) }));
-  const toggleMaximize = (k: AppKey) => setSt((s) => ({ ...s, ...toggleMaximizeState(s, k) }));
-  const moveToWs = (k: AppKey, n: number) => setSt((s) => ({ ...s, ...moveToWsState(s, k, n), showLauncher: false }));
-  const moveTile = (k: AppKey, dir: "left" | "right") => setSt((s) => ({ ...s, ...moveTileState(s, k, dir) }));
-  const toggleFloating = (k: AppKey, rect: FloatRect) => setSt((s) => ({ ...s, ...toggleFloatingState(s, k, rect) }));
+  }, [setSt, setLauncherQuery]);
+  const close = useCallback((k: AppKey) => setSt((s) => ({ ...s, ...closeState(s, k) })), [setSt]);
+  const focusApp = useCallback((k: AppKey) => setSt((s) => ({ ...s, focused: k })), [setSt]);
+  const minimize = useCallback((k: AppKey) => setSt((s) => ({ ...s, ...minimizeState(s, k) })), [setSt]);
+  const toggleMaximize = useCallback((k: AppKey) => setSt((s) => ({ ...s, ...toggleMaximizeState(s, k) })), [setSt]);
+  const moveToWs = useCallback((k: AppKey, n: number) => setSt((s) => ({ ...s, ...moveToWsState(s, k, n), showLauncher: false })), [setSt]);
+  const moveTile = useCallback((k: AppKey, dir: "left" | "right") => setSt((s) => ({ ...s, ...moveTileState(s, k, dir) })), [setSt]);
+  const toggleFloating = useCallback((k: AppKey, rect: FloatRect) => setSt((s) => ({ ...s, ...toggleFloatingState(s, k, rect) })), [setSt]);
   const startFloatDrag = (k: AppKey, e: React.MouseEvent) => {
     const orig = st.floating[k];
     if (!orig) return;
@@ -203,20 +203,20 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
     const h = Math.max(240, Math.round(H * 0.7));
     return { x: Math.round((W - w) / 2), y: Math.round((H - h) / 2 - 20), w, h };
   };
-  const openPost = (id: string) => {
+  const openPost = useCallback((id: string) => {
     recordVisitStore(id);
     setSt((s) => {
       const w = openPostReaderState(s, id);
       return { ...s, ...w, showLauncher: false };
     });
-  };
-  const setReaderSel = (id: string) => setSt((s) => ({ ...s, selected: id }));
-  const setFinderCat = (c: "all" | CatKey) => setSt((s) => ({ ...s, finderCat: c }));
-  const setMode = (mode: ThemeMode) => setSt((s) => ({ ...s, ui: { ...s.ui, mode } }));
-  const setAccent = (accent: string) => setSt((s) => ({ ...s, ui: { ...s.ui, accent } }));
-  const toggleUi = (key: "transp" | "rounded" | "glow") => setSt((s) => ({ ...s, ui: { ...s.ui, [key]: !s.ui[key] } }));
-  const setGap = (gap: number) => setSt((s) => ({ ...s, ui: { ...s.ui, gap } }));
-  const resetUi = () => setSt((s) => ({ ...s, ui: DEFAULT_UI }));
+  }, [setSt]);
+  const setReaderSel = useCallback((id: string) => setSt((s) => ({ ...s, selected: id })), [setSt]);
+  const setFinderCat = useCallback((c: "all" | CatKey) => setSt((s) => ({ ...s, finderCat: c })), [setSt]);
+  const setMode = useCallback((mode: ThemeMode) => setSt((s) => ({ ...s, ui: { ...s.ui, mode } })), [setSt]);
+  const setAccent = useCallback((accent: string) => setSt((s) => ({ ...s, ui: { ...s.ui, accent } })), [setSt]);
+  const toggleUi = useCallback((key: "transp" | "rounded" | "glow") => setSt((s) => ({ ...s, ui: { ...s.ui, [key]: !s.ui[key] } })), [setSt]);
+  const setGap = useCallback((gap: number) => setSt((s) => ({ ...s, ui: { ...s.ui, gap } })), [setSt]);
+  const resetUi = useCallback(() => setSt((s) => ({ ...s, ui: DEFAULT_UI })), [setSt]);
   const setRatio = (key: string, r: number) => setSt((s) => ({ ...s, ratios: { ...s.ratios, [key]: r } }));
 
   // --- 음악 플레이어 핸들러 (순수 reducer 위임) ---
@@ -494,6 +494,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   }, [st.player]);
 
   // 명령 팔레트 — 셸의 모든 액션을 자연어 fuzzy 로 검색/실행.
+  // 핸들러는 useCallback 으로 안정화 — commands 가 매 렌더 새로 만들어지지 않게.
   const commands: Command[] = useMemo(() => {
     const appKeys: AppKey[] = ["files", "reader", "foto", "hotlap", "terminal", "web", "music", "settings", "about"];
     return [
@@ -554,7 +555,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         run: () => { window.location.assign("/studio"); },
       },
     ];
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- handlers 가 setter ref 라 deps 추가 시 매번 새 commands 생성
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- openApp/gotoWs/setMode/toggleKeys 가 useCallback 으로 안정화됨.
   }, [openApp, gotoWs, setMode, toggleKeys]);
 
   return {

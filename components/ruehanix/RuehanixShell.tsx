@@ -12,6 +12,7 @@ import { AboutApp, FilesApp, FotoApp, HotlapApp, TerminalApp, WebApp } from "./a
 import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
 import { useToast } from "@/lib/ruehanix/toast";
 import { AppErrorBoundary } from "./AppErrorBoundary";
+import { isHidden } from "@/lib/ruehanix/win-visibility";
 import dynamic from "next/dynamic";
 
 // 큰 콘텐츠 앱 3개 — 초기 번들에서 chunk 분리. 첫 사용 시점에 다운로드(ADR 0033).
@@ -29,8 +30,18 @@ const YouTubeEngine = dynamic(
 
 function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }) {
   const meta = APP_META[app];
+  const tileStyle = vm.tiles[app];
+  const hidden = isHidden(tileStyle);
+
+  // visibleIds 계산 결과가 hidden 인 앱: chrome/children 미렌더, outer div 만 남김.
+  // children 은 visible 일 때만 마운트. dynamic loader 가 chunk 캐시하므로
+  // minimize/restore 시 즉시 재로드. setState cascade 회피 + 단순.
+  if (hidden) {
+    return <div style={tileStyle} aria-hidden="true" />;
+  }
+
   return (
-    <div style={vm.tiles[app]}>
+    <div style={tileStyle}>
       <div style={vm.chrome}>
         <div
           onMouseDown={vm.focus[app]}

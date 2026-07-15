@@ -2,6 +2,7 @@
   "name": "ruehanix",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "ruehanix 데스크톱 셸 — 한규(ruehan)의 기술 블로그/포트폴리오 (Next.js)",
   "scripts": {
     "dev": "next dev",

@@ -9,6 +9,7 @@ const S = (over: Partial<WindowState> = {}): WindowState => ({
   maximized: null,
   focused: "reader",
   ws: 1,
+  floating: {},
   ...over,
 });
 

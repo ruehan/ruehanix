@@ -32,8 +32,8 @@ import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, DEFAULT_UI, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
 import { recordVisitStore } from "@/lib/ruehanix/visits";
-import { close as closeState, gotoWs as gotoWsState, minimize as minimizeState, moveTile as moveTileState, moveToWs as moveToWsState, openApp as openAppState, openPostReader as openPostReaderState, toggleMaximize as toggleMaximizeState } from "@/lib/ruehanix/windowState";
-import type { AppKey, ArtistInfo, Album, CatKey, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
+import { close as closeState, gotoWs as gotoWsState, minimize as minimizeState, moveTile as moveTileState, moveToWs as moveToWsState, openApp as openAppState, openPostReader as openPostReaderState, setFloatRect as setFloatRectState, toggleFloating as toggleFloatingState, toggleMaximize as toggleMaximizeState } from "@/lib/ruehanix/windowState";
+import type { AppKey, ArtistInfo, Album, CatKey, FloatRect, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
 interface CoreState {
@@ -51,6 +51,7 @@ interface CoreState {
   ratios: Record<string, number>;
   minimized: Partial<Record<AppKey, boolean>>;
   maximized: AppKey | null;
+  floating: Partial<Record<AppKey, FloatRect>>;
   ui: UiState;
   player: PlayerState;
 }
@@ -58,6 +59,8 @@ interface CoreState {
 type Drag =
   | { type: "slider"; left: number; width: number }
   | { type: "gutter"; key: string; dir: "v" | "h"; total: number; sx: number; sy: number; start: number }
+  | { type: "float"; app: AppKey; sx: number; sy: number; orig: FloatRect }
+  | { type: "floatresize"; app: AppKey; sx: number; sy: number; orig: FloatRect }
   | null;
 
 const fmtClock = () => {
@@ -81,6 +84,7 @@ const INITIAL: CoreState = {
   ratios: {},
   minimized: {},
   maximized: null,
+  floating: {},
   ui: DEFAULT_UI,
   player: PLAYER_INITIAL,
 };
@@ -172,6 +176,29 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   const toggleMaximize = (k: AppKey) => setSt((s) => ({ ...s, ...toggleMaximizeState(s, k) }));
   const moveToWs = (k: AppKey, n: number) => setSt((s) => ({ ...s, ...moveToWsState(s, k, n), showLauncher: false }));
   const moveTile = (k: AppKey, dir: "left" | "right") => setSt((s) => ({ ...s, ...moveTileState(s, k, dir) }));
+  const toggleFloating = (k: AppKey, rect: FloatRect) => setSt((s) => ({ ...s, ...toggleFloatingState(s, k, rect) }));
+  const startFloatDrag = (k: AppKey, e: React.MouseEvent) => {
+    const orig = st.floating[k];
+    if (!orig) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dragRef.current = { type: "float", app: k, sx: e.clientX, sy: e.clientY, orig };
+  };
+  const startFloatResize = (k: AppKey, e: React.MouseEvent) => {
+    const orig = st.floating[k];
+    if (!orig) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dragRef.current = { type: "floatresize", app: k, sx: e.clientX, sy: e.clientY, orig };
+  };
+  // 플로팅 기본 rect — 뷰포트 60%×70% 중앙, 최소 360×240.
+  const defaultFloatRect = (): FloatRect => {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const w = Math.max(360, Math.round(W * 0.6));
+    const h = Math.max(240, Math.round(H * 0.7));
+    return { x: Math.round((W - w) / 2), y: Math.round((H - h) / 2 - 20), w, h };
+  };
   const openPost = (id: string) => {
     recordVisitStore(id);
     setSt((s) => {
@@ -269,6 +296,11 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         e.preventDefault();
         toggleMaximize(st.focused);
       }
+      // Super+G: 포커스 창 플로팅 토글(Hyprland togglefloating).
+      if ((k === "g" || k === "G") && st.focused) {
+        e.preventDefault();
+        toggleFloating(st.focused, defaultFloatRect());
+      }
       // Super+Shift+←/→: 포커스 창을 order 상 인접 타일과 자리바꿈.
       if (e.shiftKey && st.focused && (k === "ArrowLeft" || k === "ArrowRight")) {
         e.preventDefault();
@@ -346,6 +378,23 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         let pct = (e.clientX - d.left) / d.width;
         pct = Math.max(0, Math.min(1, pct));
         setGap(Math.round(pct * 28));
+        return;
+      }
+      if (d.type === "float") {
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        // 창이 화면 밖으로 완전히 나가지 않게(최소 80px는 보이게) 클램프.
+        const x = Math.max(-d.orig.w + 80, Math.min(W - 80, d.orig.x + (e.clientX - d.sx)));
+        const y = Math.max(0, Math.min(H - 40, d.orig.y + (e.clientY - d.sy)));
+        setSt((s) => ({ ...s, ...setFloatRectState(s, d.app, { ...d.orig, x, y }) }));
+        return;
+      }
+      if (d.type === "floatresize") {
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        const w = Math.max(320, Math.min(W - d.orig.x, d.orig.w + (e.clientX - d.sx)));
+        const h = Math.max(200, Math.min(H - d.orig.y, d.orig.h + (e.clientY - d.sy)));
+        setSt((s) => ({ ...s, ...setFloatRectState(s, d.app, { ...d.orig, w, h }) }));
         return;
       }
       const delta = d.dir === "v" ? e.clientX - d.sx : e.clientY - d.sy;
@@ -452,6 +501,10 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       toggleMaximize,
       moveToWs,
       moveTile,
+      toggleFloating,
+      defaultFloatRect,
+      startFloatDrag,
+      startFloatResize,
       openPost,
       setReaderSel,
       setFinderCat,

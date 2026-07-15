@@ -426,7 +426,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       window.removeEventListener("mouseup", onUp);
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, []);
+  }, [setGap]);
 
   // --- 마운트 1회: UI 설정 복원 + 부팅 결정 ---
   useEffect(() => {
@@ -555,7 +555,6 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         run: () => { window.location.assign("/studio"); },
       },
     ];
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- openApp/gotoWs/setMode/toggleKeys 가 useCallback 으로 안정화됨.
   }, [openApp, gotoWs, setMode, toggleKeys]);
 
   return {

@@ -15,7 +15,7 @@
 // 정본은 .ts — 테스트가 이쪽을 검증. 두 구현이 어긋나면 sync가 잘못된 NDJSON 을 만들 수 있으므로
 // frontmatter.ts 변경 시 본 함수도 함께 동기화해야 한다.
 
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -201,19 +201,20 @@ async function importToSanity() {
     process.stdout.write("[import] ndjson 없음. skip.\n");
     return;
   }
-  // sanity dataset import 는 한 번에 한 ndjson. --replace 는 동일 _id 의
-  // createOrReplace 로 동작 (upsert). 다른 doc(photo/artist/album) 은
-  // ndjson 에 없으므로 건드리지 않음 — dataset replace 와는 의미 다름.
-  for (const f of files) {
-    const src = join(POSTS_DIR, f);
-    process.stdout.write(`[import] ${f} → dataset "${DATASET}"\n`);
+  // 모든 ndjson 을 임시 단일 파일로 모아 1회 import 호출.
+  // spawn 비용 N → 1. 포스트 수 확장 시 효율.
+  const tmpFile = join(POSTS_DIR, ".import-batch.ndjson");
+  const lines = files.map((f) => readFileSync(join(POSTS_DIR, f), "utf8")).join("");
+  writeFileSync(tmpFile, lines);
+  try {
+    process.stdout.write(`[import] ${files.length}개 문서 → dataset "${DATASET}"\n`);
     const r = spawnSync(
       "npx",
       [
         "sanity",
         "dataset",
         "import",
-        src,
+        tmpFile,
         DATASET,
         "--project",
         PROJECT_ID,
@@ -224,8 +225,10 @@ async function importToSanity() {
       { stdio: "inherit" },
     );
     if (r.status !== 0) {
-      throw new Error(`[import] sanity dataset import 실패: ${f}`);
+      throw new Error(`[import] sanity dataset import 실패 (${files.length}개 일괄)`);
     }
+  } finally {
+    try { unlinkSync(tmpFile); } catch { /* ignore */ }
   }
   process.stdout.write(`[import] ${files.length}개 문서 import 완료.\n`);
 }

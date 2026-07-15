@@ -1,5 +1,15 @@
 # 작업 로그
 
+## 2026-07-15 — ux-floating G2 (WIP 단계 commit, ADR 0040)
+- 브랜치: feat/ux-floating-g2
+- 한 일: stash `wip:feat/ux-floating G2 carry-over` 복원 + main 의 visible-기반 children mount(ADR 0038) 와 Stash 의 floating 토글·드래그·리사이즈 핸들 통합. `FloatRect` 타입·WindowState.floating·toggleFloating/setFloatRect stub. viewModel 의 6인자 visibleIds 호출 → 5인자 fallback (WIP 부채 정리). build 가능 상태로 WIP commit. G2 실동작(드래그·리사이즈·storage v2·tiles 적용) 은 다음 세션.
+- 검증: typecheck 0 / eslint 0 / vitest 33 files / 245 tests / build 11/11 / smoke 24/24.
+- 리뷰: 단일 세션 G2 전체 완성 위험 → 사용자와 "WIP commit + 다음 세션" 합의. reviewer 호출 생략(self-verify). — 상세: docs/reviews/2026-07-15-ux-floating-g2-wip.md
+- 가정: 단일 세션에 G2 전체 완성(드래그·리사이즈·storage v2·tiles) 은 깊이 + 시간 둘 다 부족. WIP commit 으로 보존 후 다음 세션 완성. G2 실동작은 stub — UI 표시만 가능.
+- 후속 작업 (다음 세션): useRuehanix dragRef float case 동작. viewModel tiles floating 우선. layout-storage v2 bump. toggleFloating/setFloatRect 실동작 + 회귀 테스트. 모바일 비활성. 키바인딩. ADR 0025 신설.
+- 가정: `git stash drop stash@{0}` 는 commit 으로 보존된 상태에서 사용자 명시적 요청 시 진행.
+- 관련 결정: docs/decisions/0040-ux-floating-g2-wip.md
+
 ## 2026-07-15 — sync-posts Sanity dataset 자동 import (ADR 0039)
 - 브랜치: feat/sanity-auto-import
 - 한 일: `scripts/sync-posts.mjs` 의 `main()` 끝에 `importToSanity()` 추가. 모든 ndjson 순회하며 `npx sanity dataset import` 호출. `--replace` (createOrReplace) 모드로 동일 _id upsert — 다른 doc (photo/artist/album) 영향 X. `SANITY_IMPORT_TOKEN` env 사용. 미설정 시 ndjson 만 + 경고. `--no-import` / `--dry-run` 플래그로 import skip. 실패 시 throw + exit 1. 동적 import → 정적. 데드 코드(tmpDir/mkdirSync) 제거. ADR 의 결정 섹션 모순 정정.

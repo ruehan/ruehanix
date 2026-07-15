@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import { clickable } from "./clickable";
 import type { Vm } from "./viewModel";
 
@@ -98,8 +99,7 @@ function PlayIcon({ playing, size = 16 }: { playing: boolean; size?: number }) {
 
 function ArtistAvatar({ photoUrl, name, size }: { photoUrl: string; name: string; size: number }) {
   if (photoUrl) {
-    // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그.
-    return <img src={photoUrl} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flex: "none", border: "1px solid var(--surf0)" }} />;
+    return <Image src={photoUrl} alt={name} width={size} height={size} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flex: "none", border: "1px solid var(--surf0)" }} />;
   }
   return (
     <div style={{ width: size, height: size, borderRadius: "50%", flex: "none", background: "var(--surf0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.4, fontWeight: 800, color: "var(--ov0)" }}>{name.slice(0, 1)}</div>
@@ -160,10 +160,9 @@ function ArtistDirectory({ views, currentId, accent, onPlay }: { views: Vm["play
 
                 {view.albums.map((al) => (
                   <div key={al.id} style={{ display: "flex", gap: 11, marginBottom: 12, padding: 10, borderRadius: 9, background: "var(--mantle)", border: "1px solid var(--surf0)" }}>
-                    <div style={{ width: 52, height: 52, flex: "none", borderRadius: 7, overflow: "hidden", background: "var(--surf1)" }}>
+                    <div style={{ position: "relative", width: 52, height: 52, flex: "none", borderRadius: 7, overflow: "hidden", background: "var(--surf1)" }}>
                       {al.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN
-                        <img src={al.coverUrl} alt={al.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <Image src={al.coverUrl} alt={al.title} fill sizes="52px" style={{ objectFit: "cover" }} />
                       ) : (
                         <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ov0)", fontSize: 18 }}>♪</div>
                       )}

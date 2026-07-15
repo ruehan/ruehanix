@@ -14,7 +14,6 @@ const mono = "'JetBrains Mono',monospace";
 
 export function ReaderApp({ vm }: { vm: Vm }) {
   const p = vm.post;
-  const [focus, setFocus] = useState(false);
   const [prefs, setPrefs] = useState<ReaderPrefs>(DEFAULT_READER_PREFS);
   const savedRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -72,18 +71,11 @@ export function ReaderApp({ vm }: { vm: Vm }) {
     setPrefs((prev) => ({ ...prev, width }));
     notify(`본문 폭 ${width}px`);
   };
-  const toggleFocus = () => {
-    const next = !focus;
-    setFocus(next);
-    notify(next ? "포커스 모드 켬" : "포커스 모드 끔");
-  };
 
   const showToc = !vm.isMobile && headings.length > 0 && !!p;
 
   return (
     <div style={{ display: "flex", height: "100%" }}>
-      {!focus && <ReaderSidebar vm={vm} />}
-
       <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
         <div ref={scrollRef} onScroll={onScroll} style={{ flex: 1, minWidth: 0, overflow: "auto", background: "var(--base)", position: "relative", ["--rh-body-fs" as string]: `${prefs.fontSize}px` }}>
           {!p ? (
@@ -92,7 +84,6 @@ export function ReaderApp({ vm }: { vm: Vm }) {
             <>
               {/* 툴바 + 진행률 바 (sticky) */}
               <div style={{ position: "sticky", top: 0, zIndex: 4, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, padding: "8px 14px", background: "color-mix(in srgb, var(--mantle) 92%, transparent)", backdropFilter: "blur(8px)", borderBottom: "1px solid var(--surf0)" }}>
-                <ReaderBtn label="포커스 모드" pressed={focus} onClick={toggleFocus}>⤢</ReaderBtn>
                 <ReaderBtn label="글씨 작게" onClick={() => changeFont(-1)}>A−</ReaderBtn>
                 <ReaderBtn label="글씨 크게" onClick={() => changeFont(1)}>A+</ReaderBtn>
                 <ReaderBtn label="본문 폭 좁게" onClick={() => changeWidth(-40)}>⇠</ReaderBtn>

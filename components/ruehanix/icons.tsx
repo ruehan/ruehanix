@@ -44,11 +44,6 @@ const PATHS: Record<AppKey, JSX.Element[]> = {
     <circle key={2} cx={8.5} cy={9.5} r={1.5} />,
     <path key={3} d="M4 18l5-5 4 4 3-3 4 4" />,
   ],
-  hotlap: [
-    <circle key={1} cx={12} cy={12} r={9} />,
-    <circle key={2} cx={12} cy={12} r={2.2} />,
-    <path key={3} d="M12 3v5M3.8 9.5l4.8 2.2M20.2 9.5l-4.8 2.2" />,
-  ],
   terminal: [
     <rect key={1} x={3} y={4} width={18} height={16} rx={2} />,
     <path key={2} d="M7 9l3 3-3 3M12.5 15h4" />,
@@ -56,11 +51,6 @@ const PATHS: Record<AppKey, JSX.Element[]> = {
   web: [
     <circle key={1} cx={12} cy={12} r={9} />,
     <path key={2} d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" />,
-  ],
-  music: [
-    <path key={1} d="M9 18V5l10-2v13" />,
-    <circle key={2} cx={6} cy={18} r={3} />,
-    <circle key={3} cx={16} cy={16} r={3} />,
   ],
   settings: [
     <circle key={1} cx={12} cy={12} r={3} />,

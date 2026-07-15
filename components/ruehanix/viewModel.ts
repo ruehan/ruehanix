@@ -208,7 +208,7 @@ export function buildVm(api: RuehanixApi) {
   const launcherResults = {
     apps: search.apps,
     posts: search.posts.map((p) => ({ ...p, onClick: () => handlers.openPost(p.slug) })),
-    artists: search.artists.map((a) => ({ ...a, onClick: () => handlers.openApp("music") })),
+    artists: search.artists.map((a) => ({ ...a, onClick: () => handlers.openApp("reader") })),
     photos: search.photos.map((ph) => ({ ...ph, onClick: () => handlers.openApp("foto") })),
   };
   const hasResults =
@@ -411,8 +411,8 @@ export function buildVm(api: RuehanixApi) {
     artistViews: buildArtistViews(artists, albums, tracks), // 아티스트별 앨범+수록곡 조인(상세 표시용)
     currentArtistId: curTrack?.artistInfo?.id ?? null, // 재생 중 가수 강조용
     play: (i: number) => handlers.playerSelect(i),
-    popoverOpen: st.showMusic,
-    togglePopover: handlers.toggleMusic,
+    popoverOpen: false, // 음악 비활성 (ADR 0047)
+    togglePopover: () => {}, // 음악 비활성 (ADR 0047)
     tracks: tracks.map((t, i) => ({
       id: i,
       title: t.title,

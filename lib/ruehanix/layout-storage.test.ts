@@ -25,7 +25,7 @@ describe("layout-storage", () => {
       open: { files: { ws: 2 }, reader: { ws: 2 } },
       order: ["reader", "files"] as ("reader" | "files")[],
       ratios: { "ws2-0": 0.4, "ws2-1": 0.6 },
-      minimized: { music: true },
+      minimized: { reader: true },
       maximized: "reader" as const,
       floating: { files: { x: 100, y: 100, w: 600, h: 400 } },
     };

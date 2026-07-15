@@ -2,10 +2,8 @@ export type AppKey =
   | "files"
   | "reader"
   | "foto"
-  | "hotlap"
   | "terminal"
   | "web"
-  | "music"
   | "settings"
   | "about";
 

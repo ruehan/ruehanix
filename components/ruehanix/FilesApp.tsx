@@ -42,7 +42,16 @@ export function FilesApp({ vm }: { vm: Vm }) {
         <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           {vm.finderPosts.length === 0 && <EmptyPosts compact />}
           {vm.finderPosts.map((p) => (
-            <div key={p.id} {...clickable(p.open, `${p.title} 열기`)} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 14px", borderBottom: "1px solid var(--surf0)", cursor: "pointer", background: p.rowBg }}>
+            <div
+              key={p.id}
+              tabIndex={0}
+              role="button"
+              aria-label={`${p.title} 열기`}
+              onClick={p.open}
+              onDoubleClick={p.open}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); p.open(); } }}
+              style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 14px", borderBottom: "1px solid var(--surf0)", cursor: "pointer", background: p.rowBg }}
+            >
               <span style={{ flex: "none", width: 8, height: 8, borderRadius: 2, background: p.catColor }} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--text)" }}>{p.title}.md</div>

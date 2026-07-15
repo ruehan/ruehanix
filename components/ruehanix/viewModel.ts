@@ -256,6 +256,7 @@ export function buildVm(api: RuehanixApi) {
   const finderCats = catList.map((c) => ({
     key: c.key,
     label: c.label,
+    active: c.key === fc,
     onClick: () => handlers.setFinderCat(c.key),
     chipStyle: {
       padding: "3px 11px",

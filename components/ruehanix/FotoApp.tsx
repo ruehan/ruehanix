@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import type { Vm } from "./viewModel";
 import { groupByFolder, type PhotoGroup, UNCATEGORIZED } from "@/lib/photos/group-by-folder";
+import { nextFocusIndex } from "./focus-trap";
 
 type View =
   | { kind: "folders" }
@@ -34,17 +35,47 @@ export function FotoApp({ vm }: { vm: Vm }) {
   };
   const backToFolders = () => setView({ kind: "folders" });
 
-  // lightbox 키 처리
+  // lightbox 키 처리 — Esc/←/→ + Tab focus trap.
   useEffect(() => {
     if (lightboxIdx === null) return;
+    const focusable = () => Array.from(document.querySelectorAll<HTMLElement>("[data-lightbox-focus]"));
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightboxIdx(null);
-      else if (e.key === "ArrowRight") setLightboxIdx((i) => (i === null ? null : (i + 1) % currentPhotos.length));
-      else if (e.key === "ArrowLeft") setLightboxIdx((i) => (i === null ? null : (i - 1 + currentPhotos.length) % currentPhotos.length));
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setLightboxIdx(null);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setLightboxIdx((i) => (i === null ? null : (i + 1) % currentPhotos.length));
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setLightboxIdx((i) => (i === null ? null : (i - 1 + currentPhotos.length) % currentPhotos.length));
+      } else if (e.key === "Tab") {
+        // focus trap — lightbox 내부 focusable 사이만 cycle.
+        e.preventDefault();
+        const els = focusable();
+        if (els.length === 0) return;
+        const current = els.findIndex((el) => el === document.activeElement);
+        const next = nextFocusIndex(current, els.length, e.shiftKey ? -1 : 1);
+        els[next]?.focus();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        setLightboxIdx(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        setLightboxIdx(currentPhotos.length - 1);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxIdx, currentPhotos.length]);
+
+  // lightbox 열릴 때 close button 에 focus — 키보드 진입점.
+  // (focus 는 외부 시스템 sync 이라 useEffect OK.)
+  const lightboxCloseRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (lightboxIdx === null) return;
+    requestAnimationFrame(() => lightboxCloseRef.current?.focus());
+  }, [lightboxIdx]);
 
   if (vm.photos.length === 0) {
     return (
@@ -213,6 +244,7 @@ export function FotoApp({ vm }: { vm: Vm }) {
           onNext={() => setLightboxIdx((i) => (i === null ? null : (i + 1) % currentPhotos.length))}
           onClose={() => setLightboxIdx(null)}
           hint={`${lightboxIdx + 1} / ${currentPhotos.length}`}
+          closeRef={lightboxCloseRef}
         />
       ) : null}
     </div>
@@ -282,17 +314,20 @@ function Lightbox({
   onNext,
   onClose,
   hint,
+  closeRef,
 }: {
   photo: { url: string; title: string; description?: string };
   onPrev: () => void;
   onNext: () => void;
   onClose: () => void;
   hint: string;
+  closeRef?: React.RefObject<HTMLButtonElement | null>;
 }) {
   return (
     <div
       role="dialog"
       aria-label="사진 크게 보기"
+      aria-modal="true"
       onClick={onClose}
       style={{
         position: "fixed",
@@ -307,6 +342,7 @@ function Lightbox({
     >
       <button
         type="button"
+        data-lightbox-focus
         aria-label="이전"
         onClick={(e) => {
           e.stopPropagation();
@@ -364,6 +400,7 @@ function Lightbox({
       </div>
       <button
         type="button"
+        data-lightbox-focus
         aria-label="다음"
         onClick={(e) => {
           e.stopPropagation();
@@ -374,7 +411,9 @@ function Lightbox({
         ›
       </button>
       <button
+        ref={closeRef}
         type="button"
+        data-lightbox-focus
         aria-label="닫기"
         onClick={(e) => {
           e.stopPropagation();

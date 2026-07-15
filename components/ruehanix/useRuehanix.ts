@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   ACCENT_PALETTE,
   APP_KEYS,
@@ -32,6 +32,7 @@ import { isMobileWidth } from "@/lib/ruehanix/responsive";
 import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, DEFAULT_UI, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
 import { recordVisitStore } from "@/lib/ruehanix/visits";
+import { matchCommands, type Command } from "@/lib/ruehanix/commands";
 import { close as closeState, gotoWs as gotoWsState, minimize as minimizeState, moveTile as moveTileState, moveToWs as moveToWsState, openApp as openAppState, openPostReader as openPostReaderState, setFloatRect as setFloatRectState, toggleFloating as toggleFloatingState, toggleMaximize as toggleMaximizeState } from "@/lib/ruehanix/windowState";
 import type { AppKey, ArtistInfo, Album, CatKey, FloatRect, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
@@ -46,6 +47,7 @@ interface CoreState {
   showLauncher: boolean;
   showKeys: boolean;
   showMusic: boolean;
+  showCommandPalette: boolean;
   open: Partial<Record<AppKey, { ws: number }>>;
   order: AppKey[];
   ratios: Record<string, number>;
@@ -78,6 +80,7 @@ const INITIAL: CoreState = {
   showLauncher: false,
   showKeys: false,
   showMusic: false,
+  showCommandPalette: false,
   // 기본 빈 워크스페이스(Hyprland 첫 로그인처럼 깨끗한 시작). 앱은 런처/독에서 사용자가 엶.
   open: {},
   order: [],
@@ -161,10 +164,11 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
   const toggleLauncher = () => {
     setLauncherQuery("");
-    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false, showMusic: false }));
+    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false, showMusic: false, showCommandPalette: false }));
   };
-  const toggleKeys = () => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false, showMusic: false }));
-  const toggleMusic = () => setSt((s) => ({ ...s, showMusic: !s.showMusic, showLauncher: false, showKeys: false }));
+  const toggleKeys = () => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false, showMusic: false, showCommandPalette: false }));
+  const toggleMusic = () => setSt((s) => ({ ...s, showMusic: !s.showMusic, showLauncher: false, showKeys: false, showCommandPalette: false }));
+  const toggleCommandPalette = () => setSt((s) => ({ ...s, showCommandPalette: !s.showCommandPalette, showLauncher: false, showKeys: false, showMusic: false }));
   const gotoWs = (n: number) => setSt((s) => ({ ...s, ...gotoWsState(s, n), showLauncher: false }));
   const openApp = (k: AppKey) => {
     setLauncherQuery("");
@@ -274,6 +278,12 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
     if (st.booting) return;
     if (isMobileWidth(window.innerWidth)) return; // 모바일엔 워크스페이스/런처 개념 없음
     const k = e.key;
+    // Ctrl/Cmd+K — 명령 팔레트(브라우저 기본 검색 회피 위해 preventDefault).
+    if ((e.ctrlKey || e.metaKey) && (k === "k" || k === "K")) {
+      e.preventDefault();
+      toggleCommandPalette();
+      return;
+    }
     // 숫자키는 e.code(물리 키)로 판정 — Shift+숫자가 e.key로는 "!@#$%^"로 와서 Super+Shift+1-6이 불발.
     const digit = e.code.startsWith("Digit") ? +e.code.slice(5) : 0;
     if (e.metaKey || e.altKey) {
@@ -483,6 +493,70 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
     }
   }, [st.player]);
 
+  // 명령 팔레트 — 셸의 모든 액션을 자연어 fuzzy 로 검색/실행.
+  const commands: Command[] = useMemo(() => {
+    const appKeys: AppKey[] = ["files", "reader", "foto", "hotlap", "terminal", "web", "music", "settings", "about"];
+    return [
+      ...appKeys.map((k) => ({
+        id: `app:${k}`,
+        title: `${APP_META[k].name} 열기`,
+        group: "app" as const,
+        keywords: [k, APP_META[k].name.toLowerCase(), APP_META[k].hint.toLowerCase()],
+        run: () => openApp(k),
+      })),
+      ...[1, 2, 3, 4, 5, 6].map((n) => ({
+        id: `ws:${n}`,
+        title: `워크스페이스 ${n}`,
+        group: "ws" as const,
+        keywords: [`ws ${n}`, `workspace ${n}`, String(n), `워크스페이스 ${n}`],
+        run: () => gotoWs(n),
+      })),
+      ...(["light", "dark", "auto"] as const).map((m) => ({
+        id: `theme:${m}`,
+        title: `테마: ${m === "auto" ? "Auto" : m === "light" ? "Light" : "Dark"}`,
+        group: "theme" as const,
+        keywords: ["theme", m, m === "light" ? "라이트" : m === "dark" ? "다크" : "자동"],
+        run: () => setMode(m),
+      })),
+      {
+        id: "shell:sync-posts",
+        title: "콘텐츠 동기화 (md → Sanity)",
+        group: "shell" as const,
+        keywords: ["sync", "posts", "동기화", "sanity", "import"],
+        run: () => { window.location.assign("/api/sync-posts"); },
+      },
+      {
+        id: "shell:keybindings",
+        title: "단축키 보기",
+        group: "shell" as const,
+        keywords: ["keybindings", "단축키", "shortcut", "keys"],
+        run: () => toggleKeys(),
+      },
+      {
+        id: "nav:home",
+        title: "홈으로",
+        group: "nav" as const,
+        keywords: ["home", "홈", "/"],
+        run: () => { window.location.assign("/"); },
+      },
+      {
+        id: "nav:posts",
+        title: "모든 글",
+        group: "nav" as const,
+        keywords: ["posts", "글", "list", "목록"],
+        run: () => { window.location.assign("/posts"); },
+      },
+      {
+        id: "nav:studio",
+        title: "Sanity Studio",
+        group: "nav" as const,
+        keywords: ["studio", "스튜디오", "sanity", "content"],
+        run: () => { window.location.assign("/studio"); },
+      },
+    ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- handlers 가 setter ref 라 deps 추가 시 매번 새 commands 생성
+  }, [openApp, gotoWs, setMode, toggleKeys]);
+
   return {
     st,
     sys,
@@ -490,11 +564,13 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
     posts,
     launcherQuery,
     prefersLight,
+    commands,
     handlers: {
       setLauncherQuery,
       toggleLauncher,
       toggleKeys,
       toggleMusic,
+      toggleCommandPalette,
       gotoWs,
       openApp,
       close,

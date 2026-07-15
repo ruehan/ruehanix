@@ -13,6 +13,7 @@ import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
 import { useToast } from "@/lib/ruehanix/toast";
 import { AppErrorBoundary } from "./AppErrorBoundary";
 import { isHidden } from "@/lib/ruehanix/win-visibility";
+import { CommandPalette } from "./CommandPalette";
 
 // 9개 앱 모두 lazy — chunk 그래프 일관성 + ssr:false 통일. ADR 0033 후속.
 // dynamic loader 가 chunk 캐시 → minimize/restore 시 즉시 재로드.
@@ -320,6 +321,9 @@ export function RuehanixShell(content: ShellContent) {
 
       {/* LAUNCHER */}
       {!vm.isMobile && vm.showLauncher && <Launcher vm={vm} />}
+
+      {/* COMMAND PALETTE — Ctrl+K */}
+      {vm.showCommandPalette && <CommandPalette open commands={vm.commands} onClose={vm.toggleCommandPalette} />}
 
       {/* KEYBIND OVERLAY */}
       {!vm.isMobile && vm.showKeys && (

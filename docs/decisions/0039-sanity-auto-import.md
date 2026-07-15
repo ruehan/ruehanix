@@ -22,6 +22,19 @@ ndjson 을 순회하며 `npx sanity dataset import` 호출.
 - `--no-import` 또는 `--dry-run` 플래그로 import skip.
 - 실패 시 throw + exit 1. CI 가 즉시 실패.
 
+## `--replace` 의미 (라운드 1 P1 모순 정정)
+
+`--replace` 는 동일 `_id` 의 `createOrReplace` (upsert) 모드. dataset 의
+*다른* doc (photo/artist/album) 은 ndjson 에 포함돼 있지 않으므로 절대
+건드리지 않는다. "dataset 전체 교체" 가 아니다. 즉 `--replace` 는 동일 slug
+재실행 시 upsert 로 *필수*다. 플래그 없이 호출 시 default 모드(`create`)는
+같은 `_id` 가 이미 있으면 409로 실패한다. (Sanity CLI `@sanity/import`
+소스의 `createOrReplace` 분기로 확인.)
+
+따라서 본 작업의 `--replace` 사용은 의도한 upsert 동작을 위한 필수 선택이며
+ADR 초안의 "dataset replace — 거절" 은 다른 의미의 dataset 전체 교체와 혼동한
+오류. 이 단락으로 정정.
+
 ## 이유와 대안
 
 - **별도 sync-posts:push 명령** — 분리 가치 있으나 md 작성자(= 본인)이 한 번에
@@ -31,7 +44,8 @@ ndjson 을 순회하며 `npx sanity dataset import` 호출.
   트리거(수동) 선호.
 - **Studio 에서 publish 만 사용** — 사용자가 채택했던 흐름. 그러나 md 가
   진실이라는 정책과 어긋남(ADR 0030).
-- **dataset replace** — 다른 문서(photo/artist/album)까지 날아가는 위험. 거절.
+- **`--replace` 제거** — createOrReplace 미동작. 같은 slug 재실행 시 409
+  실패. 거절.
 
 ## 영향
 

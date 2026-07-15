@@ -8,6 +8,10 @@ const nextConfig = {
       { protocol: "https", hostname: "cdn.sanity.io" },
     ],
   },
+  // vendor tree-shake — 큰 import 표면 줄이기. ADR 0042 후속.
+  experimental: {
+    optimizePackageImports: ["@sanity/image-url", "next-sanity", "@sanity/vision"],
+  },
 };
 
 export default nextConfig;

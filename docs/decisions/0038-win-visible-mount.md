@@ -20,6 +20,16 @@ visible 일 때만 마운트.
   아니면 기존 chrome + ErrorBoundary + `{children}` 그대로.
 - dynamic loader 가 chunk 캐시 → minimize/restore 시 즉시 재로드.
 
+## preserveLocalState (라운드 1 P1-2 반영)
+
+FotoApp 만 `preserveLocalState={true}` — hidden 일 때도 children 마운트.
+이유: FotoApp 의 local state (`view` 폴더 네비게이션, `lightboxIdx`) 가 ws 전환
+또는 minimize 시 reset 되는 회귀. 폴더 진입 후 ws 전환했다 돌아오면 폴더 view 가
+폴더 목록으로 reset — 흔한 시나리오. dynamic loader 가 chunk 캐시하므로
+추가 비용 없음. 다른 8개 앱은 preserve 미적용 (default false) — dynamic 3개
+는 chunk 캐시로 즉시 재로드되므로 reset 이 자연스럽고, 정적 4개(About/Hotlap/
+Terminal/Web) 는 hooks 가 없거나 local state 가 무의미.
+
 ## 사용한 패턴 회피 (ADR 0038 작성 중 검토한 대안)
 
 - **useState + useEffect `setHasMounted(true)`** — React 19 의 "Calling setState

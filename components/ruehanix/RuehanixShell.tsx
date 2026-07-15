@@ -28,7 +28,20 @@ const YouTubeEngine = dynamic(
   { ssr: false },
 );
 
-function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }) {
+function Win({
+  vm,
+  app,
+  children,
+  preserveLocalState = false,
+}: {
+  vm: Vm;
+  app: AppKey;
+  children: ReactNode;
+  /** true 면 hidden 일 때도 children 마운트 유지(local state 보호).
+   *  FotoApp 의 폴더 네비게이션·라이트박스가 ws 전환·minimize 사이에 reset 되는
+   *  회귀를 막기 위함. dynamic loader 가 chunk 캐시하므로 추가 비용 없음. */
+  preserveLocalState?: boolean;
+}) {
   const meta = APP_META[app];
   const tileStyle = vm.tiles[app];
   const hidden = isHidden(tileStyle);
@@ -36,7 +49,8 @@ function Win({ vm, app, children }: { vm: Vm; app: AppKey; children: ReactNode }
   // visibleIds 계산 결과가 hidden 인 앱: chrome/children 미렌더, outer div 만 남김.
   // children 은 visible 일 때만 마운트. dynamic loader 가 chunk 캐시하므로
   // minimize/restore 시 즉시 재로드. setState cascade 회피 + 단순.
-  if (hidden) {
+  // preserveLocalState=true 인 앱(FotoApp)은 local state 보호를 위해 항상 mount.
+  if (hidden && !preserveLocalState) {
     return <div style={tileStyle} aria-hidden="true" />;
   }
 
@@ -256,7 +270,7 @@ export function RuehanixShell(content: ShellContent) {
       <div style={{ position: "absolute", inset: 0, zIndex: 100 }}>
         <Win vm={vm} app="files"><FilesApp vm={vm} /></Win>
         <Win vm={vm} app="reader"><ReaderApp vm={vm} /></Win>
-        <Win vm={vm} app="foto"><FotoApp vm={vm} /></Win>
+        <Win vm={vm} app="foto" preserveLocalState><FotoApp vm={vm} /></Win>
         <Win vm={vm} app="hotlap"><HotlapApp vm={vm} /></Win>
         <Win vm={vm} app="terminal"><TerminalApp /></Win>
         <Win vm={vm} app="web"><WebApp vm={vm} /></Win>

@@ -16,7 +16,8 @@ Studio 진입 → 수동 import 의 추가 단계가 필요. 운영 마찰.
 ndjson 을 순회하며 `npx sanity dataset import` 호출.
 
 - `_id` 가 `post.${slug}` 로 결정되어 있어 같은 slug 재실행 시 upsert(덮어쓰기)
-  동작. 누적 모드(default) 사용. dataset 의 다른 문서(사진/아티스트/앨범)는 영향 X.
+  동작. `--replace` (createOrReplace) 모드 사용 — dataset 의 다른 문서
+  (사진/아티스트/앨범)는 영향 X.
 - `SANITY_IMPORT_TOKEN` env 사용. 없으면 ndjson 만 생성 + 경고 출력(에러 아님).
   CI 에서만 token 주입 → 로컬 dry-run 가능.
 - `--no-import` 또는 `--dry-run` 플래그로 import skip.

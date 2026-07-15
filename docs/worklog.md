@@ -1,5 +1,14 @@
 # 작업 로그
 
+## 2026-07-15 — sync-posts Sanity dataset 자동 import (ADR 0039)
+- 브랜치: feat/sanity-auto-import
+- 한 일: `scripts/sync-posts.mjs` 의 `main()` 끝에 `importToSanity()` 추가. 모든 ndjson 순회하며 `npx sanity dataset import` 호출. `--replace` (createOrReplace) 모드로 동일 _id upsert — 다른 doc (photo/artist/album) 영향 X. `SANITY_IMPORT_TOKEN` env 사용. 미설정 시 ndjson 만 + 경고. `--no-import` / `--dry-run` 플래그로 import skip. 실패 시 throw + exit 1. 동적 import → 정적. 데드 코드(tmpDir/mkdirSync) 제거. ADR 의 결정 섹션 모순 정정.
+- 검증: typecheck 0 / eslint 0 / vitest 33 files / 245 tests / build 11/11 / smoke 24/24. --no-import dry-run 2 파일 OK.
+- 리뷰: 통과 2라운드(R1 P1 ADR 모순·P1 데드 코드·P2 동적 import → 반영 → R2 P1 결정 섹션 잔존 모순·P2 docs → 반영) — 상세: docs/reviews/2026-07-15-sanity-auto-import.md
+- 가정: --replace 가 createOrReplace 로 동일 _id 만 덮어쓰는 의미(Sanity CLI `@sanity/import` 소스 확인). 누락 정책 X(같은 slug 재실행은 upsert). SANITY_IMPORT_TOKEN 미설정은 non-fatal(ndjson 만 생성).
+- 후속 작업: N회 spawn → 1회 통합(포스트 수 확장). importToSanity 단위 테스트. CI sync-posts:verify 단계.
+- 관련 결정: docs/decisions/0039-sanity-auto-import.md
+
 ## 2026-07-15 — Win visible-기반 children mount (ADR 0038)
 - 브랜치: feat/win-visible-mount
 - 한 일: `lib/ruehanix/win-visibility.ts` — `isHidden(style)` 헬퍼 (`display: "none"` 만). `Win` 컴포넌트 inline 수정 — hidden 시 chrome+children 미렌더, outer div + aria-hidden 만. visible 일 때만 mount. dynamic loader 가 chunk 캐시하므로 minimize/restore 시 즉시 재로드. `preserveLocalState` prop — FotoApp 한 곳만 true 로 ws 전환·minimize·close 사이 local state 보호. ADR 0038.

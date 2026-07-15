@@ -263,18 +263,7 @@ export function RuehanixShell(content: ShellContent) {
           <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{vm.focusTitle}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          {vm.player.hasTracks && (
-            <div
-              data-testid="miniplayer"
-              {...clickable(vm.player.togglePopover, "음악 컨트롤러")}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "2px 9px", borderRadius: 7, cursor: "pointer", maxWidth: 200, background: vm.player.popoverOpen ? "color-mix(in srgb, var(--accent) 26%, transparent)" : "color-mix(in srgb, var(--accent) 14%, transparent)", color: "var(--accent)" }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                {vm.player.playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
-              </svg>
-              <span data-testid="mini-title" style={{ fontSize: 11.5, color: "var(--sub1)", maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{vm.player.current?.title}</span>
-            </div>
-          )}
+          {/* 미니플레이어 — 음악 비활성 (ADR 0047). */}
           <div style={{ padding: "3px 11px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", fontWeight: 700 }}>{vm.mod.clock}</div>
           <div {...clickable(vm.reboot, "재부팅")} title="reboot" style={{ display: "flex", alignItems: "center", padding: "3px 8px", borderRadius: 7, background: "rgba(243,139,168,.14)", color: "#f38ba8", cursor: "pointer" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 3v9" /><path d="M6.5 7a8 8 0 1 0 11 0" /></svg>

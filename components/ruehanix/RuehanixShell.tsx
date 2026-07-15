@@ -8,16 +8,21 @@ import { useRuehanix, type ShellContent } from "./useRuehanix";
 import { clickable } from "./clickable";
 import { buildVm, type Vm } from "./viewModel";
 import { ART_DESK, LineIcon } from "./icons";
-import { AboutApp, FilesApp, FotoApp, HotlapApp, TerminalApp, WebApp } from "./apps";
+import dynamic from "next/dynamic";
 import { KEYBINDINGS as KEYBINDS } from "@/lib/ruehanix/settings";
 import { useToast } from "@/lib/ruehanix/toast";
 import { AppErrorBoundary } from "./AppErrorBoundary";
 import { isHidden } from "@/lib/ruehanix/win-visibility";
-import dynamic from "next/dynamic";
 
-// 큰 콘텐츠 앱 3개 — 초기 번들에서 chunk 분리. 첫 사용 시점에 다운로드(ADR 0033).
-// ssr: false 로 클라이언트 전용. 작은 앱 6개(About/Files/Foto/Hotlap/Terminal/Web) 정적 유지.
+// 9개 앱 모두 lazy — chunk 그래프 일관성 + ssr:false 통일. ADR 0033 후속.
+// dynamic loader 가 chunk 캐시 → minimize/restore 시 즉시 재로드.
+const AboutApp = dynamic(() => import("./apps").then((m) => m.AboutApp), { ssr: false });
+const FilesApp = dynamic(() => import("./apps").then((m) => m.FilesApp), { ssr: false });
+const FotoApp = dynamic(() => import("./apps").then((m) => m.FotoApp), { ssr: false });
+const HotlapApp = dynamic(() => import("./apps").then((m) => m.HotlapApp), { ssr: false });
 const ReaderApp = dynamic(() => import("./ReaderApp").then((m) => m.ReaderApp), { ssr: false });
+const TerminalApp = dynamic(() => import("./apps").then((m) => m.TerminalApp), { ssr: false });
+const WebApp = dynamic(() => import("./apps").then((m) => m.WebApp), { ssr: false });
 const MusicApp = dynamic(() => import("./MusicApp").then((m) => m.MusicApp), { ssr: false });
 const SettingsApp = dynamic(() => import("./SettingsApp").then((m) => m.SettingsApp), { ssr: false });
 

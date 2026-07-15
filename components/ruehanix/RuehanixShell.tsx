@@ -28,7 +28,7 @@ const YouTubeEngine = dynamic(
   { ssr: false },
 );
 
-function Win({
+export function Win({
   vm,
   app,
   children,

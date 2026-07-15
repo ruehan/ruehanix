@@ -141,3 +141,15 @@ export interface Gutter {
   w: number;
   h: number;
 }
+
+/**
+ * 플로팅 창(타일 레이아웃에서 벗어나 자유 위치) 의 사각형.
+ * useRuehanix CoreState.floating 의 값. layout-storage v2 슬라이스로 영속.
+ * ADR 0025 — Hyprland floating 동등.
+ */
+export interface FloatRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}

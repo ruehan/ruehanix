@@ -74,6 +74,28 @@ export function buildVm(api: RuehanixApi) {
       continue;
     }
     const r = lay.rects[k];
+    const f = st.floating[k];
+    // 플로팅 창 — 자유 rect, 타일 위에 뜸(z 150+). 포커스면 최상(z 200).
+    if (f && st.open[k] && st.open[k]!.ws === st.ws && !st.booting && !mobile) {
+      const foc = st.focused === k;
+      tiles[k] = {
+        position: "absolute",
+        left: f.x,
+        top: f.y,
+        width: f.w,
+        height: f.h,
+        borderRadius: Math.max(rad, 11),
+        overflow: "hidden",
+        border: `2px solid ${foc ? accent : C.surf0}`,
+        boxShadow: foc
+          ? ui.glow
+            ? `0 0 0 1px ${hexA(accent, 0.45)},0 0 26px ${hexA(accent, 0.35)},0 18px 48px rgba(0,0,0,.55)`
+            : "0 18px 48px rgba(0,0,0,.55)"
+          : "0 12px 32px rgba(0,0,0,.42)",
+        zIndex: foc ? 200 : 150,
+      };
+      continue;
+    }
     const vis = st.open[k] && st.open[k]!.ws === st.ws && !st.booting && r;
     if (!vis || !r) {
       tiles[k] = { position: "absolute", display: "none" };
@@ -439,6 +461,10 @@ export function buildVm(api: RuehanixApi) {
     minimize,
     toggleMaximize,
     isMaximized,
+    floating: st.floating,
+    toggleFloating: (k: AppKey) => handlers.toggleFloating(k, handlers.defaultFloatRect()),
+    startFloatDrag: handlers.startFloatDrag,
+    startFloatResize: handlers.startFloatResize,
     wbtn: {
       width: 18,
       height: 18,

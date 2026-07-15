@@ -45,6 +45,7 @@ function Win({
   const meta = APP_META[app];
   const tileStyle = vm.tiles[app];
   const hidden = isHidden(tileStyle);
+  const floating = !!vm.floating[app];
 
   // visibleIds 계산 결과가 hidden 인 앱: chrome/children 미렌더, outer div 만 남김.
   // children 은 visible 일 때만 마운트. dynamic loader 가 chunk 캐시하므로
@@ -58,10 +59,19 @@ function Win({
     <div style={tileStyle}>
       <div style={vm.chrome}>
         <div
-          onMouseDown={vm.focus[app]}
-          onDoubleClick={vm.isMobile ? undefined : ((e: React.MouseEvent) => { e.stopPropagation(); vm.toggleMaximize[app](); })}
-          style={vm.tbar}
-          title={vm.isMobile ? undefined : vm.isMaximized ? "더블클릭: 복원" : "더블클릭: 최대화"}
+          onMouseDown={(e) => {
+            vm.focus[app]();
+            if (floating) vm.startFloatDrag(app, e);
+          }}
+          onDoubleClick={
+            vm.isMobile
+              ? undefined
+              : floating
+                ? (e: React.MouseEvent) => { e.stopPropagation(); vm.toggleFloating(app); }
+                : (e: React.MouseEvent) => { e.stopPropagation(); vm.toggleMaximize[app](); }
+          }
+          style={{ ...vm.tbar, cursor: floating ? "move" : vm.tbar.cursor }}
+          title={vm.isMobile ? undefined : floating ? "드래그: 이동 · 더블클릭: 타일 복귀" : vm.isMaximized ? "더블클릭: 복원" : "더블클릭: 최대화"}
         >
           <span style={{ display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap", color: meta.color }}>
             <LineIcon app={app} size={14} />
@@ -72,6 +82,7 @@ function Win({
               <>
                 <div {...clickable(vm.minimize[app], `${meta.name} 최소화`)} style={vm.wbtn}>—</div>
                 <div {...clickable(vm.toggleMaximize[app], vm.isMaximized ? `${meta.name} 복원` : `${meta.name} 최대화`)} style={vm.wbtn}>{vm.isMaximized ? "❐" : "□"}</div>
+                <div {...clickable(() => vm.toggleFloating(app), floating ? `${meta.name} 타일 복귀` : `${meta.name} 플로팅`)} style={vm.wbtn} aria-pressed={floating}>{floating ? "❏" : "◌"}</div>
               </>
             )}
             <div {...clickable(vm.close[app], `${meta.name} 닫기`)} style={vm.xbtn}>
@@ -79,7 +90,18 @@ function Win({
             </div>
           </div>
         </div>
-        <div style={vm.bodyWrap}><AppErrorBoundary appName={meta.name}>{children}</AppErrorBoundary></div>
+        <div style={vm.bodyWrap}>
+          <AppErrorBoundary appName={meta.name}>{children}</AppErrorBoundary>
+          {/* 플로팅 창 모서리 리사이즈 핸들 */}
+          {floating && !vm.isMobile && (
+            <div
+              onMouseDown={(e) => { e.stopPropagation(); vm.startFloatResize(app, e); }}
+              aria-hidden="true"
+              title="크기 조절"
+              style={{ position: "absolute", right: 0, bottom: 0, width: 16, height: 16, cursor: "nwse-resize", zIndex: 5 }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

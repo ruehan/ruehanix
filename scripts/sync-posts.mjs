@@ -231,6 +231,32 @@ async function importToSanity() {
     try { unlinkSync(tmpFile); } catch { /* ignore */ }
   }
   process.stdout.write(`[import] ${files.length}개 문서 import 완료.\n`);
+  await revalidateSite();
+}
+
+const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+async function revalidateSite() {
+  if (SKIP_IMPORT) return; // dry-run/no-import 는 페이지 무효화 X
+  if (!REVALIDATE_SECRET && !process.env.NEXT_PUBLIC_SITE_URL) {
+    // dev 기본. CI/운영은 REVALIDATE_SECRET + SITE_URL 설정.
+    process.stdout.write("[revalidate] dev 기본 — 사이트 URL 미설정으로 skip.\n");
+    return;
+  }
+  const headers = { "content-type": "application/json" };
+  if (REVALIDATE_SECRET) headers["x-revalidate-secret"] = REVALIDATE_SECRET;
+  try {
+    const r = await fetch(`${SITE_URL}/api/revalidate`, { method: "POST", headers });
+    if (!r.ok) {
+      process.stderr.write(`[revalidate] ${r.status} — site URL(${SITE_URL}) 도달 불가 가능성. dev 서버 미실행? skip.\n`);
+      return;
+    }
+    const data = await r.json();
+    process.stdout.write(`[revalidate] ${data.revalidated?.length ?? 0}개 경로 무효화.\n`);
+  } catch (e) {
+    process.stderr.write(`[revalidate] fetch 실패 — ${e.message}. skip.\n`);
+  }
 }
 
 async function main() {

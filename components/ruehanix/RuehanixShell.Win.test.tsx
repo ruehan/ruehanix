@@ -33,10 +33,8 @@ function makeVm(opts: {
     files: { position: "absolute", display: opts.display ?? "block", left: 0, top: 0, width: 800, height: 600 },
     reader: { position: "absolute", display: "none" },
     foto: { position: "absolute", display: "none" },
-    hotlap: { position: "absolute", display: "none" },
     terminal: { position: "absolute", display: "none" },
     web: { position: "absolute", display: "none" },
-    music: { position: "absolute", display: "none" },
     settings: { position: "absolute", display: "none" },
     about: { position: "absolute", display: "none" },
   };

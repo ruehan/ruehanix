@@ -20,19 +20,18 @@ import { CommandPalette } from "./CommandPalette";
 const AboutApp = dynamic(() => import("./apps").then((m) => m.AboutApp), { ssr: false });
 const FilesApp = dynamic(() => import("./apps").then((m) => m.FilesApp), { ssr: false });
 const FotoApp = dynamic(() => import("./apps").then((m) => m.FotoApp), { ssr: false });
-const HotlapApp = dynamic(() => import("./apps").then((m) => m.HotlapApp), { ssr: false });
 const ReaderApp = dynamic(() => import("./ReaderApp").then((m) => m.ReaderApp), { ssr: false });
 const TerminalApp = dynamic(() => import("./apps").then((m) => m.TerminalApp), { ssr: false });
 const WebApp = dynamic(() => import("./apps").then((m) => m.WebApp), { ssr: false });
-const MusicApp = dynamic(() => import("./MusicApp").then((m) => m.MusicApp), { ssr: false });
 const SettingsApp = dynamic(() => import("./SettingsApp").then((m) => m.SettingsApp), { ssr: false });
 
 // YouTube IFrame Player API + 138줄 엔진 — 초기 번들에서 제외. 재생 시작 시 lazy 로드.
 // ssr: false — "use client" 컴포넌트지만 더 작은 초기 핸드오프를 위해 클라이언트 전용까지 강제.
-const YouTubeEngine = dynamic(
-  () => import("./YouTubeEngine").then((m) => m.YouTubeEngine),
-  { ssr: false },
-);
+// (현재 music 앱 비활성 — 추후 재활성 시 lazy load.)
+// const YouTubeEngine = dynamic(
+//   () => import("./YouTubeEngine").then((m) => m.YouTubeEngine),
+//   { ssr: false },
+// );
 
 export function Win({
   vm,
@@ -182,10 +181,7 @@ export function RuehanixShell(content: ShellContent) {
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh", overflow: "hidden", background: "var(--crust)", color: "var(--text)", fontFamily: "'JetBrains Mono', ui-monospace, monospace", userSelect: "none" }}>
-      {/* 숨긴 오디오 엔진 — 셸 루트 상주(앱 전환에도 재생 유지) */}
-      {vm.player.hasTracks && (
-        <YouTubeEngine videoId={vm.player.videoId} playing={vm.player.playing} volume={vm.player.volume} onEnded={vm.player.onEnded} />
-      )}
+      {/* 오디오 엔진 — 음악 비활성 (ADR 0047). 추후 재활성 시 lazy 복원. */}
 
       {/* WALLPAPER */}
       <div style={{ position: "absolute", inset: 0, background: vm.wallpaper }} />
@@ -299,10 +295,8 @@ export function RuehanixShell(content: ShellContent) {
         <Win vm={vm} app="files"><FilesApp vm={vm} /></Win>
         <Win vm={vm} app="reader"><ReaderApp vm={vm} /></Win>
         <Win vm={vm} app="foto" preserveLocalState><FotoApp vm={vm} /></Win>
-        <Win vm={vm} app="hotlap"><HotlapApp vm={vm} /></Win>
         <Win vm={vm} app="terminal"><TerminalApp /></Win>
         <Win vm={vm} app="web"><WebApp vm={vm} /></Win>
-        <Win vm={vm} app="music"><MusicApp vm={vm} /></Win>
         <Win vm={vm} app="settings"><SettingsApp vm={vm} /></Win>
         <Win vm={vm} app="about"><AboutApp /></Win>
         {vm.gutters.map((g) => (
@@ -310,14 +304,7 @@ export function RuehanixShell(content: ShellContent) {
         ))}
       </div>
 
-      {/* 음악 컨트롤러 팝오버 (데스크톱) — 미니플레이어 클릭으로 토글 */}
-      {!vm.isMobile && vm.player.popoverOpen && vm.player.hasTracks && (
-        <div onClick={vm.player.togglePopover} style={{ position: "absolute", inset: 0, zIndex: 8000 }}>
-          <div data-testid="music-popover" onClick={vm.stop} style={{ position: "absolute", top: 48, right: 8, width: 300, height: 380, background: "color-mix(in srgb, var(--mantle) 98%, transparent)", border: "1px solid var(--surf1)", borderRadius: 14, overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,.5)", animation: "rh-fadeup .16s ease" }}>
-            <MusicApp vm={vm} />
-          </div>
-        </div>
-      )}
+      {/* 음악 비활성 (ADR 0047). 추후 재활성 시 popover 복원. */}
 
       {/* LAUNCHER */}
       {!vm.isMobile && vm.showLauncher && <Launcher vm={vm} />}

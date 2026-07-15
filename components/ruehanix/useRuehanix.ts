@@ -46,7 +46,6 @@ interface CoreState {
   finderCat: "all" | CatKey;
   showLauncher: boolean;
   showKeys: boolean;
-  showMusic: boolean;
   showCommandPalette: boolean;
   open: Partial<Record<AppKey, { ws: number }>>;
   order: AppKey[];
@@ -79,7 +78,6 @@ const INITIAL: CoreState = {
   finderCat: "all",
   showLauncher: false,
   showKeys: false,
-  showMusic: false,
   showCommandPalette: false,
   // 기본 빈 워크스페이스(Hyprland 첫 로그인처럼 깨끗한 시작). 앱은 런처/독에서 사용자가 엶.
   open: {},
@@ -164,11 +162,10 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   // --- 핸들러 (수동 메모이제이션 없이 — React Compiler 친화) ---
   const toggleLauncher = useCallback(() => {
     setLauncherQuery("");
-    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false, showMusic: false, showCommandPalette: false }));
+    setSt((s) => ({ ...s, showLauncher: !s.showLauncher, showKeys: false, showCommandPalette: false }));
   }, [setSt, setLauncherQuery]);
-  const toggleKeys = useCallback(() => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false, showMusic: false, showCommandPalette: false })), [setSt]);
-  const toggleMusic = useCallback(() => setSt((s) => ({ ...s, showMusic: !s.showMusic, showLauncher: false, showKeys: false, showCommandPalette: false })), [setSt]);
-  const toggleCommandPalette = useCallback(() => setSt((s) => ({ ...s, showCommandPalette: !s.showCommandPalette, showLauncher: false, showKeys: false, showMusic: false })), [setSt]);
+  const toggleKeys = useCallback(() => setSt((s) => ({ ...s, showKeys: !s.showKeys, showLauncher: false, showCommandPalette: false })), [setSt]);
+  const toggleCommandPalette = useCallback(() => setSt((s) => ({ ...s, showCommandPalette: !s.showCommandPalette, showLauncher: false, showKeys: false })), [setSt]);
   const gotoWs = useCallback((n: number) => setSt((s) => ({ ...s, ...gotoWsState(s, n), showLauncher: false })), [setSt]);
   const openApp = useCallback((k: AppKey) => {
     setLauncherQuery("");
@@ -496,7 +493,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   // 명령 팔레트 — 셸의 모든 액션을 자연어 fuzzy 로 검색/실행.
   // 핸들러는 useCallback 으로 안정화 — commands 가 매 렌더 새로 만들어지지 않게.
   const commands: Command[] = useMemo(() => {
-    const appKeys: AppKey[] = ["files", "reader", "foto", "hotlap", "terminal", "web", "music", "settings", "about"];
+    const appKeys: AppKey[] = ["files", "reader", "foto", "terminal", "web", "settings", "about"];
     return [
       ...appKeys.map((k) => ({
         id: `app:${k}`,
@@ -569,7 +566,6 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       setLauncherQuery,
       toggleLauncher,
       toggleKeys,
-      toggleMusic,
       toggleCommandPalette,
       gotoWs,
       openApp,

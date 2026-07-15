@@ -12,11 +12,13 @@
  *   - 일부 필드만 foreign 일 땐 해당 필드만 DEFAULT 값으로 부분 폴백.
  */
 import { APP_KEYS } from "./data";
-import type { AppKey } from "./types";
+import type { AppKey, FloatRect } from "./types";
 
 export const LAYOUT_STORAGE_KEY = "rh-layout";
 
-export const LAYOUT_VERSION = 1 as const;
+// v2 — floating 슬라이스 추가 (ADR 0025 G2, ADR 0040).
+// v1 → v2 마이그레이션 정책(ADR 0036): 전체 DEFAULT 폴백(사용자 layout 손실).
+export const LAYOUT_VERSION = 2 as const;
 
 const WS_MIN = 1;
 const WS_MAX = 6;
@@ -29,6 +31,8 @@ export interface LayoutSnapshot {
   ratios: Record<string, number>;
   minimized: Partial<Record<AppKey, boolean>>;
   maximized: AppKey | null;
+  /** v2+ — floating 윈도우의 (x, y, w, h). Hyprland floating 동등. */
+  floating?: Partial<Record<AppKey, FloatRect>>;
 }
 
 export const DEFAULT_LAYOUT_SNAPSHOT: LayoutSnapshot = {
@@ -39,9 +43,10 @@ export const DEFAULT_LAYOUT_SNAPSHOT: LayoutSnapshot = {
   ratios: {},
   minimized: {},
   maximized: null,
+  floating: {},
 };
 
-const REQUIRED_KEYS = ["version", "ws", "open", "order", "ratios", "minimized", "maximized"] as const;
+const REQUIRED_KEYS = ["version", "ws", "open", "order", "ratios", "minimized", "maximized", "floating"] as const;
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -123,7 +128,24 @@ export function parseLayoutSnapshot(raw: string | null | undefined): LayoutSnaps
     ratios: validateRatios(o.ratios),
     minimized: validateMinimized(o.minimized),
     maximized: validateMaximized(o.maximized),
+    floating: validateFloating(o.floating),
   };
+}
+
+function validateFloating(v: unknown): LayoutSnapshot["floating"] {
+  if (!isObject(v)) return {};
+  const out: Partial<Record<AppKey, FloatRect>> = {};
+  for (const [k, raw] of Object.entries(v)) {
+    if (!APP_KEYS.includes(k as AppKey)) continue;
+    if (!isObject(raw)) continue;
+    const x = typeof raw.x === "number" && Number.isFinite(raw.x) ? raw.x : 0;
+    const y = typeof raw.y === "number" && Number.isFinite(raw.y) ? raw.y : 0;
+    const w = typeof raw.w === "number" && Number.isFinite(raw.w) ? raw.w : 600;
+    const h = typeof raw.h === "number" && Number.isFinite(raw.h) ? raw.h : 400;
+    if (w < 320 || h < 200) continue; // 너무 작은 값은 무시
+    out[k as AppKey] = { x, y, w, h };
+  }
+  return out;
 }
 
 export function serializeLayoutSnapshot(s: LayoutSnapshot): string {

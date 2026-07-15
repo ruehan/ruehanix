@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AppKey } from "./types";
-import { close, gotoWs, minimize, moveTile, moveToWs, openApp, openPostReader, toggleMaximize, type WindowState } from "./windowState";
+import { close, gotoWs, minimize, moveTile, moveToWs, openApp, openPostReader, setFloatRect, toggleFloating, toggleMaximize, type WindowState } from "./windowState";
 
 const S = (over: Partial<WindowState> = {}): WindowState => ({
   open: { reader: { ws: 1 }, files: { ws: 1 } },
@@ -143,5 +143,21 @@ describe("moveTile", () => {
   });
   it("order에 없으면 no-op", () => {
     expect(moveTile(S({ order: ["files"], focused: "reader" }), "reader" as AppKey, "right").order).toEqual(["files"]);
+  });
+});
+
+describe("toggleFloating / setFloatRect", () => {
+  const rect = { x: 100, y: 100, w: 600, h: 400 };
+  it("toggleFloating: 부재 시 추가", () => {
+    const out = toggleFloating(S(), "files", rect);
+    expect(out.floating.files).toEqual(rect);
+  });
+  it("toggleFloating: 존재 시 제거 (타일 복귀)", () => {
+    const out = toggleFloating(S({ floating: { files: rect } }), "files", rect);
+    expect(out.floating.files).toBeUndefined();
+  });
+  it("setFloatRect: 위치/크기 갱신", () => {
+    const out = setFloatRect(S({ floating: { files: rect } }), "files", { x: 200, y: 200, w: 800, h: 500 });
+    expect(out.floating.files).toEqual({ x: 200, y: 200, w: 800, h: 500 });
   });
 });

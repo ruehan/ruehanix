@@ -154,25 +154,31 @@ async function toPortableText(md) {
 }
 
 function buildDoc(meta, body, portable) {
-  // frontmatter 의 "true"/"false" string 을 boolean 으로. 누락 시 true.
+  // frontmatter 의 "true"/"false" string (또는 boolean) 을 boolean 으로. 누락 시 true.
   const pub = meta.published;
   const published = pub === undefined ? true : pub === true || pub === "true";
-  return {
+  // unpublish 인 글은 publishedAt 빼기 (Sanity schema 의 required 회피).
+  const doc = {
     _type: "post",
     _id: `post.${meta.slug}`,
     title: meta.title,
     slug: { _type: "slug", current: meta.slug },
     category: meta.category,
-    publishedAt: meta.publishedAt,
     published,
     readingTime: meta.readingTime,
     excerpt: meta.excerpt,
     body: portable,
   };
+  if (meta.publishedAt) doc.publishedAt = meta.publishedAt;
+  return doc;
 }
 
 function validate(meta, file) {
-  const missing = REQUIRED.filter((k) => !meta[k]);
+  // publishedAt 은 발행 시점. unpublish (published: false) 된 글은 의미 없음 — optional.
+  // publishedAt 은 발행 시점. unpublish (published: false / "false") 인 글은 optional.
+  const isUnpublished = meta.published === false || meta.published === "false";
+  const required = isUnpublished ? REQUIRED.filter((k) => k !== "publishedAt") : REQUIRED;
+  const missing = required.filter((k) => !meta[k]);
   if (missing.length > 0) {
     throw new Error(`${file}: frontmatter 누락 — ${missing.join(", ")}`);
   }

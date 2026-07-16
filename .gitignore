@@ -16,3 +16,7 @@ next-env.d.ts
 .playwright-mcp/
 /*.png
 *.tsbuildinfo
+
+# Sanity 포스트 ndjson — Sanity fetch 제거로 더 이상 추적 불필요.
+# 사진·음악·아티스트·앨범 doc 는 Sanity Studio 에서 직접 관리.
+/content/posts/*.ndjson

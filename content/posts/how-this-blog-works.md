@@ -1,10 +1,11 @@
 ---
 title: 이 블로그의 셸, 어떻게 동작하나
-category: dev
+category: blog
 excerpt: Hyprland 스타일 데스크톱 셸을 닮은 블로그. 9개 앱 + floating + persistence + Sanity 자동 발행. 셸·콘텐츠 운영·번들 측정까지 한 페이지 요약.
 slug: how-this-blog-works
 readingTime: 7분
 publishedAt: 2026-07-15
+published: true
 ---
 
 # 이 블로그의 셸, 어떻게 동작하나

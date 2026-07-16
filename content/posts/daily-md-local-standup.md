@@ -5,6 +5,7 @@ excerpt: 데스크톱 네이티브로 동작하는 standup 초안 생성기. 로
 slug: daily-md-local-standup
 readingTime: 8분
 publishedAt: 2026-07-14
+published: true
 ---
 
 # Daily.md: 로컬 standup 초안 생성기를 만든 이야기

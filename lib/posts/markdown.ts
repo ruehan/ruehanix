@@ -20,15 +20,16 @@ export function toPortableText(md: string): PortableTextBlock[] {
     children: [{ _type: "span" as const, _key: key() + "s", text, marks: [] }],
     markDefs: [],
   });
-  // PortableTextBlock union 에 codeBlock 가 직접 포함되지 않으므로 any 캐스트.
+  // PortableTextBlock union 이 codeBlock 를 직접 포함 안 함. unknown 캐스트.
   // 어차피 PostBody 가 _type: "codeBlock" 도 별도 처리하므로 안전.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const codeBlock = (language: string, code: string): any => ({
-    _type: "codeBlock" as const,
+  // PortableTextBlock union 이 codeBlock 를 직접 포함 안 함. unknown 캐스트.
+  // 어차피 PostBody 가 _type: "codeBlock" 도 별도 처리하므로 안전.
+  const codeBlock = (language: string, code: string): PortableTextBlock => ({
+    _type: "codeBlock" as PortableTextBlock["_type"],
     _key: key(),
     language,
     code,
-  });
+  } as unknown as PortableTextBlock);
 
   while (i < lines.length) {
     const ln = lines[i];

@@ -1,10 +1,11 @@
 ---
 title: React 19 setState-in-effect 회피 — focus trap 으로 풀기
-category: dev
+category: blog
 excerpt: React 19 의 "Calling setState synchronously within an effect" 린트 회피. modal 의 focus trap 을 만들며 만난 useCallback 안정화 + 순수 함수 + safeSelected derive 패턴. 3개 사례.
 slug: react-19-setstate-focus-trap
 readingTime: 7분
 publishedAt: 2026-07-15
+published: true
 ---
 
 # React 19 setState-in-effect 회피 — focus trap 으로 풀기

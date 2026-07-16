@@ -10,20 +10,10 @@ export interface BlogPost {
   publishedAt?: string;
   /** 표시용 YYYY.MM.DD. */
   date: string;
-  excerpt: string;
-  readingTime: string;
-  body: PortableTextBlock[]; // 원본 Portable Text 블록(리치 렌더용)
   /** default true. false 면 사이트 목록 제외 + 직접 URL 404. */
   published?: boolean;
-}
-
-/** Sanity post 문서의 원형(필요한 필드만). body는 Portable Text 블록. */
-export interface SanityPostDoc {
-  slug?: { current?: string };
-  title?: string;
-  category?: string;
-  publishedAt?: string;
-  excerpt?: string;
-  readingTime?: string;
-  body?: unknown[];
+  excerpt: string;
+  readingTime: string;
+  /** Portable Text 블록. 우리 스키마는 block + codeBlock + image (PostBody 가 처리). */
+  body: PortableTextBlock[];
 }

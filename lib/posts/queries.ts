@@ -2,11 +2,13 @@ import { client } from "@/lib/sanity/client";
 import { normalizePost } from "./normalize";
 import type { BlogPost, SanityPostDoc } from "./types";
 
-const POST_FIELDS = `slug, title, category, publishedAt, excerpt, readingTime, body`;
+const POST_FIELDS = `slug, title, category, publishedAt, excerpt, readingTime, body, published`;
 
-const ALL_POSTS = `*[_type == "post" && defined(slug.current)] | order(publishedAt desc){ ${POST_FIELDS} }`;
-const ONE_POST = `*[_type == "post" && slug.current == $slug][0]{ ${POST_FIELDS} }`;
-const ALL_SLUGS = `*[_type == "post" && defined(slug.current)].slug.current`;
+// published != false — null/undefined 도 포함 (default publish, sync-posts 가
+// 명시적 true/false 만 보냄).
+const ALL_POSTS = `*[_type == "post" && defined(slug.current) && published != false] | order(publishedAt desc){ ${POST_FIELDS} }`;
+const ONE_POST = `*[_type == "post" && slug.current == $slug && published != false][0]{ ${POST_FIELDS} }`;
+const ALL_SLUGS = `*[_type == "post" && defined(slug.current) && published != false].slug.current`;
 
 /** 발행 글 전체(최신순). */
 export async function getAllPosts(): Promise<BlogPost[]> {

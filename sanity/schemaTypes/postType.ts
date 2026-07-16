@@ -41,6 +41,13 @@ export const postType = defineType({
       validation: (r) => r.required(),
     }),
     defineField({ name: "publishedAt", title: "발행일", type: "datetime", validation: (r) => r.required() }),
+    defineField({
+      name: "published",
+      title: "게시",
+      type: "boolean",
+      description: "체크 해제 시 사이트 목록/검색에서 제외 (직접 URL 도 차단).",
+      initialValue: true,
+    }),
     defineField({ name: "excerpt", title: "요약", type: "text", rows: 3 }),
     defineField({ name: "readingTime", title: "읽는 시간", type: "string", description: "예: 9분" }),
     defineField({ name: "cover", title: "커버 이미지", type: "image", options: { hotspot: true } }),

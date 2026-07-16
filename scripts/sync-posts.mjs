@@ -154,6 +154,9 @@ async function toPortableText(md) {
 }
 
 function buildDoc(meta, body, portable) {
+  // frontmatter 의 "true"/"false" string 을 boolean 으로. 누락 시 true.
+  const pub = meta.published;
+  const published = pub === undefined ? true : pub === true || pub === "true";
   return {
     _type: "post",
     _id: `post.${meta.slug}`,
@@ -161,6 +164,7 @@ function buildDoc(meta, body, portable) {
     slug: { _type: "slug", current: meta.slug },
     category: meta.category,
     publishedAt: meta.publishedAt,
+    published,
     readingTime: meta.readingTime,
     excerpt: meta.excerpt,
     body: portable,

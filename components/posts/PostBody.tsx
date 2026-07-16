@@ -40,11 +40,17 @@ const components: PortableTextComponents = {
   },
   types: {
     image: ({ value }) => {
-      const v = value as { alt?: string; asset?: unknown };
-      // asset 없는 image 블록(업로드 전 저장 등)은 urlFor가 throw → 렌더하지 않는다(normalize에서도 거름).
-      if (!v.asset) return null;
-      // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지(외부 호스트), next/image 설정은 백로그.
-      return <img src={urlFor(value).width(1400).fit("max").auto("format").url()} alt={v.alt ?? ""} style={{ display: "block", maxWidth: "100%", height: "auto", borderRadius: 10, margin: "8px 0 22px" }} />;
+      const v = value as { alt?: string; asset?: unknown; src?: string };
+      // Sanity: asset. md (@portabletext/markdown): src. 둘 다 없으면 skip.
+      if (v.asset) {
+        // eslint-disable-next-line @next/next/no-img-element -- Sanity CDN 이미지.
+        return <img src={urlFor(value).width(1400).fit("max").auto("format").url()} alt={v.alt ?? ""} style={{ display: "block", maxWidth: "100%", height: "auto", borderRadius: 10, margin: "8px 0 22px" }} />;
+      }
+      if (v.src) {
+        // md 경로 — @portabletext/markdown 의 `{src, alt}` 그대로 렌더.
+        return <img src={v.src} alt={v.alt ?? ""} loading="lazy" style={{ display: "block", maxWidth: "100%", height: "auto", borderRadius: 10, margin: "8px 0 22px" }} />;
+      }
+      return null;
     },
     // codeBlock: highlightedCode 가 있으면 그대로, 없으면 CodeBlockClient 가 클라이언트
     // shiki 동적 import 로 폴백. ADR 0035.

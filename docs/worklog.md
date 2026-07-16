@@ -1,3 +1,12 @@
+## 2026-07-16 — md → Portable Text 변환기 교체 (ADR 0054)
+- 브랜치: feat/post-md-pt
+- 한 일: `@portabletext/markdown` (Sanity 공식, v1.4.4) 도입. 줄 단위 파싱 직접 구현을 라이브러리로 교체. `code` → `codeBlock` rename, `horizontal-rule` → `block style:hr` (PostBody handler 추가), `image` 는 raw `{src, alt}` 그대로 (PostBody 가 분기 처리). 표 (table) 미처리 — 차기 과제.
+- 검증: typecheck 0 / eslint 0 / vitest 281 / build 13/13 / smoke 24/24.
+- 리뷰: 통과 1라운드(자체) — 상세: docs/reviews/2026-07-16-post-md-pt.md
+- 가정: `PostBody.tsx` 의 image handler 가 원래 `asset` 만 처리 — md 이미지(`{src, alt}`) 통째로 null 렌더되던 회귀(P0)를 라운드 1 리뷰에서 발견. `v.src` 분기 추가 + 테스트 image 분기 강화.
+- 후속 작업: table 처리. `---` 다음 머리말 충돌 방지.
+- 관련 결정: docs/decisions/0054-md-to-portable-text.md
+
 # 작업 로그
 
 ## 2026-07-16 — Sanity fetch 제거, 블로그 글은 md 직접 (ADR 0053)

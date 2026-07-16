@@ -22,10 +22,14 @@ daily-md-local-standup 글에서 `---` 가 텍스트로 그대로 노출됨. 마
 
 ## 영향
 
-- 기존 13 → 11 케이스 (테스트 일부 중복 제거). hr·image 추가.
-- `lib/posts/types.ts` — `BlogPost.body` 의 union 에 `PortableTextObject` 추가.
-- `components/posts/PostBody.tsx` — `block.hr` handler 추가 (수평선).
+- 기존 13 → 11 → 12 케이스 (테스트 일부 중제거 + hr·image 추가 + image 분기 강화).
+- `components/posts/PostBody.tsx` — `block.hr` handler + `image` 분기(md 경로 src/Sanity 경로 asset).
 - 의존성 1개 (`@portabletext/markdown`).
+
+## 라운드 1 (리뷰 후) — P0 회귀 + 정정
+
+- P0: `PostBody.types.image` 가 `if (!v.asset) return null` 만으로 — md 이미지(`{src, alt}`) 통째로 null 렌더. 실제 `content/posts/*.md` 에 이미지가 없어 빌드는 통과했지만, 향후 md 한 줄 추가하면 사이트에서 사라짐. **수정: `v.src` 분기 추가 — md 경로 raw img 렌더.**
+- ADR 정정: 본문 12 케이스(테스트 일부 중제거 + image 분기 강화). `PortableTextObject` 별도 union 추가 — `@portabletext/types` 가 PortableTextBlock 정의 자체에 `PortableTextTextBlock | PortableTextObject` union 포함하므로 `body: PortableTextBlock[]` 그대로 두는 것이 정합. 변경 없음.
 
 ## 차기
 

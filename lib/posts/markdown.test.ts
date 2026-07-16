@@ -33,10 +33,12 @@ describe("toPortableText (markdown-to-portable-text)", () => {
     expect(first._type).toBe("block");
     expect(first.children?.[0]?.text).toBe("그냥 본문");
   });
-  it("image ![alt](url) → image (md-to-portable-text 매핑)", () => {
-    const out = toPortableText("![alt](https://x/i.png)");
-    const img = out[0] as { _type?: string };
+  it("image ![alt](url) → image 블록 (md-to-portable-text 매핑)", () => {
+    const out = toPortableText("![alt text](https://x/i.png)");
+    const img = out[0] as unknown as { _type: string; src?: string; alt?: string };
     expect(img._type).toBe("image");
+    expect(img.src).toBe("https://x/i.png");
+    expect(img.alt).toBe("alt text");
   });
   it("table: 미처리 — 행 단위 풀어짐 (차기 과제)", () => {
     const out = toPortableText("| a | b |\n|---|---|\n| 1 | 2 |");

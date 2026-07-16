@@ -11,6 +11,8 @@ export interface PostMeta {
   publishedAt?: string;
   readingTime?: string;
   excerpt?: string;
+  /** "true" / "false" string (md frontmatter). buildPost 가 boolean 으로 변환. */
+  published?: string;
   [k: string]: string | undefined;
 }
 

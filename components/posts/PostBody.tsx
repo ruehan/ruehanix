@@ -11,6 +11,7 @@ const components: PortableTextComponents = {
     h2: ({ value, children }) => <h2 id={(value as { _key?: string })._key} style={{ margin: "36px 0 14px", fontSize: 22, fontWeight: 800, letterSpacing: "-.01em", color: "var(--text)", scrollMarginTop: 16 }}>{children}</h2>,
     h3: ({ value, children }) => <h3 id={(value as { _key?: string })._key} style={{ margin: "28px 0 12px", fontSize: 18, fontWeight: 700, color: "var(--text)", scrollMarginTop: 16 }}>{children}</h3>,
     h4: ({ value, children }) => <h4 id={(value as { _key?: string })._key} style={{ margin: "22px 0 10px", fontSize: 15, fontWeight: 700, color: "var(--text)", scrollMarginTop: 16 }}>{children}</h4>,
+    hr: () => <hr style={{ margin: "24px 0", border: 0, borderTop: "1px solid var(--surf0)" }} />,
     blockquote: ({ children }) => (
       <blockquote style={{ margin: "0 0 20px", padding: "6px 16px", borderLeft: "3px solid var(--accent)", color: "var(--sub0)", fontStyle: "italic" }}>{children}</blockquote>
     ),

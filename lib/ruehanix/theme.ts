@@ -43,8 +43,8 @@ export function hexA(hex: string, a: number): string {
 /** 카테고리 색 팔레트(라이트/다크). */
 export function catColors(lightMode: boolean): Record<CatKey, string> {
   return lightMode
-    ? { dev: "#1e66f5", sim: "#d20f39", moto: "#fe640b", music: "#8839ef" }
-    : { dev: "#89b4fa", sim: "#f38ba8", moto: "#fab387", music: "#cba6f7" };
+    ? { dev: "#1e66f5", sim: "#d20f39", moto: "#fe640b", music: "#8839ef", blog: "#40a02b" }
+    : { dev: "#89b4fa", sim: "#f38ba8", moto: "#fab387", music: "#cba6f7", blog: "#a6e3a1" };
 }
 
 /** 데스크톱 배경 그라디언트. */

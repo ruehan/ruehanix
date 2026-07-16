@@ -22,8 +22,6 @@ export function toPortableText(md: string): PortableTextBlock[] {
   });
   // PortableTextBlock union 이 codeBlock 를 직접 포함 안 함. unknown 캐스트.
   // 어차피 PostBody 가 _type: "codeBlock" 도 별도 처리하므로 안전.
-  // PortableTextBlock union 이 codeBlock 를 직접 포함 안 함. unknown 캐스트.
-  // 어차피 PostBody 가 _type: "codeBlock" 도 별도 처리하므로 안전.
   const codeBlock = (language: string, code: string): PortableTextBlock => ({
     _type: "codeBlock" as PortableTextBlock["_type"],
     _key: key(),
@@ -69,7 +67,7 @@ export function toPortableText(md: string): PortableTextBlock[] {
  * published: false + publishedAt 없음 → publishedAt 키 자체 생략 (Sanity schema 회피).
  * publishedAt = ISO (정렬·메타). 표시용은 date 필드(YYYY.MM.DD).
  */
-const VALID_CATEGORIES = new Set<BlogPost["category"]>(["dev", "sim", "moto", "music"]);
+const VALID_CATEGORIES = new Set<BlogPost["category"]>(["dev", "sim", "moto", "music", "blog"]);
 
 export function buildPost(meta: PostMeta, body: string): BlogPost {
   // "true" / "false" string 또는 undefined. !== "true" 가 unpublish 의 안전한 판정.

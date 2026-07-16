@@ -18,6 +18,15 @@
 import { readdirSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import process from "node:process";
+
+// Node 22 builtin — .env.local 자동 로드. npm script 가 shell env 를 상속하지
+// 않으므로 명시적으로 로드. token 이 있어도 process.env 에 안 떠서 import skip 됨.
+try {
+  process.loadEnvFile(".env.local");
+} catch {
+  // .env.local 없거나 권한 문제 — token 없는 환경으로 진행.
+}
 import { spawnSync } from "node:child_process";
 import { createHighlighter } from "shiki";
 

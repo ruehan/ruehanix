@@ -80,4 +80,14 @@ describe("buildPost", () => {
     expect(out.excerpt).toBe("요약");
     expect(out.readingTime).toBe("5분");
   });
+  it("category: 'blog' 매핑 — 화이트리스트 보존", () => {
+    const out = buildPost({ ...meta, category: "blog" }, "");
+    expect(out.category).toBe("blog");
+  });
+
+  it("category: 'unknown' → 'dev' fallback", () => {
+    const out = buildPost({ ...meta, category: "unknown" }, "");
+    expect(out.category).toBe("dev");
+  });
+
 });

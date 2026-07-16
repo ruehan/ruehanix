@@ -7,7 +7,7 @@ export type AppKey =
   | "settings"
   | "about";
 
-export type CatKey = "dev" | "sim" | "moto" | "music";
+export type CatKey = "dev" | "sim" | "moto" | "music" | "blog";
 export type ThemeMode = "light" | "dark" | "auto";
 
 export interface AppMeta {

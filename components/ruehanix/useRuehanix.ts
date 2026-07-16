@@ -517,13 +517,6 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
         run: () => setMode(m),
       })),
       {
-        id: "shell:sync-posts",
-        title: "콘텐츠 동기화 (md → Sanity)",
-        group: "shell" as const,
-        keywords: ["sync", "posts", "동기화", "sanity", "import"],
-        run: () => { window.location.assign("/api/sync-posts"); },
-      },
-      {
         id: "shell:keybindings",
         title: "단축키 보기",
         group: "shell" as const,

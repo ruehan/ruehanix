@@ -9,7 +9,6 @@ const cmds: Command[] = [
   { id: "ws:2", title: "워크스페이스 2", group: "ws", keywords: ["ws 2", "workspace 2", "2", "워크스페이스 2"], run: () => {} },
   { id: "theme:light", title: "테마: Light", group: "theme", keywords: ["theme", "light", "라이트", "밝게"], run: () => {} },
   { id: "theme:dark", title: "테마: Dark", group: "theme", keywords: ["theme", "dark", "다크", "어둡게"], run: () => {} },
-  { id: "shell:sync-posts", title: "콘텐츠 동기화", group: "shell", keywords: ["sync", "posts", "동기화", "sanity"], run: () => {} },
   { id: "shell:keybindings", title: "단축키 보기", group: "shell", keywords: ["keybindings", "단축키", "shortcut", "keys"], run: () => {} },
   { id: "nav:home", title: "홈으로", group: "nav", keywords: ["home", "홈", "/"], run: () => {} },
   { id: "nav:posts", title: "모든 글", group: "nav", keywords: ["posts", "글", "list"], run: () => {} },

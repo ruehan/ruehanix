@@ -4,7 +4,7 @@ category: dev
 excerpt: 오늘의 학습 — focus trap, 명령 팔레트, FilesApp. 단어 2개: 고리 · 안착.
 slug: focus-trap-2026-07-15
 readingTime: 1분
-publishedAt: 2026-07-15
+published: false
 ---
 
 # 생존 기록 2026-07-15 — 고리 · 안착

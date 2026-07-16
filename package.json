@@ -13,9 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke": "node scripts/smoke.mjs",
-    "measure-chunks": "node scripts/measure-chunks.mjs",
-    "sync-posts": "node scripts/sync-posts.mjs",
-    "sync-posts:check": "node --experimental-strip-types scripts/check-frontmatter-drift.mjs"
+    "measure-chunks": "node scripts/measure-chunks.mjs"
   },
   "dependencies": {
     "@sanity/image-url": "^2.1.1",

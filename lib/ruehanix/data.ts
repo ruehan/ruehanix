@@ -23,6 +23,7 @@ export const CATS: Record<CatKey, { label: string; color: string }> = {
   sim: { label: "racing", color: "#f38ba8" },
   moto: { label: "moto", color: "#fab387" },
   music: { label: "music", color: "#cba6f7" },
+  blog: { label: "blog", color: "#a6e3a1" },
 };
 
 

@@ -1,5 +1,15 @@
 # 작업 로그
 
+## 2026-07-16 — Sanity fetch 제거, 블로그 글은 md 직접 (ADR 0053)
+- 브랜치: feat/posts-from-md
+- 한 일: `lib/posts/markdown.ts` (toPortableText + buildPost, 11→13 케이스 TDD), `lib/posts/queries.ts` (fs 직접 fetch), `lib/posts/normalize.ts` 정리(removePost/SanityPostDoc), `lib/posts/types.ts` (SanityPostDoc 제거), `lib/posts/normalize.test.ts` 정리. `CatKey` + `CATS` + `theme` + `VALID_CATEGORIES` 에 "blog" 추가. 5개 routes 정적 생성(generateStaticParams). `lib/ruehanix/commands.test.ts`/useRuehanix.ts 에서 `shell:sync-posts` 제거.
+- 제거: scripts/sync-posts.mjs, scripts/check-frontmatter-drift.mjs, app/api/revalidate/route.ts, sanity/schemaTypes/postType.ts, package.json sync-posts* scripts. .gitignore: content/posts/*.ndjson.
+- 검증: typecheck 0 / eslint 0 / vitest 287 / build 11/11 / smoke 24/24.
+- 리뷰: 통과 2라운드(R1 P1·P3 → 반영 → R2 P2·P3·HARNESS → 반영) — 상세: docs/reviews/2026-07-16-posts-from-md.md
+- 가정: `lib/posts/normalize.ts` 의 `formatDate` 만 유지. `SanityPostDoc` 와 `normalizePost` 는 post 전용으로 Sanity fetch 제거 후 dead code. `published: 'blog'` 카테고리 의도 보존(라운드 1 P1 fix).
+- 후속 작업: Sanity dataset 옛 post doc 정리(Studio 외 안 보임). `.env.local` `SANITY_IMPORT_TOKEN` 제거. `blog` 카테고리 단위 테스트 보강(라운드 2 P3).
+- 관련 결정: docs/decisions/0053-posts-from-md.md
+
 ## 2026-07-15 — ux-floating G2 (WIP 단계 commit, ADR 0040)
 - 브랜치: feat/ux-floating-g2
 - 한 일: stash `wip:feat/ux-floating G2 carry-over` 복원 + main 의 visible-기반 children mount(ADR 0038) 와 Stash 의 floating 토글·드래그·리사이즈 핸들 통합. `FloatRect` 타입·WindowState.floating·toggleFloating/setFloatRect stub. viewModel 의 6인자 visibleIds 호출 → 5인자 fallback (WIP 부채 정리). build 가능 상태로 WIP commit. G2 실동작(드래그·리사이즈·storage v2·tiles 적용) 은 다음 세션.

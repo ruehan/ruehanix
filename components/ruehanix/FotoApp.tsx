@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import type { Vm } from "./viewModel";
 import { groupByFolder, type PhotoGroup, UNCATEGORIZED } from "@/lib/photos/group-by-folder";
+import { photoLightboxSrc, photoPanelSrc, photoThumbSrc } from "@/lib/sanity/photo-url";
 import { nextFocusIndex } from "./focus-trap";
 
 type View =
@@ -124,7 +125,7 @@ export function FotoApp({ vm }: { vm: Vm }) {
             const isSel = i === selectedIdx;
             return (
               <div
-                key={p.url}
+                key={p.asset._id}
                 onClick={() => setSelected(i)}
                 onDoubleClick={() => setLightboxIdx(i)}
                 style={{
@@ -139,7 +140,7 @@ export function FotoApp({ vm }: { vm: Vm }) {
                 }}
               >
                 <Image
-                  src={p.url}
+                  src={photoThumbSrc(p.asset)}
                   alt={p.title}
                   fill
                   sizes={vm.isMobile ? "(max-width: 768px) 50vw, 33vw" : "(max-width: 768px) 33vw, 200px"}
@@ -198,7 +199,7 @@ export function FotoApp({ vm }: { vm: Vm }) {
                 border: "1px solid var(--surf0)",
               }}
             >
-              <Image src={sel.url} alt={sel.title} fill sizes="240px" style={{ objectFit: "cover" }} />
+              <Image src={photoPanelSrc(sel.asset)} alt={sel.title} fill sizes="240px" style={{ objectFit: "cover" }} />
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", wordBreak: "break-word" }}>{sel.title}</div>
             <div style={{ fontSize: 12, color: "var(--sub1)", lineHeight: 1.6, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
@@ -239,7 +240,11 @@ export function FotoApp({ vm }: { vm: Vm }) {
       {/* lightbox */}
       {lightboxIdx !== null && currentPhotos[lightboxIdx] ? (
         <Lightbox
-          photo={currentPhotos[lightboxIdx]}
+          photo={{
+            src: photoLightboxSrc(currentPhotos[lightboxIdx].asset),
+            title: currentPhotos[lightboxIdx].title,
+            description: currentPhotos[lightboxIdx].description,
+          }}
           onPrev={() => setLightboxIdx((i) => (i === null ? null : (i - 1 + currentPhotos.length) % currentPhotos.length))}
           onNext={() => setLightboxIdx((i) => (i === null ? null : (i + 1) % currentPhotos.length))}
           onClose={() => setLightboxIdx(null)}
@@ -278,7 +283,7 @@ function FolderGrid({ groups, totalCount, onPick }: { groups: PhotoGroup[]; tota
             >
               {cover ? (
                 <Image
-                  src={cover.url}
+                  src={photoThumbSrc(cover.asset)}
                   alt={g.name}
                   fill
                   sizes="(max-width: 768px) 50vw, 240px"
@@ -316,7 +321,7 @@ function Lightbox({
   hint,
   closeRef,
 }: {
-  photo: { url: string; title: string; description?: string };
+  photo: { src: string; title: string; description?: string };
   onPrev: () => void;
   onNext: () => void;
   onClose: () => void;
@@ -363,7 +368,7 @@ function Lightbox({
         }}
       >
         <Image
-          src={photo.url}
+          src={photo.src}
           alt={photo.title}
           fill
           sizes="92vw"

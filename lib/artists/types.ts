@@ -1,11 +1,13 @@
-/** Sanity artist 문서/역참조 원형(GROQ에서 id는 _id, photoUrl은 photo.asset->url 투영). */
+/** Sanity artist 문서/역참조 원형(GROQ 에서 id는 _id, photoAsset은 photo.asset-> 의 dereferenced asset document). */
+import type { PhotoAsset } from "@/lib/sanity/photo-url";
+
 export interface SanityArtistDoc {
   id?: string;
   name?: string;
-  photoUrl?: string;
+  photoAsset?: PhotoAsset;
   bio?: string;
   genre?: string;
   origin?: string;
   links?: { label?: string; url?: string }[];
-  members?: { name?: string; role?: string; photoUrl?: string }[];
+  members?: { name?: string; role?: string; photoAsset?: PhotoAsset }[];
 }

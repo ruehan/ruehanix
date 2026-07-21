@@ -3,7 +3,7 @@ import { groupByFolder, UNCATEGORIZED } from "./group-by-folder";
 import type { Photo } from "@/lib/ruehanix/types";
 
 const P = (over: Partial<Photo>): Photo => ({
-  url: "https://x/i.jpg",
+  asset: { _id: "image-x-100x100-jpg" },
   title: "t",
   tag: "",
   ...over,

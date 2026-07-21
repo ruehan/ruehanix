@@ -299,6 +299,8 @@ export function buildVm(api: RuehanixApi) {
     id: i,
     title: ph.title,
     tag: ph.tag,
+    folder: ph.folder,
+    description: ph.description,
     url: ph.url,
     tileStyle: {
       position: "relative",

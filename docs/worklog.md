@@ -1,3 +1,11 @@
+## 2026-07-21 — FilesApp UI 디자인 갱신
+- 브랜치: feat/filesapp-ui-redesign
+- 한 일: designer 산출물(`/tmp/filesapp-redesign.html`)을 React 에 적용. 사이드바 200px + 3단 그룹(library/sort/view) + 8px 간격 구분선, 카테고리별 모노스페이스 심볼(all ◇/dev ▸/sim ◆/moto ▣/music ◦/blog ▤), sort ▴/▾, 사이드바 그라디언트 배경 + 상단 strip `◇ files ⌘F`, 검색 input `$` accent prefix + focus halo, 본문 dot 7×7px 사각 + sticky 컬럼 헤더 9.5px uppercase, 사이드바 우측 kbd chip(`⌘1~⌘6`, `⌘⇧L/O/A/Z`), density `role=radiogroup` + 활성 항목만 `tabindex=0`, 상태바 단축키(`↵ open · ⌘K search · ⌘⇧S cycle sort`). `lib/ruehanix/files-shortcuts.ts` 단축키 매핑 모듈 분리 + 4 테스트. `FilesApp.test.tsx` 12 케이스(그룹 라벨, 카테고리/정렬 클릭, density radiogroup ARIA + 토글, 검색·EmptyPosts 폴백, row 클릭·Enter, kbd chip·컬럼 헤더·상태바 표시).
+- 검증: typecheck 0 / eslint 0 error, 2 warning (기존, FilesApp 무관) / vitest 41 files / 301 tests (baseline 39/285 → +2 files / +16 tests) / build 10/10 static + /studio dynamic.
+- 리뷰: 통과 1라운드(self-review, 외부 코드 리뷰어 호출 생략 — UI 갱신 + 동작 회귀 없음 + 회귀 테스트로 박제) — 상세: docs/reviews/2026-07-21-filesapp-ui-redesign.md
+- 가정: 카테고리 색은 디자인 HTML 의 mocha 팔레트와 동일하게 하드코딩(viewModel 의 `catColors(lightMode)` 라이트 적응은 별도 — 라이트 모드 보강은 후속 작업). 카테고리/정렬/density 라벨은 디자인 의도(미니멀 mono)에 맞춰 영문 통일(기존 한국어 라벨 → `latest/oldest/title a→z/title z→a`, `comfy/compact`). 디자인 HTML 의 essay/tutorial/... 키는 prototype 시안이라 실제 데이터 키(dev/sim/...)에 의미 단위로 매핑.
+- 후속 작업: 라이트 모드에서 사이드바 아이콘 색이 본문 row 의 `p.catColor` 와 어긋남 — viewModel 에 `finderCats[].catColor` 필드 추가 또는 `catColors` 노출 검토. 디자인 HTML 의 chev(▾) 는 마우스 없이 마감감만 살리는 장식이라 그대로 둠(expandable 그룹은 추후). density 키보드 방향키 탐색(ARIA radiogroup 표준) — 현재는 Enter/Space 만, 동작 변경 금지 원칙에 맞춰 미반영.
+
 ## 2026-07-16 — md → Portable Text 변환기 교체 (ADR 0054)
 - 브랜치: feat/post-md-pt
 - 한 일: `@portabletext/markdown` (Sanity 공식, v1.4.4) 도입. 줄 단위 파싱 직접 구현을 라이브러리로 교체. `code` → `codeBlock` rename, `horizontal-rule` → `block style:hr` (PostBody handler 추가), `image` 는 raw `{src, alt}` 그대로 (PostBody 가 분기 처리). 표 (table) 미처리 — 차기 과제.

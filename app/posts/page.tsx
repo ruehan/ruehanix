@@ -7,6 +7,8 @@ import { catColors } from "@/lib/ruehanix/theme";
 const mono = "'JetBrains Mono', ui-monospace, monospace";
 const catC = catColors(false);
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "모든 글",
   description: "한규(ruehan)의 글 목록 — 개발, 심레이싱, 모터스포츠, 음악.",

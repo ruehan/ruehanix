@@ -1,3 +1,11 @@
+## 2026-07-21 — /posts·/posts/[slug] SSG → ISR 60s (푸시 후 즉시 가시화)
+- 브랜치: feat/posts-isr-60s
+- 한 일: `app/posts/page.tsx` + `app/posts/[slug]/page.tsx` 상단에 `export const revalidate = 60;` 추가. `generateStaticParams` 는 유지해 빌드 시점 슬러그는 prerender, `dynamicParams` default `true` 로 새 슬러그는 첫 요청 시 동적 렌더 + 60s 캐시. 데이터 fetch 로직은 손대지 않음 — 캐시 전략만 페이지 단계에서 전환. `next build` 라우트 표에서 `/posts` `○ (Static) Revalidate 1m`, `/posts/[slug]` `● (SSG) Revalidate 1m` 으로 둘 다 1m revalidate 컬럼이 붙음.
+- 검증: typecheck 0 / eslint 0 error (2 warning 기존) / vitest 42 files / 313 tests / build 10/10 + /studio dynamic.
+- 리뷰: 단일 세션 + 변경 2 줄 + 검증 모두 통과 → self-review 만으로 통과. — 상세: docs/reviews/2026-07-21-posts-isr-60s.md
+- 가정: 60s revalidate 가 현 트래픽에서 "푸시 후 1~3분 빈 페이지" → "최대 60초 지연" 으로 단축. on-demand revalidate(webhook) 가 더 깔끔하지만 추가 인프라·시크릿 회전 비용이 들어 다음 단계로 미룸.
+- 관련 결정: docs/decisions/0056-posts-isr-60s.md
+
 ## 2026-07-21 — Sanity CDN URL Builder 로 사진 화질 개선
 - 브랜치: feat/sanity-cdn-photo-url
 - 한 일: `urlFor(asset).width(N).auto("format").quality(Q).url()` 패턴으로 Sanity CDN 변환 사용 — Next.js `<Image>` 의 Vercel 옵티마이저 거치지 않고 Sanity 가 폭/포맷/WebP·AVIF 변환. 사용처별 의도 명확한 helper 4종을 `lib/sanity/photo-url.ts` 에 모음: `photoThumbSrc`(4:3 crop, q85) / `photoPanelSrc`(720x540, q88) / `photoLightboxSrc`(w1600, 비율 유지, q92) / `photoAvatarSrc`(정사각 crop, q85). GROQ `"url": image.asset->url` → `"asset": image.asset->` 로 dereferenced Sanity asset document 통째 투영. `Photo`/`ArtistInfo` 의 `url: string` → `asset: PhotoAsset` (Strategy A: 모든 사용처가 helper 호출). falsy asset → 빈 문자열 fallback. FotoApp 그리드·info 패널·라이트박스 + FolderGrid 표지, MusicApp ArtistAvatar(아티스트/멤버) 모두 helper 경유.

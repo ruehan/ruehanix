@@ -40,10 +40,45 @@ describe("toPortableText (markdown-to-portable-text)", () => {
     expect(img.src).toBe("https://x/i.png");
     expect(img.alt).toBe("alt text");
   });
-  it("table: 미처리 — 행 단위 풀어짐 (차기 과제)", () => {
-    const out = toPortableText("| a | b |\n|---|---|\n| 1 | 2 |");
-    // raw portable-text 매핑 — table 미지원 → 행 단위 풀어짐. 일단 동작 보존.
-    expect(out.length).toBeGreaterThan(0);
+  it("table: 1행 헤더 + 데이터행 → _type:'table' 단일 블록", () => {
+    const md = "| a | b |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |";
+    const out = toPortableText(md);
+    const table = out[0] as unknown as {
+      _type: string;
+      headerRows: number;
+      rows: Array<{ cells: Array<{ value: unknown[] }> }>;
+    };
+    expect(table._type).toBe("table");
+    expect(table.headerRows).toBe(1);
+    expect(table.rows.length).toBe(3);
+    expect((table.rows[0].cells[0].value[0] as { children: Array<{ text: string }> }).children[0].text).toBe("a");
+    expect((table.rows[1].cells[1].value[0] as { children: Array<{ text: string }> }).children[0].text).toBe("2");
+  });
+  it("table: 셀 안 **bold** → marks 'strong' 보존", () => {
+    const md = "| x |\n|---|\n| **bold** |";
+    const out = toPortableText(md);
+    const table = out[0] as unknown as { rows: Array<{ cells: Array<{ value: Array<{ children: Array<{ text: string; marks: string[] }> }> }> }> };
+    const cell = table.rows[1].cells[0];
+    expect(cell.value[0].children[0].text).toBe("bold");
+    expect(cell.value[0].children[0].marks).toContain("strong");
+  });
+  it("table: 직전/직후 단락은 분리되어 보존", () => {
+    const md = "intro paragraph.\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\noutro paragraph.";
+    const out = toPortableText(md);
+    expect(out.length).toBe(3);
+    expect((out[0] as { _type?: string })._type).toBe("block");
+    expect((out[1] as { _type?: string })._type).toBe("table");
+    expect((out[2] as { _type?: string })._type).toBe("block");
+    const intro = out[0] as { children: Array<{ text: string }> };
+    expect(intro.children[0].text).toBe("intro paragraph.");
+    const outro = out[2] as { children: Array<{ text: string }> };
+    expect(outro.children[0].text).toBe("outro paragraph.");
+  });
+  it("table 없는 본문은 영향 없음 (회귀)", () => {
+    const out = toPortableText("plain text\n\n## h2");
+    expect(out.length).toBe(2);
+    expect((out[0] as { _type?: string })._type).toBe("block");
+    expect((out[1] as { style?: string }).style).toBe("h2");
   });
 });
 

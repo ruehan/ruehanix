@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { clickable } from "./clickable";
+import { photoAvatarSrc, type PhotoAsset } from "@/lib/sanity/photo-url";
 import type { Vm } from "./viewModel";
 
 export function MusicApp({ vm }: { vm: Vm }) {
@@ -97,9 +98,9 @@ function PlayIcon({ playing, size = 16 }: { playing: boolean; size?: number }) {
   );
 }
 
-function ArtistAvatar({ photoUrl, name, size }: { photoUrl: string; name: string; size: number }) {
-  if (photoUrl) {
-    return <Image src={photoUrl} alt={name} width={size} height={size} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flex: "none", border: "1px solid var(--surf0)" }} />;
+function ArtistAvatar({ photoAsset, name, size }: { photoAsset: PhotoAsset | null; name: string; size: number }) {
+  if (photoAsset) {
+    return <Image src={photoAvatarSrc(photoAsset, size)} alt={name} width={size} height={size} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flex: "none", border: "1px solid var(--surf0)" }} />;
   }
   return (
     <div style={{ width: size, height: size, borderRadius: "50%", flex: "none", background: "var(--surf0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.4, fontWeight: 800, color: "var(--ov0)" }}>{name.slice(0, 1)}</div>
@@ -127,7 +128,7 @@ function ArtistDirectory({ views, currentId, accent, onPlay }: { views: Vm["play
         return (
           <div key={a.id || a.name} style={{ borderBottom: "1px solid var(--surf0)", background: isCurrent ? "color-mix(in srgb, var(--accent) 10%, transparent)" : "transparent" }}>
             <div {...clickable(() => setOpenId(open ? null : a.id), `${a.name} ${open ? "접기" : "펼치기"}`)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", cursor: "pointer" }}>
-              <ArtistAvatar photoUrl={a.photoUrl} name={a.name} size={42} />
+              <ArtistAvatar photoAsset={a.photoAsset} name={a.name} size={42} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                   <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.name}</span>
@@ -149,7 +150,7 @@ function ArtistDirectory({ views, currentId, accent, onPlay }: { views: Vm["play
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                       {a.members.map((m) => (
                         <div key={m.name} style={{ display: "flex", alignItems: "center", gap: 7, padding: "4px 9px 4px 4px", borderRadius: 20, background: "var(--surf0)" }}>
-                          <ArtistAvatar photoUrl={m.photoUrl} name={m.name} size={22} />
+                          <ArtistAvatar photoAsset={m.photoAsset} name={m.name} size={22} />
                           <span style={{ fontSize: 11.5, color: "var(--text)" }}>{m.name}</span>
                           {m.role ? <span style={{ fontSize: 10.5, color: "var(--ov0)" }}>· {m.role}</span> : null}
                         </div>

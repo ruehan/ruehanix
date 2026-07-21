@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { normalizeTracks } from "./normalize";
+import type { PhotoAsset } from "@/lib/sanity/photo-url";
+
+const photoAsset: PhotoAsset = { _id: "image-a-200x200-jpg" };
 
 describe("normalizeTracks", () => {
   it("완전한 문서를 Track으로 매핑(참조 없으면 artistInfo null, albumId null)", () => {
@@ -38,7 +41,7 @@ describe("normalizeTracks", () => {
           artistRef: {
             id: "art-1",
             name: "Lofi Girl",
-            photoUrl: "https://cdn/a.jpg",
+            photoAsset,
             bio: "소개",
             genre: "lo-fi",
             origin: "파리",
@@ -53,7 +56,7 @@ describe("normalizeTracks", () => {
       expect(out[0].artistInfo).toEqual({
         id: "art-1",
         name: "Lofi Girl",
-        photoUrl: "https://cdn/a.jpg",
+        photoAsset,
         bio: "소개",
         genre: "lo-fi",
         origin: "파리",
@@ -69,7 +72,7 @@ describe("normalizeTracks", () => {
       expect(normalizeTracks([{ videoId: "jfKfPfyJRdk", title: "t", artist: "a", artistRef: { name: "A" } }])[0].artistInfo).toEqual({
         id: "",
         name: "A",
-        photoUrl: "",
+        photoAsset: null,
         bio: "",
         genre: "",
         origin: "",

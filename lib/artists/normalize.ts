@@ -2,7 +2,7 @@ import type { ArtistInfo } from "@/lib/ruehanix/types";
 import type { SanityArtistDoc } from "./types";
 
 /** Sanity artist 문서/역참조 → ArtistInfo. 이름이 없으면 null. 링크는 label·url 모두 있는 것만,
- *  멤버는 name이 있는 것만(role·photoUrl은 선택). */
+ *  멤버는 name이 있는 것만(role·photoAsset은 선택). */
 export function toArtistInfo(a: SanityArtistDoc | null | undefined): ArtistInfo | null {
   if (!a || typeof a.name !== "string" || !a.name) return null;
   const links = Array.isArray(a.links)
@@ -11,12 +11,16 @@ export function toArtistInfo(a: SanityArtistDoc | null | undefined): ArtistInfo 
   const members = Array.isArray(a.members)
     ? a.members
         .filter((m) => !!m && typeof m.name === "string" && !!m.name)
-        .map((m) => ({ name: m.name!, role: typeof m.role === "string" ? m.role : "", photoUrl: typeof m.photoUrl === "string" ? m.photoUrl : "" }))
+        .map((m) => ({
+          name: m.name!,
+          role: typeof m.role === "string" ? m.role : "",
+          photoAsset: m.photoAsset ?? null,
+        }))
     : [];
   return {
     id: typeof a.id === "string" ? a.id : "",
     name: a.name,
-    photoUrl: typeof a.photoUrl === "string" ? a.photoUrl : "",
+    photoAsset: a.photoAsset ?? null,
     bio: a.bio ?? "",
     genre: a.genre ?? "",
     origin: a.origin ?? "",

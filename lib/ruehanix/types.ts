@@ -7,6 +7,8 @@ export type AppKey =
   | "settings"
   | "about";
 
+import type { PhotoAsset } from "@/lib/sanity/photo-url";
+
 export type CatKey = "dev" | "sim" | "moto" | "music" | "blog";
 export type ThemeMode = "light" | "dark" | "auto";
 
@@ -18,7 +20,8 @@ export interface AppMeta {
 
 /** 소스(Sanity 등)에서 정규화된 사진. */
 export interface Photo {
-  url: string;
+  /** Sanity image asset (GROQ `image.asset->` 의 dereferenced document). urlFor 가 받아 CDN URL 을 만든다. */
+  asset: PhotoAsset;
   title: string;
   tag: string;
   /** Sanity photoType.folder (string, optional). 미지정 시 groupByFolder 가 "(미분류)"로 모음. */
@@ -57,14 +60,15 @@ export interface ArtistLink {
 export interface ArtistMember {
   name: string;
   role: string; // 없으면 ""
-  photoUrl: string; // 없으면 ""
+  photoAsset: PhotoAsset | null; // 없으면 null
 }
 
 /** 가수 정보(Sanity artist 문서/참조에서 정규화). */
 export interface ArtistInfo {
   id: string; // Sanity _id (디렉터리 key·강조 비교용, 없으면 "")
   name: string;
-  photoUrl: string; // 대표 사진, 없으면 ""
+  /** Sanity image asset (photoType 과 동일하게 dereferenced document). photoAvatarSrc 가 CDN URL 을 만든다. */
+  photoAsset: PhotoAsset | null;
   bio: string;
   genre: string;
   origin: string;

@@ -1,3 +1,12 @@
+## 2026-07-21 — Sanity CDN URL Builder 로 사진 화질 개선
+- 브랜치: feat/sanity-cdn-photo-url
+- 한 일: `urlFor(asset).width(N).auto("format").quality(Q).url()` 패턴으로 Sanity CDN 변환 사용 — Next.js `<Image>` 의 Vercel 옵티마이저 거치지 않고 Sanity 가 폭/포맷/WebP·AVIF 변환. 사용처별 의도 명확한 helper 4종을 `lib/sanity/photo-url.ts` 에 모음: `photoThumbSrc`(4:3 crop, q85) / `photoPanelSrc`(720x540, q88) / `photoLightboxSrc`(w1600, 비율 유지, q92) / `photoAvatarSrc`(정사각 crop, q85). GROQ `"url": image.asset->url` → `"asset": image.asset->` 로 dereferenced Sanity asset document 통째 투영. `Photo`/`ArtistInfo` 의 `url: string` → `asset: PhotoAsset` (Strategy A: 모든 사용처가 helper 호출). falsy asset → 빈 문자열 fallback. FotoApp 그리드·info 패널·라이트박스 + FolderGrid 표지, MusicApp ArtistAvatar(아티스트/멤버) 모두 helper 경유.
+- 검증: typecheck 0 / eslint 0 error (2 warning 기존) / vitest 42 files / 313 tests (baseline 41/301 → +1 file / +12 tests) / build 10/10 static.
+- 리뷰: 단일 세션 작업 + 회귀 테스트(new) + 기존 photo/album/music 테스트 갱신 완료 → self-review 만으로 통과.
+- 가정: `PhotoAsset = SanityAsset` (urlFor 의 _id 기반 동작에 맞춤). falsy asset 은 `""` 반환 — 호출처는 `if (asset)` 가드(MusicApp) 또는 normalize 단계 필터(FotoApp) 로 도달하지 않음. `next.config.mjs` 의 `images.remotePatterns` 에 이미 `cdn.sanity.io` 가 등록돼 있어 추가 설정 불필요.
+- 후속 작업: Sanity dataset 의 사진이 일부만 hotspot/crop 이 있는 경우 helper 가 `fit("crop")` 으로 일관되게 자르지만, 향후 콘텐츠에 crop hint 가 생기면 helper 가 그걸 존중하는 옵션 검토. music-popover 의 artist 정보 카드는 ADR 0047 로 비활성 — 재활성 시 helper 적용.
+- 관련 결정: docs/decisions/0055-sanity-cdn-photo-url.md
+
 ## 2026-07-21 — FilesApp UI 디자인 갱신
 - 브랜치: feat/filesapp-ui-redesign
 - 한 일: designer 산출물(`/tmp/filesapp-redesign.html`)을 React 에 적용. 사이드바 200px + 3단 그룹(library/sort/view) + 8px 간격 구분선, 카테고리별 모노스페이스 심볼(all ◇/dev ▸/sim ◆/moto ▣/music ◦/blog ▤), sort ▴/▾, 사이드바 그라디언트 배경 + 상단 strip `◇ files ⌘F`, 검색 input `$` accent prefix + focus halo, 본문 dot 7×7px 사각 + sticky 컬럼 헤더 9.5px uppercase, 사이드바 우측 kbd chip(`⌘1~⌘6`, `⌘⇧L/O/A/Z`), density `role=radiogroup` + 활성 항목만 `tabindex=0`, 상태바 단축키(`↵ open · ⌘K search · ⌘⇧S cycle sort`). `lib/ruehanix/files-shortcuts.ts` 단축키 매핑 모듈 분리 + 4 테스트. `FilesApp.test.tsx` 12 케이스(그룹 라벨, 카테고리/정렬 클릭, density radiogroup ARIA + 토글, 검색·EmptyPosts 폴백, row 클릭·Enter, kbd chip·컬럼 헤더·상태바 표시).

@@ -201,7 +201,7 @@ export function buildVm(api: RuehanixApi) {
       apps: appList,
       posts: posts.map((p) => ({ slug: p.slug, title: p.title, excerpt: p.excerpt })),
       artists: artists.map((a) => ({ id: a.id || a.name, name: a.name })),
-      photos: photoSrc.map((ph) => ({ id: ph.url, title: ph.title })),
+      photos: photoSrc.map((ph) => ({ id: ph.asset?._id ?? ph.title, title: ph.title })),
     },
     api.launcherQuery,
   );
@@ -301,7 +301,7 @@ export function buildVm(api: RuehanixApi) {
     tag: ph.tag,
     folder: ph.folder,
     description: ph.description,
-    url: ph.url,
+    asset: ph.asset,
     tileStyle: {
       position: "relative",
       aspectRatio: "4 / 3",

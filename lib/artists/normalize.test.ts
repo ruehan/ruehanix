@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { normalizeArtists, toArtistInfo } from "./normalize";
+import type { PhotoAsset } from "@/lib/sanity/photo-url";
+
+const photoAsset: PhotoAsset = { _id: "image-a-200x200-jpg" };
+const memberAsset: PhotoAsset = { _id: "image-m-200x200-jpg" };
 
 describe("toArtistInfo", () => {
   it("완전한 문서를 매핑(링크는 label·url 모두 있는 것만)", () => {
@@ -7,7 +11,7 @@ describe("toArtistInfo", () => {
       toArtistInfo({
         id: "a1",
         name: "Lofi Girl",
-        photoUrl: "https://cdn/a.jpg",
+        photoAsset,
         bio: "소개",
         genre: "lo-fi",
         origin: "파리",
@@ -20,7 +24,7 @@ describe("toArtistInfo", () => {
     ).toEqual({
       id: "a1",
       name: "Lofi Girl",
-      photoUrl: "https://cdn/a.jpg",
+      photoAsset,
       bio: "소개",
       genre: "lo-fi",
       origin: "파리",
@@ -33,20 +37,29 @@ describe("toArtistInfo", () => {
     expect(toArtistInfo(null)).toBeNull();
   });
   it("선택 필드 누락 시 안전 기본값(id·문자열은 빈, links/members []) ", () => {
-    expect(toArtistInfo({ name: "A" })).toEqual({ id: "", name: "A", photoUrl: "", bio: "", genre: "", origin: "", links: [], members: [] });
+    expect(toArtistInfo({ name: "A" })).toEqual({
+      id: "",
+      name: "A",
+      photoAsset: null,
+      bio: "",
+      genre: "",
+      origin: "",
+      links: [],
+      members: [],
+    });
   });
-  it("members: name 있는 것만, role·photoUrl은 선택(빈 문자열 폴백)", () => {
+  it("members: name 있는 것만, role·photoAsset은 선택(null 폴백)", () => {
     const info = toArtistInfo({
       name: "밴드",
       members: [
-        { name: "리더", role: "보컬", photoUrl: "p1" },
+        { name: "리더", role: "보컬", photoAsset: memberAsset },
         { role: "이름 없음" }, // name 없음 → 제외
-        { name: "멤버2" }, // role·photo 없음 → 빈 문자열
+        { name: "멤버2" }, // role·photoAsset 없음 → null
       ],
     });
     expect(info!.members).toEqual([
-      { name: "리더", role: "보컬", photoUrl: "p1" },
-      { name: "멤버2", role: "", photoUrl: "" },
+      { name: "리더", role: "보컬", photoAsset: memberAsset },
+      { name: "멤버2", role: "", photoAsset: null },
     ]);
   });
 });

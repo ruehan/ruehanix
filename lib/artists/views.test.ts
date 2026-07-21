@@ -3,8 +3,8 @@ import { buildArtistViews } from "./views";
 import type { Album, ArtistInfo, Track } from "@/lib/ruehanix/types";
 
 const artists: ArtistInfo[] = [
-  { id: "a1", name: "A", photoUrl: "", bio: "", genre: "", origin: "", links: [], members: [] },
-  { id: "a2", name: "B", photoUrl: "", bio: "", genre: "", origin: "", links: [], members: [] },
+  { id: "a1", name: "A", photoAsset: null, bio: "", genre: "", origin: "", links: [], members: [] },
+  { id: "a2", name: "B", photoAsset: null, bio: "", genre: "", origin: "", links: [], members: [] },
 ];
 const tracks: Track[] = [
   // A의 앨범 al1 수록곡 2개 + 앨범 밖 1개

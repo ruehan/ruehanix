@@ -64,6 +64,68 @@ const components: PortableTextComponents = {
         />
       );
     },
+    // table: lib/posts/markdown.ts buildTableBlock 가 만든 rows/cells 구조.
+    // cell 내부 value 는 Portable Text 배열이라 재귀 PortableText 로 마크/링크 보존.
+    table: ({ value }) => {
+      const v = value as {
+        headerRows?: number;
+        rows?: Array<{ cells: Array<{ value: PortableTextBlock[] }> }>;
+      };
+      const headerRows = v.headerRows ?? 0;
+      const rows = v.rows ?? [];
+      return (
+        <div style={{ overflowX: "auto", margin: "0 0 22px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14.5, color: "var(--sub1)" }}>
+            <tbody>
+              {rows.map((row, ri) => {
+                const isHeader = ri < headerRows;
+                return (
+                  <tr key={ri}>
+                    {row.cells.map((cell, ci) => {
+                      const Tag = isHeader ? "th" : "td";
+                      return (
+                        <Tag
+                          key={ci}
+                          scope={isHeader ? "col" : undefined}
+                          style={{
+                            padding: "10px 14px",
+                            borderBottom: "1px solid var(--surf0)",
+                            textAlign: "left",
+                            fontWeight: isHeader ? 700 : 400,
+                            color: isHeader ? "var(--text)" : "var(--sub1)",
+                            verticalAlign: "top",
+                          }}
+                        >
+                          <PortableText value={cell.value} components={cellComponents} />
+                        </Tag>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    },
+  },
+};
+
+/** table cell 내부 렌더용 — 본문 컴포넌트에서 marks·code·link 만 필요. */
+const cellComponents: PortableTextComponents = {
+  marks: {
+    link: ({ value, children }) => {
+      const href = (value as { href?: string })?.href ?? "#";
+      const external = /^https?:\/\//.test(href);
+      return (
+        <a href={href} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+          {children}
+        </a>
+      );
+    },
+    code: ({ children }) => (
+      <code style={{ fontFamily: mono, fontSize: ".88em", padding: "1px 6px", borderRadius: 5, background: "var(--surf0)", color: "var(--text)" }}>{children}</code>
+    ),
   },
 };
 

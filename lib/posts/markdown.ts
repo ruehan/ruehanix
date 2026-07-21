@@ -30,7 +30,8 @@ export function toPortableText(md: string): PortableTextBlock[] {
 const VALID_CATEGORIES = new Set<BlogPost["category"]>(["dev", "sim", "moto", "music", "blog"]);
 
 export function buildPost(meta: PostMeta, body: string): BlogPost {
-  const isUnpublished = meta.published !== undefined && meta.published !== "true";
+  // "false" string 또는 false boolean 만 unpublish. 누락 / "true" / true → publish.
+  const isUnpublished = meta.published === "false" || meta.published === (false as unknown);
   const hasDate = !!meta.publishedAt;
   const rawCat = meta.category;
   const category: BlogPost["category"] = rawCat && VALID_CATEGORIES.has(rawCat as BlogPost["category"])

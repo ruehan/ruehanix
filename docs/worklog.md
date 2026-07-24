@@ -1,3 +1,5 @@
+## 2026-07-24 — 윈도우 어디든 클릭하면 active: chrome 캡쳐 핸들러로 body 클릭도 focus
+
 ## 2026-07-24 — content/posts 번들 추적 — Vercel fs.readdirSync 동작
 - 브랜치: fix/blog-content-posts-bundle-tracing
 - 한 일: `next.config.mjs` 에 `outputFileTracingIncludes: { "**": ["./content/**"] }` top-level 추가. `lib/posts/queries.ts` 가 런타임에 `fs.readdirSync('content/posts')`/`fs.readFileSync(...)` 를 호출하는데 Next.js 정적 File Tracer 는 정적 import 만 따라가므로 런타임 fs 호출은 번들 추적 대상에서 빠진다 → Vercel 배포 시 readdirSync ENOENT → catch 가 빈 배열 → posts 0개. glob `./content/**` 로 `content/posts/*.md` 와 향후 `content/` 하위 정적 자산을 모두 추적 명시. ADR 0058 의 후속 — 캐시 단계를 끊어 응답 freshness 는 풀었지만 번들 누락 자체는 별개. 처음에 `experimental.outputFileTracingIncludes` 로 두니 Next.js 16.2.9 에서 `Unrecognized key(s) in object: 'outputFileTracingIncludes' at "experimental"` 경고와 함께 적용 안 됨 (빌드 출력에 `(invalid experimental key)` 표기) — 사용자 메모대로 top-level 로 옮겨 경고 사라지고 manifest 에 반영 확인.

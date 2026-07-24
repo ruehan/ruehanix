@@ -469,6 +469,7 @@ export function buildVm(api: RuehanixApi) {
     isMaximized,
     floating: st.floating,
     toggleFloating: (k: AppKey) => handlers.toggleFloating(k, handlers.defaultFloatRect()),
+    swapTiles: handlers.swapTiles,
     startFloatDrag: handlers.startFloatDrag,
     startFloatResize: handlers.startFloatResize,
     wbtn: {

@@ -67,9 +67,22 @@ export function Win({
         onMouseDownCapture={() => vm.focus[app]()}
       >
         <div
+          draggable={!floating}
           onMouseDown={(e) => {
             vm.focus[app]();
             if (floating) vm.startFloatDrag(app, e);
+          }}
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", app);
+          }}
+          onDragOver={(e) => {
+            if (!floating) e.preventDefault();
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            const source = e.dataTransfer.getData("text/plain");
+            if (source && source !== app) vm.swapTiles(source as AppKey, app);
           }}
           onDoubleClick={
             vm.isMobile

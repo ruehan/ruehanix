@@ -1,4 +1,10 @@
-## 2026-07-24 — 셸 한글화 잔존 + 데스크탑 빈 곳 wheel → 워크스페이스 전환
+## 2026-07-24 — title bar 드래그로 같은 ws 내 타일 swap
+- 브랜치: feat/tile-swap-drag
+- 한 일: tiled 창 title bar 에 HTML5 drag-and-drop 을 부착해 dragstart → drop 시 `swapTileState` 로 `st.order` 의 두 창을 교환. floating 창은 `draggable=false` 로 기존 mousedown 위치 드래그 유지. reducer·Win 이벤트 회귀 테스트 및 ADR 0064 추가.
+- 검증: typecheck 0 / eslint 0 errors (기존 2 warnings 유지) / vitest 42 files, 323 tests 통과 / build 10/10 routes.
+- 리뷰: self-review 통과 — tiled title bar 만 draggable, floating title bar 는 `draggable=false` 및 기존 mousedown 위치 드래그 유지. drop 은 source/target AppKey 를 검증하고 reducer no-op 규칙을 따른다.
+- 관련 결정: docs/decisions/0064-tile-swap-drag.md
+
 - 브랜치: feat/shell-korean-scroll-ws
 - 한 일: 셸 라벨 일괄 한국어화 — `FilesApp` 그룹/밀도/푸터/단축키/컬럼 헤더(`라이브러리`/`정렬`/`보기`/`여유`/`빽빽`/`↑↓ 탐색`/`{n}개`/`이름`/`카테고리`/`날짜`/`열기`/`검색`/`정렬 순환`), `TerminalApp` fastfetch 8 패널(`운영체제`/`커널`/`창관리자`/`테마`/`셸`/`역할`/`스택`/`취미`), `AboutApp` 사양(`프로세서`/`그래픽`/`메모리`/`창관리자`/`가동 시간`) + bio 한국어, `WebApp` 네비(`글`/`프로젝트`/`레이싱`/`소개`) + 부제 + 카드 푸터, `MusicApp` 상태(`재생 중`/`일시정지`), `ReaderApp` bio, `RuehanixShell` 데스크톱 위젯(라벨 `운영체제`/`창관리자`/`데스크톱 환경`/`셸`/`사용자`, bio `한규 · 풀스택 개발`, status `2026-06-22 월 · 가동 4시간 12분`, 스펙 `프로세서`/`메모리`/`디스크`/`네트워크`/`프로세스`, reboot `title="재부팅"`), `useRuehanix` 명령 팔레트 `테마: 자동/라이트/다크`, `data.ts` THEME_MODES 라벨. 의도된 영문 디자인 어휘(`APP_META.name` Files/Reader/Foto, `CATS.label` dev/racing/moto/music/blog, `localhost`, `Ctrl+K`, Keybindings) 는 유지. 데스크탑 빈 곳 wheel 로 ws±1 전환 (Option E) — `RuehanixShell` WALLPAPER div 에 onWheel 핸들러 부착, `viewModel` 에 `ws`/`gotoWs` 노출 (handlers 컨테이너 신설 대신 기존 직접 노출 패턴), booting·deltaY=0·가드 클램프(<1, >6). 위젯/앱/도크/waybar wheel 은 그 곳에서 소비되므로 빈 곳 wheel 만 핸들러에 도달. 변경 9 소스 + 3 테스트 + 1 ADR.
 - 검증: typecheck 0 / eslint 0 errors (기존 2 warnings 유지) / vitest 42 files, 319 tests 통과 (TerminalApp/AboutApp/FilesApp 테스트 한국어 라벨로 갱신) / build 10/10 routes. 푸시 안 함.

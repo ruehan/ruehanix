@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AppKey } from "./types";
-import { close, gotoWs, minimize, moveTile, moveToWs, openApp, openPostReader, setFloatRect, toggleFloating, toggleMaximize, type WindowState } from "./windowState";
+import { close, gotoWs, minimize, moveTile, moveToWs, openApp, openPostReader, setFloatRect, swapTileState, toggleFloating, toggleMaximize, type WindowState } from "./windowState";
 
 const S = (over: Partial<WindowState> = {}): WindowState => ({
   open: { reader: { ws: 1 }, files: { ws: 1 } },
@@ -143,6 +143,17 @@ describe("moveTile", () => {
   });
   it("order에 없으면 no-op", () => {
     expect(moveTile(S({ order: ["files"], focused: "reader" }), "reader" as AppKey, "right").order).toEqual(["files"]);
+  });
+});
+
+describe("swapTileState", () => {
+  it("두 창의 order 위치를 교환", () => {
+    expect(swapTileState(S({ order: ["files", "reader", "terminal"] }), "files", "terminal").order).toEqual(["terminal", "reader", "files"]);
+  });
+  it("자기 자신이나 order에 없는 창은 no-op", () => {
+    const s = S({ order: ["files", "reader"] });
+    expect(swapTileState(s, "files", "files")).toEqual({});
+    expect(swapTileState(s, "files", "terminal")).toEqual({});
   });
 });
 

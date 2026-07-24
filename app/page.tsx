@@ -5,8 +5,8 @@ import { getAllPhotos } from "@/lib/photos/source";
 import { getAllArtists } from "@/lib/artists/source";
 import { getAllAlbums } from "@/lib/albums/source";
 
-// Sanity 글·곡·사진·아티스트·앨범을 서버에서 가져와 셸에 주입. 60초 ISR로 새 콘텐츠가 반영된다.
-export const revalidate = 60;
+// Sanity 글·곡·사진·아티스트·앨범을 서버에서 가져와 셸에 주입. 캐시 완전 비활성 — 매 요청 fresh fetch (ADR 0058).
+export const revalidate = 0;
 
 export default async function Page() {
   const [posts, tracks, photos, artists, albums] = await Promise.all([getAllPosts(), getAllTracks(), getAllPhotos(), getAllArtists(), getAllAlbums()]);

@@ -7,7 +7,7 @@ import { catColors } from "@/lib/ruehanix/theme";
 const mono = "'JetBrains Mono', ui-monospace, monospace";
 const catC = catColors(false);
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "모든 글",

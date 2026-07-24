@@ -1,3 +1,11 @@
+## 2026-07-24 — 셸·/posts·/posts/[slug] 캐시 완전 비활성화 (revalidate=0)
+- 브랜치: (main 직접, 변경 3줄)
+- 한 일: `app/page.tsx`, `app/posts/page.tsx`, `app/posts/[slug]/page.tsx` 셋의 `export const revalidate = 60;` → `revalidate = 0;` 변경. Next.js 15 에서 `revalidate = 0` 은 force-dynamic 과 동치 — 빌드 시점 prerender 결과를 더 이상 캐시 단계에 태우지 않고 매 요청 fresh fetch + SSR 렌더. 데이터 fetch 로직·generateStaticParams·dynamicParams 는 모두 유지. ADR 0056 의 ISR 60s + ADR 0057 on-demand revalidation API 만으로 CDN edge race 가 본질 해결이 안 되는데(백그라운드 stale HTML + edge 간 일관성 부재), 캐시 단계 자체를 끊어 race 발생지를 제거. `app/api/revalidate` 는 안전망으로 유지.
+- 검증: typecheck 0 / eslint 0 error (2 warning 기존) / vitest 42 files / 313 tests / build — `/`, `/posts`, `/posts/[slug]` 셋 다 `ƒ (Dynamic)` 로 표기 (revalidate 컬럼 사라짐).
+- 리뷰: 변경 3줄 + 검증 4종 통과 + 라우트 표 의도된 dynamic 표기 확인 → self-review 로 통과 (외부 reviewer 호출한 verify 가능). 푸시 안 함 — 사용자 명시 시 origin/main 으로.
+- 가정: `revalidate = 0` 의 Next.js 15 force-dynamic 동치 동작. personal blog 트래픽(<10 req/min) 에서 SSR overhead 무시 가능. 새 글 푸시 후 Vercel 빌드만 완료되면 즉시 가시화(에러 캐시·edge 캐시 어디에도 안 박혀있는지 실 환경 시각 확인은 후속).
+- 관련 결정: docs/decisions/0058-no-cache-shell-posts.md (ADR 0056 은 대체됨 처리)
+
 ## 2026-07-21 — /posts·/posts/[slug] SSG → ISR 60s (푸시 후 즉시 가시화)
 - 브랜치: feat/posts-isr-60s
 - 한 일: `app/posts/page.tsx` + `app/posts/[slug]/page.tsx` 상단에 `export const revalidate = 60;` 추가. `generateStaticParams` 는 유지해 빌드 시점 슬러그는 prerender, `dynamicParams` default `true` 로 새 슬러그는 첫 요청 시 동적 렌더 + 60s 캐시. 데이터 fetch 로직은 손대지 않음 — 캐시 전략만 페이지 단계에서 전환. `next build` 라우트 표에서 `/posts` `○ (Static) Revalidate 1m`, `/posts/[slug]` `● (SSG) Revalidate 1m` 으로 둘 다 1m revalidate 컬럼이 붙음.

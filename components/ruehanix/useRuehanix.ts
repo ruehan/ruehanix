@@ -33,7 +33,7 @@ import { BOOT_SESSION_KEY, shouldPlayBoot } from "@/lib/ruehanix/boot";
 import { UI_STORAGE_KEY, DEFAULT_UI, parseUiState, serializeUiState } from "@/lib/ruehanix/ui-storage";
 import { recordVisitStore } from "@/lib/ruehanix/visits";
 import { matchCommands, type Command } from "@/lib/ruehanix/commands";
-import { close as closeState, gotoWs as gotoWsState, minimize as minimizeState, moveTile as moveTileState, moveToWs as moveToWsState, openApp as openAppState, openPostReader as openPostReaderState, setFloatRect as setFloatRectState, toggleFloating as toggleFloatingState, toggleMaximize as toggleMaximizeState } from "@/lib/ruehanix/windowState";
+import { close as closeState, gotoWs as gotoWsState, minimize as minimizeState, moveTile as moveTileState, moveToWs as moveToWsState, openApp as openAppState, openPostReader as openPostReaderState, setFloatRect as setFloatRectState, swapTileState, toggleFloating as toggleFloatingState, toggleMaximize as toggleMaximizeState } from "@/lib/ruehanix/windowState";
 import type { AppKey, ArtistInfo, Album, CatKey, FloatRect, Photo, PlayerState, ThemeMode, Track, UiState } from "@/lib/ruehanix/types";
 import type { BlogPost } from "@/lib/posts/types";
 
@@ -177,6 +177,12 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   const toggleMaximize = useCallback((k: AppKey) => setSt((s) => ({ ...s, ...toggleMaximizeState(s, k) })), [setSt]);
   const moveToWs = useCallback((k: AppKey, n: number) => setSt((s) => ({ ...s, ...moveToWsState(s, k, n), showLauncher: false })), [setSt]);
   const moveTile = useCallback((k: AppKey, dir: "left" | "right") => setSt((s) => ({ ...s, ...moveTileState(s, k, dir) })), [setSt]);
+  const swapTiles = useCallback((app1: AppKey, app2: AppKey) => setSt((s) => {
+    const patch = swapTileState(s, app1, app2);
+    if (Object.keys(patch).length === 0) return s;
+    layoutSavedRef.current = false;
+    return { ...s, ...patch };
+  }), [setSt]);
   const toggleFloating = useCallback((k: AppKey, rect: FloatRect) => setSt((s) => ({ ...s, ...toggleFloatingState(s, k, rect) })), [setSt]);
   const startFloatDrag = (k: AppKey, e: React.MouseEvent) => {
     const orig = st.floating[k];
@@ -569,6 +575,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       toggleMaximize,
       moveToWs,
       moveTile,
+      swapTiles,
       toggleFloating,
       defaultFloatRect,
       startFloatDrag,

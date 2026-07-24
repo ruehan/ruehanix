@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import "@testing-library/jest-dom/vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import type { CSSProperties } from "react";
@@ -27,11 +27,12 @@ function makeVm(opts: {
   display?: CSSProperties["display"];
   floating?: boolean;
   preserveLocalState?: boolean;
+  app?: AppKey;
 }) {
-  const app: AppKey = "files";
+  const app: AppKey = opts.app ?? "files";
   const tiles: Record<AppKey, CSSProperties> = {
-    files: { position: "absolute", display: opts.display ?? "block", left: 0, top: 0, width: 800, height: 600 },
-    reader: { position: "absolute", display: "none" },
+    files: { position: "absolute", display: app === "files" ? (opts.display ?? "block") : "none", left: 0, top: 0, width: 800, height: 600 },
+    reader: { position: "absolute", display: app === "reader" ? (opts.display ?? "block") : "none" },
     foto: { position: "absolute", display: "none" },
     terminal: { position: "absolute", display: "none" },
     web: { position: "absolute", display: "none" },
@@ -45,6 +46,7 @@ function makeVm(opts: {
   const toggleFloating = vi.fn();
   const startFloatDrag = vi.fn();
   const startFloatResize = vi.fn();
+  const swapTiles = vi.fn();
   return {
     vm: {
       tiles,
@@ -60,6 +62,7 @@ function makeVm(opts: {
       close: Object.fromEntries(["files", "reader", "foto", "hotlap", "terminal", "web", "music", "settings", "about"].map((k) => [k, close])),
       floating: { files: opts.floating ? { x: 0, y: 0, w: 800, h: 600 } : undefined } as Record<AppKey, unknown>,
       toggleFloating,
+      swapTiles,
       startFloatDrag,
       startFloatResize,
     } as never,
@@ -69,6 +72,7 @@ function makeVm(opts: {
     minimize,
     close,
     toggleFloating,
+    swapTiles,
     startFloatDrag,
     startFloatResize,
   };
@@ -115,6 +119,41 @@ describe("Win (visible-기반 children mount)", () => {
     );
     await user.click(screen.getByTestId("body"));
     expect(focus).toHaveBeenCalledTimes(1);
+  });
+
+  it("tiled title bar drag-and-drop → swapTiles 호출", () => {
+    const source = makeVm({ display: "block", app: "files" });
+    const target = makeVm({ display: "block", app: "reader" });
+    render(
+      <>
+        <Win vm={source.vm} app={source.app}><div>source</div></Win>
+        <Win vm={target.vm} app={target.app}><div>target</div></Win>
+      </>,
+    );
+    const sourceBar = screen.getAllByTitle("더블클릭: 최대화")[0];
+    const targetBar = screen.getAllByTitle("더블클릭: 최대화")[1];
+    const dataTransfer = {
+      effectAllowed: "",
+      setData: vi.fn(),
+      getData: vi.fn(() => "files"),
+    };
+
+    fireEvent.dragStart(sourceBar, { dataTransfer });
+    fireEvent.dragOver(targetBar, { dataTransfer });
+    fireEvent.drop(targetBar, { dataTransfer });
+
+    expect(dataTransfer.setData).toHaveBeenCalledWith("text/plain", "files");
+    expect(target.swapTiles).toHaveBeenCalledWith("files", "reader");
+  });
+
+  it("floating title bar는 draggable=false + 기존 위치 드래그 유지", () => {
+    const { vm, app, startFloatDrag } = makeVm({ display: "block", floating: true });
+    render(<Win vm={vm} app={app}><div>child</div></Win>);
+    const titleBar = screen.getByTitle("드래그: 이동 · 더블클릭: 타일 복귀");
+
+    expect(titleBar).toHaveAttribute("draggable", "false");
+    fireEvent.mouseDown(titleBar);
+    expect(startFloatDrag).toHaveBeenCalled();
   });
 
   it("chrome 의 최소화 버튼이 onClick 으로 vm.minimize 호출", async () => {

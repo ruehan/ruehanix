@@ -95,6 +95,16 @@ export function moveTile(s: WindowState, k: AppKey, dir: "left" | "right"): Wind
   return { ...s, order };
 }
 
+export function swapTileState(s: WindowState, app1: AppKey, app2: AppKey): Partial<WindowState> {
+  if (app1 === app2) return {};
+  const order = s.order.slice();
+  const i = order.indexOf(app1);
+  const j = order.indexOf(app2);
+  if (i < 0 || j < 0) return {};
+  [order[i], order[j]] = [order[j], order[i]];
+  return { order };
+}
+
 /**
  * G2 WIP — 플로팅 토글. 현재 rect 가 있으면 타일 복귀(제거), 없으면 새 rect 로
  * 플로팅 진입. 다음 세션에서 실동작 완성 — 현재 stub (call site 와 시그니처만 맞춤).

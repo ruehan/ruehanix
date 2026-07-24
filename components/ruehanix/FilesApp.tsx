@@ -68,37 +68,6 @@ export function FilesApp({ vm }: { vm: Vm }) {
           overflow: "hidden",
         }}
       >
-        {/* 상단 strip — 윈도우 타이틀바와 본문 사이 중간층 */}
-        <div
-          style={{
-            flex: "none",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "9px 12px 8px",
-            borderBottom: "1px solid var(--surf0)",
-          }}
-        >
-          <span style={{ color: "var(--accent)", fontSize: 13, lineHeight: 1 }}>◇</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", letterSpacing: "0.02em" }}>files</span>
-          <span
-            aria-hidden
-            style={{
-              marginLeft: "auto",
-              fontSize: 9.5,
-              color: "var(--ov0)",
-              letterSpacing: "0.06em",
-              border: "1px solid var(--surf0)",
-              borderRadius: 3,
-              padding: "1px 5px",
-              background: "var(--base)",
-              fontWeight: 600,
-            }}
-          >
-            ⌘F
-          </span>
-        </div>
-
         {/* 스크롤 영역 — 3개 그룹 */}
         <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 6px 8px" }}>
           {/* ============ LIBRARY ============ */}

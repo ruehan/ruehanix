@@ -1,9 +1,9 @@
-## 2026-07-24 — FilesApp 사이드바 chrome 정리 (kbd 제거 + 투명 배경 + title bar icon 숨김)
-- 브랜치: feat/filesapp-sidebar-cleanup
-- 한 일: `components/ruehanix/RuehanixShell.tsx` 의 `Win` tbar 에서 icon + name span 제거 (buttons 만 유지, `justifyContent: "flex-end"` 로 우측 정렬). `components/ruehanix/FilesApp.tsx` 에서 `catShortcut` / `sortShortcut` import + 호출 제거, `SideRow` 의 `kbd` prop·렌더링 제거, `<aside>` 의 background `linear-gradient` 제거(borderRight 는 유지). `lib/ruehanix/files-shortcuts.ts` 는 변경 없이(잠재 재사용 + 참조용 보존). `FilesApp.test.tsx` 의 kbd chip 케이스를 "미표시" 검증으로 반전. ADR 0061.
-- 검증: typecheck 0 / eslint 0 error (기존 warning 2 동일) / vitest 42 files / 314 tests / build — 모든 라우트 정상 (10/10 정적 페이지 생성).
-- 리뷰: 변경 파일 4개(Win tbar 4줄, FilesApp 다수, FilesApp.test 1케이스, ADR) + 검증 4종 통과 → self-review 통과. 푸시 안 함 — 사용자 명시 시.
-- 가정: chrome title bar 의 icon + name 만 숨기고 buttons (minimize/maximize/float/close) 유지 + `justifyContent: flex-end` 가 사용자 의도한 "옵션 A + 우측 정렬" 임. tbar 가 짧아지면 윈도우 maximize·floating drag UX 는 영향 없음(드래그 핸들러는 title bar 전체 div 에 부착돼 있고 buttons 영역은 작아짐).
+## 2026-07-24 — FilesApp 사이드바 chrome 정리 정정
+- 브랜치: main
+- 한 일: 이전 변경에서 잘못 숨긴 `components/ruehanix/RuehanixShell.tsx` 의 chrome title bar icon + name 을 복원하고 `justifyContent: "flex-end"` 를 제거. 실제 의도였던 `components/ruehanix/FilesApp.tsx` sidebar 상단 strip (`◇ files ⌘F` + 하단 border) 을 제거해 스크롤 영역을 `<aside>` 의 첫 child 로 변경. 기존 사이드바 row kbd chip 및 background 제거는 유지. ADR 0061 정정.
+- 검증: typecheck 통과 / eslint 0 errors, 기존 warnings 2 / vitest 42 files, 314 tests 통과 / build 통과, 정적 페이지 10/10 생성.
+- 리뷰: 요청 범위 4개 파일 diff 및 `git diff --check` self-review 통과. 푸시 안 함.
+- 가정: 없음.
 - 관련 결정: docs/decisions/0061-filesapp-sidebar-cleanup.md
 
 ## 2026-07-24 — 윈도우 어디든 클릭하면 active: chrome 캡쳐 핸들러로 body 클릭도 focus

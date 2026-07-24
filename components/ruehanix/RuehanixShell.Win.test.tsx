@@ -105,6 +105,18 @@ describe("Win (visible-기반 children mount)", () => {
     expect(screen.getByTestId("kid")).toBeInTheDocument();
   });
 
+  it("Win body 클릭 → focus 호출", async () => {
+    const { vm, app, focus } = makeVm({ display: "block" });
+    const user = userEvent.setup();
+    render(
+      <Win vm={vm} app={app}>
+        <div data-testid="body">child</div>
+      </Win>,
+    );
+    await user.click(screen.getByTestId("body"));
+    expect(focus).toHaveBeenCalledTimes(1);
+  });
+
   it("chrome 의 최소화 버튼이 onClick 으로 vm.minimize 호출", async () => {
     const { vm, app, minimize } = makeVm({ display: "block" });
     const user = userEvent.setup();

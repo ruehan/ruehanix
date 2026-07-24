@@ -62,7 +62,10 @@ export function Win({
 
   return (
     <div style={tileStyle}>
-      <div style={vm.chrome}>
+      <div
+        style={vm.chrome}
+        onMouseDownCapture={() => vm.focus[app]()}
+      >
         <div
           onMouseDown={(e) => {
             vm.focus[app]();

@@ -14,13 +14,13 @@ export interface SettingsTab {
 
 /** 사이드바 순서 = 표시 순서. 미구현 탭은 ready:false로 비활성 표시. */
 export const SETTINGS_TABS: SettingsTab[] = [
-  { key: "general", label: "General", ready: false },
-  { key: "appearance", label: "Appearance", ready: true },
-  { key: "windowrules", label: "Window Rules", ready: false },
-  { key: "keybindings", label: "Keybindings", ready: true },
-  { key: "displays", label: "Displays", ready: false },
-  { key: "wallpaper", label: "Wallpaper", ready: false },
-  { key: "about", label: "About", ready: true },
+  { key: "general", label: "일반", ready: false },
+  { key: "appearance", label: "외관", ready: true },
+  { key: "windowrules", label: "창 규칙", ready: false },
+  { key: "keybindings", label: "단축키", ready: true },
+  { key: "displays", label: "디스플레이", ready: false },
+  { key: "wallpaper", label: "배경화면", ready: true },
+  { key: "about", label: "정보", ready: true },
 ];
 
 /** 단축키. Hyprland 스타일. shell 오버레이(RuehanixShell)와 Keybindings 탭이 공유. */

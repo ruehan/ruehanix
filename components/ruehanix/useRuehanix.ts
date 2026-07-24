@@ -213,6 +213,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
   const setAccent = useCallback((accent: string) => setSt((s) => ({ ...s, ui: { ...s.ui, accent } })), [setSt]);
   const toggleUi = useCallback((key: "transp" | "rounded" | "glow") => setSt((s) => ({ ...s, ui: { ...s.ui, [key]: !s.ui[key] } })), [setSt]);
   const setGap = useCallback((gap: number) => setSt((s) => ({ ...s, ui: { ...s.ui, gap } })), [setSt]);
+  const setWallpaperKey = useCallback((wallpaper: import("@/lib/ruehanix/types").WallpaperKey) => setSt((s) => ({ ...s, ui: { ...s.ui, wallpaper } })), [setSt]);
   const resetUi = useCallback(() => setSt((s) => ({ ...s, ui: DEFAULT_UI })), [setSt]);
   const setRatio = (key: string, r: number) => setSt((s) => ({ ...s, ratios: { ...s.ratios, [key]: r } }));
 
@@ -580,6 +581,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       toggleUi,
       resetUi,
       setGap,
+      setWallpaperKey,
       reboot,
       startSlider,
       startGutter,

@@ -3,6 +3,7 @@ import { clickable } from "./clickable";
 import { isActivateKey } from "@/lib/ruehanix/a11y";
 import { ABOUT_META, KEYBINDINGS, SETTINGS_TABS, type SettingsTab } from "@/lib/ruehanix/settings";
 import { notify } from "@/lib/ruehanix/toast";
+import type { WallpaperOption } from "@/lib/ruehanix/theme";
 import type { Vm } from "./viewModel";
 
 const mono = "'JetBrains Mono',monospace";
@@ -18,6 +19,7 @@ export function SettingsApp({ vm }: { vm: Vm }) {
       <SettingsSidebar active={activeTab.key} onSelect={setTab} />
       <div style={{ flex: 1, minWidth: 0, overflow: "auto", padding: "22px 24px" }}>
         {activeTab.key === "appearance" && <AppearancePanel vm={vm} notify={notify} />}
+        {activeTab.key === "wallpaper" && <WallpaperPanel vm={vm} notify={notify} />}
         {activeTab.key === "keybindings" && <KeybindingsPanel />}
         {activeTab.key === "about" && <AboutPanel accent={vm.accent} />}
       </div>
@@ -113,7 +115,7 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
   };
   return (
     <section aria-label="외관 설정">
-      <h2 style={{ margin: "0 0 18px", fontSize: 18, fontWeight: 800, letterSpacing: "-.01em" }}>Appearance</h2>
+      <h2 style={{ margin: "0 0 18px", fontSize: 18, fontWeight: 800, letterSpacing: "-.01em" }}>외관</h2>
 
       <div style={{ fontSize: 11, color: "var(--ov0)", marginBottom: 11, letterSpacing: ".04em" }}>테마 모드</div>
       <div
@@ -141,7 +143,7 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderTop: "1px solid var(--surf0)" }}>
-        <span>Accent color</span>
+        <span>강조색</span>
         <div
           role="radiogroup"
           aria-label="강조색"
@@ -165,7 +167,7 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 0", borderTop: "1px solid var(--surf0)" }}>
-        <span>Window gaps</span>
+        <span>창 간격</span>
         <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--ov0)" }}>
           <div
             role="slider"
@@ -224,7 +226,7 @@ function AppearancePanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }
 function KeybindingsPanel() {
   return (
     <section aria-label="키보드 단축키">
-      <h2 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 800, letterSpacing: "-.01em" }}>Keybindings</h2>
+      <h2 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 800, letterSpacing: "-.01em" }}>단축키</h2>
       <div style={{ fontSize: 11, color: "var(--ov0)", marginBottom: 18 }}>Hyprland 스타일 · Super = ⊞</div>
       <div role="table" aria-label="단축키 목록" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "9px 26px" }}>
         {KEYBINDINGS.map(([combo, desc]) => (
@@ -238,6 +240,96 @@ function KeybindingsPanel() {
   );
 }
 
+function WallpaperPanel({ vm, notify }: { vm: Vm; notify: (m: string) => void }) {
+  const opts = vm.set.wallpaperOpts;
+  const current = vm.set.wallpaperKey;
+  return (
+    <section aria-label="배경화면">
+      <h2 style={{ margin: "0 0 18px", fontSize: 18, fontWeight: 800, letterSpacing: "-.01em" }}>배경화면</h2>
+      <div style={{ fontSize: 11, color: "var(--ov0)", marginBottom: 14, letterSpacing: ".04em" }}>데스크톱 배경 — 프리셋 선택 (localStorage 저장)</div>
+      <div
+        role="radiogroup"
+        aria-label="배경화면 프리셋"
+        style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14 }}
+      >
+        {opts.map((o) => (
+          <WallpaperCard
+            key={o.key}
+            opt={o}
+            selected={current === o.key}
+            accent={vm.accent}
+            onPick={() => {
+              vm.set.setWallpaperKey(o.key);
+              notify(`배경화면: ${o.name}`);
+            }}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function WallpaperCard({
+  opt,
+  selected,
+  accent,
+  onPick,
+}: {
+  opt: WallpaperOption;
+  selected: boolean;
+  accent: string;
+  onPick: () => void;
+}) {
+  return (
+    <div
+      role="radio"
+      aria-checked={selected}
+      aria-label={`배경화면 ${opt.name}`}
+      tabIndex={selected ? 0 : -1}
+      onClick={onPick}
+      onKeyDown={(e) => {
+        if (isActivateKey(e.key)) {
+          e.preventDefault();
+          onPick();
+        }
+      }}
+      style={{
+        borderRadius: 10,
+        border: `2px solid ${selected ? accent : "var(--surf0)"}`,
+        background: "var(--mantle)",
+        padding: 10,
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        outline: "none",
+      }}
+    >
+      <div style={{ display: "flex", gap: 6 }}>
+        <div
+          aria-hidden="true"
+          title="다크 모드 미리보기"
+          style={{ width: 80, height: 48, borderRadius: 6, border: "1px solid var(--surf0)", background: opt.background(false, accent), flex: "none" }}
+        />
+        <div
+          aria-hidden="true"
+          title="라이트 모드 미리보기"
+          style={{ width: 80, height: 48, borderRadius: 6, border: "1px solid var(--surf0)", background: opt.background(true, accent), flex: "none" }}
+        />
+      </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text)" }}>{opt.name}</div>
+          <div style={{ fontSize: 10.5, color: "var(--ov0)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt.description}</div>
+        </div>
+        {selected && (
+          <span style={{ fontSize: 10, color: accent, fontWeight: 700, flex: "none" }}>✓ 선택</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AboutPanel({ accent }: { accent: string }) {
   const rows: [string, string][] = [
     ["이름", ABOUT_META.name],
@@ -248,7 +340,7 @@ function AboutPanel({ accent }: { accent: string }) {
   ];
   return (
     <section aria-label="시스템 정보">
-      <h2 style={{ margin: "0 0 18px", fontSize: 18, fontWeight: 800, letterSpacing: "-.01em" }}>About</h2>
+      <h2 style={{ margin: "0 0 18px", fontSize: 18, fontWeight: 800, letterSpacing: "-.01em" }}>정보</h2>
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, background: "var(--mantle)", border: "1px solid var(--surf0)", borderRadius: 12, marginBottom: 18 }}>
         <div style={{ width: 46, height: 46, borderRadius: 12, flex: "none", background: `linear-gradient(135deg, ${accent}, #89b4fa)`, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-accent)", fontWeight: 800, fontSize: 20 }}>한</div>
         <div>

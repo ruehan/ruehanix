@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_UI, parseUiState, serializeUiState } from "./ui-storage";
 import type { UiState } from "./types";
 
-const valid: UiState = { mode: "light", accent: "#89b4fa", gap: 14, rounded: false, glow: true, transp: true };
+const valid: UiState = { mode: "light", accent: "#89b4fa", gap: 14, rounded: false, glow: true, transp: true, wallpaper: "sunset" };
 
 describe("parseUiState", () => {
   it("직렬화 → 파싱 라운드트립", () => {
@@ -18,13 +18,21 @@ describe("parseUiState", () => {
     expect(parseUiState(JSON.stringify({ mode: "neon", accent: "#89b4fa", gap: 10 }))).toBeNull(); // 잘못된 mode
     expect(parseUiState(JSON.stringify({ mode: "dark", accent: "blue", gap: 10 }))).toBeNull(); // accent hex 아님
     expect(parseUiState(JSON.stringify({ mode: "dark", accent: "#89b4fa", gap: 99 }))).toBeNull(); // gap 범위 밖
+    expect(parseUiState(JSON.stringify({ mode: "dark", accent: "#89b4fa", gap: 10, wallpaper: "galaxy" }))).toBeNull(); // 잘못된 wallpaper 키
+    expect(parseUiState(JSON.stringify({ mode: "dark", accent: "#89b4fa", gap: 10 }))).toBeNull(); // wallpaper 누락
   });
   it("선택 boolean 누락 시 안전 기본값", () => {
-    const p = parseUiState(JSON.stringify({ mode: "dark", accent: "#cba6f7", gap: 10 }));
-    expect(p).toEqual({ mode: "dark", accent: "#cba6f7", gap: 10, rounded: true, glow: true, transp: false });
+    const p = parseUiState(JSON.stringify({ mode: "dark", accent: "#cba6f7", gap: 10, wallpaper: "aurora" }));
+    expect(p).toEqual({ mode: "dark", accent: "#cba6f7", gap: 10, rounded: true, glow: true, transp: false, wallpaper: "aurora" });
+  });
+  it("wallpaper 유효 키(5종)는 round-trip", () => {
+    for (const wp of ["aurora", "deep-space", "sunset", "forest", "mono"] as const) {
+      const u: UiState = { mode: "dark", accent: "#cba6f7", gap: 10, rounded: true, glow: true, transp: false, wallpaper: wp };
+      expect(parseUiState(serializeUiState(u))?.wallpaper).toBe(wp);
+    }
   });
   it("gap은 정수로 반올림", () => {
-    expect(parseUiState(JSON.stringify({ mode: "auto", accent: "#a6e3a1", gap: 12.7 }))?.gap).toBe(13);
+    expect(parseUiState(JSON.stringify({ mode: "auto", accent: "#a6e3a1", gap: 12.7, wallpaper: "aurora" }))?.gap).toBe(13);
   });
 });
 

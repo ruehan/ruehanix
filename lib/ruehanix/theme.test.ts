@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_UI } from "./ui-storage";
-import { accentEff, catColors, effMode, hexA, resolveEarlyTheme, toLatte, wallpaper } from "./theme";
+import { WALLPAPERS, accentEff, catColors, effMode, hexA, resolveEarlyTheme, toLatte, wallpaper } from "./theme";
 
 describe("effMode", () => {
   it("dark/light 모드는 prefersLight와 무관하게 그대로 반환", () => {
@@ -63,12 +63,41 @@ describe("catColors", () => {
 });
 
 describe("wallpaper", () => {
-  it("accent를 그라디언트에 반영", () => {
-    const dark = wallpaper(false, "#cba6f7");
+  it("aurora 키는 accent 를 그라디언트에 반영 (라이트/다크 모두)", () => {
+    const dark = wallpaper("aurora", false, "#cba6f7");
     expect(dark).toContain("rgba(203,166,247,0.2)");
     expect(dark).toContain("#11111b");
-    const light = wallpaper(true, "#cba6f7");
+    const light = wallpaper("aurora", true, "#cba6f7");
     expect(light).toContain("#dce0e8");
+  });
+
+  it("aurora 외 프리셋은 accent 무관하게 정적 그라디언트", () => {
+    const a = wallpaper("deep-space", false, "#cba6f7");
+    const b = wallpaper("deep-space", false, "#fab387");
+    expect(a).toBe(b); // accent 차이 무시
+    expect(a).toContain("#0f0f23");
+  });
+
+  it("WALLPAPERS는 5개 키를 모두 포함 (라이트/다크 모두 문자열 반환)", () => {
+    const keys = new Set(WALLPAPERS.map((w) => w.key));
+    expect(keys).toEqual(new Set(["aurora", "deep-space", "sunset", "forest", "mono"]));
+    for (const w of WALLPAPERS) {
+      const dark = w.background(false, "#cba6f7");
+      const light = w.background(true, "#cba6f7");
+      expect(typeof dark).toBe("string");
+      expect(dark.length).toBeGreaterThan(0);
+      expect(typeof light).toBe("string");
+      expect(light.length).toBeGreaterThan(0);
+      expect(w.name.length).toBeGreaterThan(0);
+      expect(w.description.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("wallpaper(key, ...)은 키별 background 와 일치", () => {
+    for (const w of WALLPAPERS) {
+      expect(wallpaper(w.key, false, "#cba6f7")).toBe(w.background(false, "#cba6f7"));
+      expect(wallpaper(w.key, true, "#cba6f7")).toBe(w.background(true, "#cba6f7"));
+    }
   });
 });
 
@@ -77,26 +106,30 @@ describe("resolveEarlyTheme", () => {
   const wrap = (ui: unknown) => JSON.stringify(ui);
 
   it("저장된 dark 모드 → light:false, accent 원본", () => {
-    const r = resolveEarlyTheme(wrap({ mode: "dark", accent: "#cba6f7", gap: 10 }), false);
+    const r = resolveEarlyTheme(wrap({ mode: "dark", accent: "#cba6f7", gap: 10, wallpaper: "aurora" }), false);
     expect(r).toEqual({ light: false, accent: "#cba6f7" });
   });
   it("저장된 light 모드 → light:true, accent Latte 매핑", () => {
-    const r = resolveEarlyTheme(wrap({ mode: "light", accent: "#cba6f7", gap: 10 }), false);
+    const r = resolveEarlyTheme(wrap({ mode: "light", accent: "#cba6f7", gap: 10, wallpaper: "aurora" }), false);
     expect(r).toEqual({ light: true, accent: "#8839ef" });
   });
   it("auto 모드는 prefersLight를 따른다", () => {
-    const rDark = resolveEarlyTheme(wrap({ mode: "auto", accent: "#89b4fa", gap: 10 }), false);
+    const rDark = resolveEarlyTheme(wrap({ mode: "auto", accent: "#89b4fa", gap: 10, wallpaper: "aurora" }), false);
     expect(rDark).toEqual({ light: false, accent: "#89b4fa" });
-    const rLight = resolveEarlyTheme(wrap({ mode: "auto", accent: "#89b4fa", gap: 10 }), true);
+    const rLight = resolveEarlyTheme(wrap({ mode: "auto", accent: "#89b4fa", gap: 10, wallpaper: "aurora" }), true);
     expect(rLight).toEqual({ light: true, accent: "#1e66f5" });
   });
   it("저장값이 없거나 깨지면 기본값(dark, DEFAULT_UI.accent)", () => {
     expect(resolveEarlyTheme(null, false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
     expect(resolveEarlyTheme("not json", true)).toEqual({ light: false, accent: DEFAULT_UI.accent });
-    expect(resolveEarlyTheme(wrap({ mode: "neon", accent: "#cba6f7", gap: 10 }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
+    expect(resolveEarlyTheme(wrap({ mode: "neon", accent: "#cba6f7", gap: 10, wallpaper: "aurora" }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
   });
   it("gap 범위 밖(0..28)이면 parseUiState가 null → 기본값 (인라인 스크립트와 드리프트 없음)", () => {
     // 저장값이 light라도 gap이 100이면 전체가 무효 → dark 기본값. 인라인 스크립트도 동일.
-    expect(resolveEarlyTheme(wrap({ mode: "light", accent: "#cba6f7", gap: 100 }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
+    expect(resolveEarlyTheme(wrap({ mode: "light", accent: "#cba6f7", gap: 100, wallpaper: "aurora" }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
+  });
+  it("wallpaper 누락/잘못된 키면 parseUiState가 null → 기본값 (ADR 0062)", () => {
+    expect(resolveEarlyTheme(wrap({ mode: "dark", accent: "#cba6f7", gap: 10 }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
+    expect(resolveEarlyTheme(wrap({ mode: "dark", accent: "#cba6f7", gap: 10, wallpaper: "galaxy" }), false)).toEqual({ light: false, accent: DEFAULT_UI.accent });
   });
 });

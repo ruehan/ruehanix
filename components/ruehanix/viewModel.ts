@@ -532,6 +532,9 @@ export function buildVm(api: RuehanixApi) {
     toggleLauncher: handlers.toggleLauncher,
     toggleKeys: handlers.toggleKeys,
     reboot: handlers.reboot,
+    // 빈 데스크탑 wheel → ws±1 전환용 (ADR 0063). 기존 viewModel 패턴(handlers 컨테이너 없이 직접 노출) 따름.
+    ws: st.ws,
+    gotoWs: handlers.gotoWs,
     stop: (e: React.MouseEvent) => e.stopPropagation(),
     finderPosts,
     finderCount,

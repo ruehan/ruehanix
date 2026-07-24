@@ -115,7 +115,7 @@ export function ReaderApp({ vm }: { vm: Vm }) {
                   <div style={{ width: 40, height: 40, borderRadius: "50%", flex: "none", background: "linear-gradient(135deg,#cba6f7,#89b4fa)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-accent)", fontWeight: 800, fontSize: 15, fontFamily: mono }}>한</div>
                   <div style={{ fontFamily: mono }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text)" }}>한규 · ruehan</div>
-                    <div style={{ fontSize: 11.5, color: "var(--ov0)" }}>full-stack dev · sim racing · bass</div>
+                    <div style={{ fontSize: 11.5, color: "var(--ov0)" }}>풀스택 개발 · 시뮬레이션 레이싱 · 베이스</div>
                   </div>
                 </div>
               </div>

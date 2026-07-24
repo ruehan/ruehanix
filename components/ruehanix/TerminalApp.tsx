@@ -2,14 +2,14 @@ import { ART_TERM } from "./icons";
 
 export function TerminalApp() {
   const fast: [string, string][] = [
-    ["OS", "ruehanix 1.0 x86_64"],
-    ["Kernel", "6.9.2-rue"],
-    ["WM", "Hyprland (Wayland)"],
-    ["Theme", "Catppuccin Mocha"],
-    ["Shell", "zsh 5.9"],
-    ["Role", "Full-stack Dev · SW Lead"],
-    ["Stack", "TypeScript · Go · React"],
-    ["Hobby", "Sim Racing · F1/WEC · Bass"],
+    ["운영체제", "ruehanix 1.0 x86_64"],
+    ["커널", "6.9.2-rue"],
+    ["창관리자", "Hyprland (Wayland)"],
+    ["테마", "Catppuccin Mocha"],
+    ["셸", "zsh 5.9"],
+    ["역할", "Full-stack Dev · SW Lead"],
+    ["스택", "TypeScript · Go · React"],
+    ["취미", "Sim Racing · F1/WEC · Bass"],
   ];
   const sw = ["#f38ba8", "#fab387", "#f9e2af", "#a6e3a1", "#89b4fa", "#cba6f7"];
   return (

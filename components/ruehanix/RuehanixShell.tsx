@@ -187,7 +187,17 @@ export function RuehanixShell(content: ShellContent) {
       {/* 오디오 엔진 — 음악 비활성 (ADR 0047). 추후 재활성 시 lazy 복원. */}
 
       {/* WALLPAPER */}
-      <div style={{ position: "absolute", inset: 0, background: vm.wallpaper }} />
+      <div
+        style={{ position: "absolute", inset: 0, background: vm.wallpaper }}
+        onWheel={(e) => {
+          if (vm.booting) return;
+          if (e.deltaY === 0) return;
+          e.preventDefault();
+          const cur = vm.ws;
+          if (e.deltaY > 0 && cur < 6) vm.gotoWs(cur + 1);
+          else if (e.deltaY < 0 && cur > 1) vm.gotoWs(cur - 1);
+        }}
+      />
       <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(205,214,244,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(205,214,244,.025) 1px,transparent 1px)", backgroundSize: "42px 42px", pointerEvents: "none" }} />
 
       {/* DESKTOP WIDGETS (데스크톱 전용) */}
@@ -202,11 +212,11 @@ export function RuehanixShell(content: ShellContent) {
             <span style={{ color: vm.widget.mauve, fontWeight: 700 }}>ruehanix</span>
           </div>
           <div style={{ color: "var(--surf1)" }}>─────────────────</div>
-          <div><span style={{ color: vm.widget.blue }}>OS</span><span style={{ color: "var(--ov0)" }}>   </span>ruehanix 1.0</div>
-          <div><span style={{ color: vm.widget.pink }}>WM</span><span style={{ color: "var(--ov0)" }}>   </span>Hyprland</div>
-          <div><span style={{ color: vm.widget.green }}>DE</span><span style={{ color: "var(--ov0)" }}>   </span>Catppuccin Mocha</div>
-          <div><span style={{ color: vm.widget.peach }}>SH</span><span style={{ color: "var(--ov0)" }}>   </span>zsh 5.9</div>
-          <div><span style={{ color: vm.widget.red }}>WHO</span><span style={{ color: "var(--ov0)" }}>  </span>한규 · full-stack dev</div>
+          <div><span style={{ color: vm.widget.blue }}>운영체제</span><span style={{ color: "var(--ov0)" }}> </span>ruehanix 1.0</div>
+          <div><span style={{ color: vm.widget.pink }}>창관리자</span><span style={{ color: "var(--ov0)" }}> </span>Hyprland</div>
+          <div><span style={{ color: vm.widget.green }}>데스크톱 환경</span><span style={{ color: "var(--ov0)" }}> </span>Catppuccin Mocha</div>
+          <div><span style={{ color: vm.widget.peach }}>셸</span><span style={{ color: "var(--ov0)" }}>       </span>zsh 5.9</div>
+          <div><span style={{ color: vm.widget.red }}>사용자</span><span style={{ color: "var(--ov0)" }}>     </span>한규 · 풀스택 개발</div>
           <div style={{ marginTop: 8, display: "flex", gap: 5 }}>
             {vm.widget.swatches.map((c) => (
               <span key={c} style={{ width: 16, height: 16, borderRadius: 4, background: c }} />
@@ -220,15 +230,15 @@ export function RuehanixShell(content: ShellContent) {
           {vm.mod.clock}
           <span style={{ fontSize: 12, color: "var(--ov0)", fontWeight: 500 }}> KST</span>
         </div>
-        <div style={{ color: "var(--ov0)", marginBottom: 14 }}>Mon 22 Jun 2026 · up 4h 12m</div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.green }}>CPU</span><span>{vm.mod.cpu}</span></div>
+        <div style={{ color: "var(--ov0)", marginBottom: 14 }}>2026-06-22 월 · 가동 4시간 12분</div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.green }}>프로세서</span><span>{vm.mod.cpu}</span></div>
         <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 10, overflow: "hidden" }}><div style={{ height: "100%", width: vm.mod.cpu, background: vm.widget.green, borderRadius: 3 }} /></div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.yellow }}>RAM</span><span>{vm.mod.ram} · 30/64G</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.yellow }}>메모리</span><span>{vm.mod.ram} · 30/64G</span></div>
         <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 10, overflow: "hidden" }}><div style={{ height: "100%", width: vm.mod.ram, background: vm.widget.yellow, borderRadius: 3 }} /></div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.blue }}>DISK</span><span>61% · 1.2/2T</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ color: vm.widget.blue }}>디스크</span><span>61% · 1.2/2T</span></div>
         <div style={{ height: 5, borderRadius: 3, background: "var(--surf0)", marginBottom: 13, overflow: "hidden" }}><div style={{ height: "100%", width: "61%", background: vm.widget.blue, borderRadius: 3 }} /></div>
-        <div style={{ display: "flex", justifyContent: "space-between", whiteSpace: "nowrap", color: "var(--ov0)" }}><span style={{ color: vm.widget.mauve }}>NET</span><span>↓2.4M ↑312K</span></div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, whiteSpace: "nowrap", color: "var(--ov0)" }}><span style={{ color: vm.widget.pink }}>PROC</span><span>312 · 0.84</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", whiteSpace: "nowrap", color: "var(--ov0)" }}><span style={{ color: vm.widget.mauve }}>네트워크</span><span>↓2.4M ↑312K</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, whiteSpace: "nowrap", color: "var(--ov0)" }}><span style={{ color: vm.widget.pink }}>프로세스</span><span>312 · 0.84</span></div>
       </div>
 
       <div style={{ position: "absolute", left: 46, bottom: 34, zIndex: 30, fontSize: 12, color: "var(--ov0)", lineHeight: 1.9, whiteSpace: "nowrap", textShadow: vm.widget.shadow }}>
@@ -268,7 +278,7 @@ export function RuehanixShell(content: ShellContent) {
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           {/* 미니플레이어 — 음악 비활성 (ADR 0047). */}
           <div style={{ padding: "3px 11px", borderRadius: 7, background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", fontWeight: 700 }}>{vm.mod.clock}</div>
-          <div {...clickable(vm.reboot, "재부팅")} title="reboot" style={{ display: "flex", alignItems: "center", padding: "3px 8px", borderRadius: 7, background: "rgba(243,139,168,.14)", color: "#f38ba8", cursor: "pointer" }}>
+          <div {...clickable(vm.reboot, "재부팅")} title="재부팅" style={{ display: "flex", alignItems: "center", padding: "3px 8px", borderRadius: 7, background: "rgba(243,139,168,.14)", color: "#f38ba8", cursor: "pointer" }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 3v9" /><path d="M6.5 7a8 8 0 1 0 11 0" /></svg>
           </div>
         </div>

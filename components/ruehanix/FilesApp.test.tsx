@@ -67,13 +67,13 @@ function mkVm(opts?: { cats?: ("all" | CatKey)[]; posts?: Array<{ id: string; ti
 }
 
 describe("FilesApp", () => {
-  it("사이드바에 3개 그룹 라벨(library / sort / view) 표시", () => {
+  it("사이드바에 3개 그룹 라벨(라이브러리 / 정렬 / 보기) 표시", () => {
     const { fakeVm } = mkVm();
     render(<FilesApp vm={fakeVm} />);
     const aside = screen.getByRole("complementary", { name: "사이드바" });
-    expect(within(aside).getByText("library")).toBeInTheDocument();
-    expect(within(aside).getByText("sort")).toBeInTheDocument();
-    expect(within(aside).getByText("view")).toBeInTheDocument();
+    expect(within(aside).getByText("라이브러리")).toBeInTheDocument();
+    expect(within(aside).getByText("정렬")).toBeInTheDocument();
+    expect(within(aside).getByText("보기")).toBeInTheDocument();
   });
 
   it("카테고리 클릭 → finderCats 의 onClick 호출", () => {
@@ -164,20 +164,20 @@ describe("FilesApp", () => {
     expect(container.textContent).not.toContain("⌘6");
   });
 
-  it("sticky 컬럼 헤더 표시 (name / category / date)", () => {
+  it("sticky 컬럼 헤더 표시 (이름 / 카테고리 / 날짜)", () => {
     const { fakeVm } = mkVm();
     const { container } = render(<FilesApp vm={fakeVm} />);
-    expect(container.textContent).toContain("name");
-    expect(container.textContent).toContain("category");
-    expect(container.textContent).toContain("date");
+    expect(container.textContent).toContain("이름");
+    expect(container.textContent).toContain("카테고리");
+    expect(container.textContent).toContain("날짜");
   });
 
-  it("상태바 단축키 (open / search / cycle sort) 표시", () => {
+  it("상태바 단축키 (열기 / 검색 / 정렬 순환) 표시", () => {
     const { fakeVm } = mkVm();
     const { container } = render(<FilesApp vm={fakeVm} />);
-    expect(container.textContent).toContain("open");
-    expect(container.textContent).toContain("search");
-    expect(container.textContent).toContain("cycle sort");
+    expect(container.textContent).toContain("열기");
+    expect(container.textContent).toContain("검색");
+    expect(container.textContent).toContain("정렬 순환");
     expect(container.textContent).toContain("↵");
     expect(container.textContent).toContain("⌘K");
     expect(container.textContent).toContain("⌘⇧S");

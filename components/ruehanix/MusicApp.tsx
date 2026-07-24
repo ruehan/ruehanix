@@ -22,7 +22,7 @@ export function MusicApp({ vm }: { vm: Vm }) {
       <div style={{ flex: "none", padding: "22px 22px 18px", borderBottom: "1px solid var(--surf0)", background: "radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <span style={{ width: 7, height: 7, borderRadius: "50%", background: p.playing ? "#a6e3a1" : "var(--ov0)", boxShadow: p.playing ? "0 0 8px #a6e3a1" : "none" }} />
-          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".16em", color: p.playing ? "#a6e3a1" : "var(--ov0)" }}>{p.playing ? "NOW PLAYING" : "PAUSED"}</span>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".16em", color: p.playing ? "#a6e3a1" : "var(--ov0)" }}>{p.playing ? "재생 중" : "일시정지"}</span>
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.01em", lineHeight: 1.25, marginBottom: 4, textWrap: "balance" }}>{p.current?.title}</div>
         <div style={{ fontSize: 13, color: "var(--ov0)" }}>{p.current?.artist}</div>

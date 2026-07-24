@@ -1,10 +1,10 @@
 export function AboutApp() {
   const specs: [string, string][] = [
-    ["CPU", "Ryzen 9 7950X · 16C/32T"],
-    ["GPU", "Radeon RX 7900 XTX"],
-    ["Memory", "64GB DDR5-6000"],
-    ["WM", "Hyprland · Wayland"],
-    ["Uptime", "7 yrs in the industry"],
+    ["프로세서", "Ryzen 9 7950X · 16C/32T"],
+    ["그래픽", "Radeon RX 7900 XTX"],
+    ["메모리", "64GB DDR5-6000"],
+    ["창관리자", "Hyprland · Wayland"],
+    ["가동 시간", "7 yrs in the industry"],
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "30px 26px", color: "var(--text)" }}>
@@ -31,9 +31,9 @@ export function AboutApp() {
         <div>
           <div style={{ fontWeight: 700, fontSize: 13 }}>한규 · ruehan</div>
           <div style={{ fontSize: 11, color: "var(--ov0)", lineHeight: 1.5 }}>
-            full-stack dev · SW Lead
+            풀스택 개발 · SW 리드
             <br />
-            sim racing · F1/WEC · bass
+            시뮬레이션 레이싱 · F1/WEC · 베이스
           </div>
         </div>
       </div>

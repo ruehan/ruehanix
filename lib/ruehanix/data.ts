@@ -59,7 +59,7 @@ export const ACCENT_PALETTE: { hex: string; name: string }[] = [
 ];
 
 export const THEME_MODES = [
-  { k: "light", label: "Light", prev: "linear-gradient(135deg,#eff1f5,#ccd0da)" },
-  { k: "dark", label: "Dark", prev: "linear-gradient(135deg,#1e1e2e,#45475a)" },
-  { k: "auto", label: "Auto", prev: "linear-gradient(135deg,#eff1f5 0%,#eff1f5 48%,#1e1e2e 52%,#1e1e2e 100%)" },
+  { k: "light", label: "라이트", prev: "linear-gradient(135deg,#eff1f5,#ccd0da)" },
+  { k: "dark", label: "다크", prev: "linear-gradient(135deg,#1e1e2e,#45475a)" },
+  { k: "auto", label: "자동", prev: "linear-gradient(135deg,#eff1f5 0%,#eff1f5 48%,#1e1e2e 52%,#1e1e2e 100%)" },
 ] as const;

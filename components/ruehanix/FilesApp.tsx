@@ -4,10 +4,10 @@ import { sortPosts, type SortKey } from "@/lib/ruehanix/files-sort";
 import type { Vm } from "./viewModel";
 
 const SORT_OPTIONS: { key: SortKey; label: string; arrow: string; ariaLabel: string }[] = [
-  { key: "date-desc", label: "latest", arrow: "▾", ariaLabel: "최신순 정렬" },
-  { key: "date-asc", label: "oldest", arrow: "▴", ariaLabel: "오래된순 정렬" },
-  { key: "title-asc", label: "title a→z", arrow: "▴", ariaLabel: "제목 가→하 정렬" },
-  { key: "title-desc", label: "title z→a", arrow: "▾", ariaLabel: "제목 하→가 정렬" },
+  { key: "date-desc", label: "최신", arrow: "▾", ariaLabel: "최신순 정렬" },
+  { key: "date-asc", label: "오래된", arrow: "▴", ariaLabel: "오래된순 정렬" },
+  { key: "title-asc", label: "제목 가→하", arrow: "▴", ariaLabel: "제목 가→하 정렬" },
+  { key: "title-desc", label: "제목 하→가", arrow: "▾", ariaLabel: "제목 하→가 정렬" },
 ];
 
 // 카테고리 키 → 모노스페이스 심볼. 디자인 HTML 의 의도(아이콘 14px 폭, mono)를 그대로.
@@ -72,7 +72,7 @@ export function FilesApp({ vm }: { vm: Vm }) {
         <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "6px 6px 8px" }}>
           {/* ============ LIBRARY ============ */}
           <div>
-            <GroupLabel>library <Count>6</Count> <Chev /></GroupLabel>
+            <GroupLabel>라이브러리 <Count>6</Count> <Chev /></GroupLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 1, padding: "0 2px" }}>
               {vm.finderCats.map((c) => {
                 return (
@@ -92,7 +92,7 @@ export function FilesApp({ vm }: { vm: Vm }) {
 
           {/* ============ SORT ============ */}
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--surf0)" }}>
-            <GroupLabel>sort <Count>4</Count> <Chev /></GroupLabel>
+            <GroupLabel>정렬 <Count>4</Count> <Chev /></GroupLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 1, padding: "0 2px" }}>
               {SORT_OPTIONS.map((s) => {
                 const active = sortKey === s.key;
@@ -115,7 +115,7 @@ export function FilesApp({ vm }: { vm: Vm }) {
 
           {/* ============ VIEW ============ */}
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--surf0)" }}>
-            <GroupLabel>view <Chev /></GroupLabel>
+            <GroupLabel>보기 <Chev /></GroupLabel>
             <div
               role="radiogroup"
               aria-label="밀도"
@@ -155,7 +155,7 @@ export function FilesApp({ vm }: { vm: Vm }) {
                       transition: "background .1s, color .1s, border-color .1s",
                     }}
                   >
-                    {d}
+                    {d === "comfy" ? "여유" : "빽빽"}
                   </div>
                 );
               })}
@@ -198,7 +198,7 @@ export function FilesApp({ vm }: { vm: Vm }) {
             />
             {vm.finderCount}
           </span>
-          <span aria-hidden>↑↓ nav</span>
+          <span aria-hidden>↑↓ 탐색</span>
         </div>
       </aside>
 
@@ -287,10 +287,10 @@ export function FilesApp({ vm }: { vm: Vm }) {
             }}
           >
             <span style={{ color: "var(--sub1)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{posts.length}</span>
-            posts
-            <span style={{ color: "var(--surf2)", margin: "0 2px" }}>·</span>
+            개
+            <span style={{ color: "var(--surf2)", margin: "0 2px" }}> · </span>
             <span style={{ color: "var(--sub1)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{vm.allPosts.length}</span>
-            total
+            전체
           </div>
         </div>
 
@@ -319,14 +319,14 @@ export function FilesApp({ vm }: { vm: Vm }) {
         >
           <span />
           <span>
-            name
+            이름
             <span style={{ display: "inline-block", width: 7, color: sortKey.startsWith("title") ? "var(--accent)" : "transparent", marginLeft: 3 }}>
               {sortKey.startsWith("title") ? (sortKey === "title-asc" ? "▴" : "▾") : "▾"}
             </span>
           </span>
-          <span style={{ textAlign: "right" }}>category</span>
+          <span style={{ textAlign: "right" }}>카테고리</span>
           <span style={{ textAlign: "right" }}>
-            date
+            날짜
             <span style={{ display: "inline-block", width: 7, color: sortKey.startsWith("date") ? "var(--accent)" : "transparent", marginLeft: 3 }}>
               {sortKey.startsWith("date") ? (sortKey === "date-asc" ? "▴" : "▾") : "▾"}
             </span>
@@ -386,18 +386,18 @@ export function FilesApp({ vm }: { vm: Vm }) {
           }}
         >
           <span>
-            <b style={{ color: "var(--sub1)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{posts.length}</b> posts
-            {query ? <> · <b style={{ color: "var(--sub1)", fontWeight: 700 }}>esc</b> clear</> : null}
+            <b style={{ color: "var(--sub1)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{posts.length}</b> 개
+            {query ? <> · <b style={{ color: "var(--sub1)", fontWeight: 700 }}>esc</b> 지우기</> : null}
           </span>
           <span style={{ display: "flex", gap: 12 }}>
             <span>
-              <Kbd>↵</Kbd>open
+              <Kbd>↵</Kbd>열기
             </span>
             <span>
-              <Kbd>⌘K</Kbd>search
+              <Kbd>⌘K</Kbd>검색
             </span>
             <span>
-              <Kbd>⌘⇧S</Kbd>cycle sort
+              <Kbd>⌘⇧S</Kbd>정렬 순환
             </span>
           </span>
         </div>

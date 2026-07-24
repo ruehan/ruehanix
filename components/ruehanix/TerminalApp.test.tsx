@@ -14,7 +14,7 @@ describe("TerminalApp", () => {
 
   it("fastfetch OS 라벨과 값을 렌더한다", () => {
     render(<TerminalApp />);
-    expect(screen.getByText("OS")).toBeInTheDocument();
+    expect(screen.getByText("운영체제")).toBeInTheDocument();
     expect(screen.getByText("ruehanix 1.0 x86_64")).toBeInTheDocument();
   });
 });

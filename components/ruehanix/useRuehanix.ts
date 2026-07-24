@@ -512,7 +512,7 @@ export function useRuehanix({ posts, tracks, photos, artists, albums }: ShellCon
       })),
       ...(["light", "dark", "auto"] as const).map((m) => ({
         id: `theme:${m}`,
-        title: `테마: ${m === "auto" ? "Auto" : m === "light" ? "Light" : "Dark"}`,
+        title: `테마: ${m === "auto" ? "자동" : m === "light" ? "라이트" : "다크"}`,
         group: "theme" as const,
         keywords: ["theme", m, m === "light" ? "라이트" : m === "dark" ? "다크" : "자동"],
         run: () => setMode(m),

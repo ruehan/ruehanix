@@ -19,14 +19,14 @@ export function WebApp({ vm }: { vm: Vm }) {
             ruehan<span style={{ color: "#cba6f7" }}>.dev</span>
           </span>
           <div style={{ display: "flex", gap: 18, fontSize: 12.5, color: "var(--ov0)" }}>
-            <span>posts</span>
-            <span>projects</span>
-            <span>racing</span>
-            <span>about</span>
+            <span>글</span>
+            <span>프로젝트</span>
+            <span>레이싱</span>
+            <span>소개</span>
           </div>
         </div>
         <div style={{ padding: "54px 30px 42px", textAlign: "center", background: "radial-gradient(120% 100% at 50% 0%,color-mix(in srgb, var(--accent) 14%, transparent),transparent 70%)" }}>
-          <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: "#cba6f7", letterSpacing: ".06em", marginBottom: 14 }}>FULL-STACK DEVELOPER · SW LEAD</div>
+          <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: "#cba6f7", letterSpacing: ".06em", marginBottom: 14 }}>풀스택 개발 · SW 리드</div>
           <h1 style={{ margin: "0 0 16px", fontSize: 36, lineHeight: 1.18, fontWeight: 800, letterSpacing: "-.03em", color: "var(--text)", textWrap: "balance" }}>
             코드를 짓고, 랩타임을 줄이고,
             <br />
@@ -37,7 +37,7 @@ export function WebApp({ vm }: { vm: Vm }) {
         <div style={{ padding: "6px 30px 44px", maxWidth: 840, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 16, fontFamily: mono }}>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--text)" }}>최근 글</h2>
-            <span style={{ fontSize: 12, color: "var(--ov0)" }}>all posts →</span>
+            <span style={{ fontSize: 12, color: "var(--ov0)" }}>모든 글 →</span>
           </div>
           {vm.allPosts.length === 0 && <EmptyPosts compact />}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>

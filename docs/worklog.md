@@ -1,3 +1,11 @@
+## 2026-07-24 — content/posts 번들 추적 — Vercel fs.readdirSync 동작
+- 브랜치: fix/blog-content-posts-bundle-tracing
+- 한 일: `next.config.mjs` 에 `outputFileTracingIncludes: { "**": ["./content/**"] }` top-level 추가. `lib/posts/queries.ts` 가 런타임에 `fs.readdirSync('content/posts')`/`fs.readFileSync(...)` 를 호출하는데 Next.js 정적 File Tracer 는 정적 import 만 따라가므로 런타임 fs 호출은 번들 추적 대상에서 빠진다 → Vercel 배포 시 readdirSync ENOENT → catch 가 빈 배열 → posts 0개. glob `./content/**` 로 `content/posts/*.md` 와 향후 `content/` 하위 정적 자산을 모두 추적 명시. ADR 0058 의 후속 — 캐시 단계를 끊어 응답 freshness 는 풀었지만 번들 누락 자체는 별개. 처음에 `experimental.outputFileTracingIncludes` 로 두니 Next.js 16.2.9 에서 `Unrecognized key(s) in object: 'outputFileTracingIncludes' at "experimental"` 경고와 함께 적용 안 됨 (빌드 출력에 `(invalid experimental key)` 표기) — 사용자 메모대로 top-level 로 옮겨 경고 사라지고 manifest 에 반영 확인.
+- 검증: rm -r .next (rm -rf 가 가드레일로 차단됨) → `next build` 무경고 통과 → `.next/server/app/page.js.nft.json` 에 `content/posts/ends-with-team.md`, `content/posts/why-a-desktop-shaped-blog.md` 둘 다 등장 (File Tracing manifest 가 경로를 기록, 실제 파일 복사 X — Vercel 배포 단계에서 manifest 참조). 빌드 라우트 표: `/` `ƒ` / `/posts` `ƒ` / `/posts/[slug]` `ƒ` (ADR 0058 의도된 dynamic 유지), 그 외 변경 없음.
+- 리뷰: 변경 파일 3개(next.config.mjs 4줄, ADR 0059, worklog) + 빌드 라우트 표 의도 유지 + nft.json 매치 검증 → self-review 만으로 통과. main 병합은 보류, 푸시는 안 함 — 사용자 명시 시.
+- 가정: Next.js 16.2.9 의 top-level `outputFileTracingIncludes` 가 Vercel 배포 단계에서도 그대로 적용된다 (File Tracing 은 로컬 빌드와 Vercel 빌드에서 동일 알고리즘). glob `./content/**` 가 `content/posts/` 외에 `content/photos/` 같은 미래 디렉터리도 자동 추적 — 추가 설정 변경 불필요. `find .next -path '*content/posts/*.md'` 가 빈 결과인 건 정상 (manifest 에 경로만 기록, 파일 복사 X).
+- 관련 결정: docs/decisions/0059-content-posts-bundle-tracing.md
+
 ## 2026-07-24 — 셸·/posts·/posts/[slug] 캐시 완전 비활성화 (revalidate=0)
 - 브랜치: (main 직접, 변경 3줄)
 - 한 일: `app/page.tsx`, `app/posts/page.tsx`, `app/posts/[slug]/page.tsx` 셋의 `export const revalidate = 60;` → `revalidate = 0;` 변경. Next.js 15 에서 `revalidate = 0` 은 force-dynamic 과 동치 — 빌드 시점 prerender 결과를 더 이상 캐시 단계에 태우지 않고 매 요청 fresh fetch + SSR 렌더. 데이터 fetch 로직·generateStaticParams·dynamicParams 는 모두 유지. ADR 0056 의 ISR 60s + ADR 0057 on-demand revalidation API 만으로 CDN edge race 가 본질 해결이 안 되는데(백그라운드 stale HTML + edge 간 일관성 부재), 캐시 단계 자체를 끊어 race 발생지를 제거. `app/api/revalidate` 는 안전망으로 유지.

@@ -78,13 +78,9 @@ export function Win({
                 ? (e: React.MouseEvent) => { e.stopPropagation(); vm.toggleFloating(app); }
                 : (e: React.MouseEvent) => { e.stopPropagation(); vm.toggleMaximize[app](); }
           }
-          style={{ ...vm.tbar, cursor: floating ? "move" : vm.tbar.cursor }}
+          style={{ ...vm.tbar, cursor: floating ? "move" : vm.tbar.cursor, justifyContent: "flex-end" }}
           title={vm.isMobile ? undefined : floating ? "드래그: 이동 · 더블클릭: 타일 복귀" : vm.isMaximized ? "더블클릭: 복원" : "더블클릭: 최대화"}
         >
-          <span style={{ display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap", color: meta.color }}>
-            <LineIcon app={app} size={14} />
-            <span style={{ color: "var(--text)" }}>{meta.name}</span>
-          </span>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             {!vm.isMobile && (
               <>

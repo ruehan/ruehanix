@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import { EmptyPosts } from "./EmptyPosts";
 import { sortPosts, type SortKey } from "@/lib/ruehanix/files-sort";
-import { catShortcut, sortShortcut } from "@/lib/ruehanix/files-shortcuts";
-import type { CatKey } from "@/lib/ruehanix/types";
 import type { Vm } from "./viewModel";
 
 const SORT_OPTIONS: { key: SortKey; label: string; arrow: string; ariaLabel: string }[] = [
@@ -64,7 +62,6 @@ export function FilesApp({ vm }: { vm: Vm }) {
         style={{
           flex: "none",
           width: 200,
-          background: "linear-gradient(180deg, var(--mantle) 0%, #1a1a28 100%)",
           borderRight: "1px solid var(--surf0)",
           display: "flex",
           flexDirection: "column",
@@ -109,7 +106,6 @@ export function FilesApp({ vm }: { vm: Vm }) {
             <GroupLabel>library <Count>6</Count> <Chev /></GroupLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 1, padding: "0 2px" }}>
               {vm.finderCats.map((c) => {
-                const kbd = catShortcut(c.key as CatKey | "all");
                 return (
                   <SideRow
                     key={c.key}
@@ -119,7 +115,6 @@ export function FilesApp({ vm }: { vm: Vm }) {
                     icon={CAT_ICON[c.key] ?? "◇"}
                     catColor={CAT_COLOR[c.key] ?? "var(--sub0)"}
                     label={c.label}
-                    kbd={kbd}
                   />
                 );
               })}
@@ -142,7 +137,6 @@ export function FilesApp({ vm }: { vm: Vm }) {
                     iconColor="var(--ov0)"
                     catColor="var(--sub0)"
                     label={s.label}
-                    kbd={sortShortcut(s.key)}
                     variant="sort"
                   />
                 );
@@ -491,7 +485,6 @@ function SideRow({
   iconColor,
   catColor,
   label,
-  kbd,
   variant = "cat",
 }: {
   active: boolean;
@@ -501,7 +494,6 @@ function SideRow({
   iconColor?: string;
   catColor: string;
   label: string;
-  kbd: string;
   variant?: "cat" | "sort";
 }) {
   return (
@@ -578,24 +570,6 @@ function SideRow({
       >
         {label}
       </span>
-      {kbd && (
-        <span
-          aria-hidden
-          style={{
-            flex: "none",
-            fontSize: 9.5,
-            color: active ? "var(--sub1)" : "var(--ov0)",
-            border: `1px solid ${active ? "var(--surf1)" : "var(--surf0)"}`,
-            borderRadius: 3,
-            padding: "0 5px",
-            lineHeight: 1.5,
-            background: "var(--base)",
-            fontWeight: 600,
-          }}
-        >
-          {kbd}
-        </span>
-      )}
     </div>
   );
 }

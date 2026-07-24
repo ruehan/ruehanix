@@ -1,5 +1,5 @@
 import { DEFAULT_UI, parseUiState } from "./ui-storage";
-import type { CatKey, ThemeMode } from "./types";
+import type { CatKey, ThemeMode, WallpaperKey } from "./types";
 
 /** Catppuccin Mocha(다크) → Latte(라이트) 색 매핑. accent 팔레트 + 위젯 보조색 전체. */
 export const MOCHA_TO_LATTE: Record<string, string> = {
@@ -47,11 +47,80 @@ export function catColors(lightMode: boolean): Record<CatKey, string> {
     : { dev: "#89b4fa", sim: "#f38ba8", moto: "#fab387", music: "#cba6f7", blog: "#a6e3a1" };
 }
 
-/** 데스크톱 배경 그라디언트. */
-export function wallpaper(lightMode: boolean, accent: string): string {
-  return lightMode
+/** 단일 배경화면 프리셋. 라이트/다크 각 1개의 background 문자열을 만든다.
+ *  SettingsApp 의 배경화면 탭이 이들을 옵션으로 노출한다(ADR 0062). */
+export interface WallpaperOption {
+  key: WallpaperKey;
+  name: string;
+  description: string;
+  /** 라이트/다크 모드와 accent 를 받아 CSS background 문자열을 만든다. */
+  background: (lightMode: boolean, accent: string) => string;
+}
+
+const auroraBackground = (lightMode: boolean, accent: string): string =>
+  lightMode
     ? `radial-gradient(120% 110% at 12% 6%, ${hexA(accent, 0.3)} 0%, rgba(0,0,0,0) 50%), radial-gradient(120% 120% at 92% 96%, ${hexA(accent, 0.22)} 0%, rgba(0,0,0,0) 52%), linear-gradient(160deg, #f3f4f8 0%, #e6e9ef 55%, #dce0e8 100%)`
     : `radial-gradient(120% 110% at 12% 6%, ${hexA(accent, 0.2)} 0%, rgba(0,0,0,0) 50%), radial-gradient(120% 120% at 92% 96%, ${hexA(accent, 0.16)} 0%, rgba(0,0,0,0) 52%), linear-gradient(160deg, #1e1e2e 0%, #181825 55%, #11111b 100%)`;
+
+/** 프리셋 5종 — Aurora / Deep Space / Sunset / Forest / Mono.
+ *  SettingsApp 사이드바의 배경화면 탭에서 카드로 보여준다. 순서는 SETTINGS_TABS 와 동일한 표시 순서. */
+export const WALLPAPERS: WallpaperOption[] = [
+  {
+    key: "aurora",
+    name: "오로라",
+    description: "강조색을 비춘 부드러운 빛. 기본값.",
+    background: auroraBackground,
+  },
+  {
+    key: "deep-space",
+    name: "딥 스페이스",
+    description: "차분한 보라·네이비 그라디언트.",
+    background: (_light, _accent) =>
+      _light
+        ? "radial-gradient(120% 110% at 18% 8%, #e6e6f5 0%, rgba(0,0,0,0) 55%), linear-gradient(160deg, #e8eaf5 0%, #d8dce8 55%, #c8cce0 100%)"
+        : "radial-gradient(120% 110% at 18% 8%, #3a3a6e 0%, rgba(0,0,0,0) 55%), linear-gradient(160deg, #1e1e3e 0%, #15152a 55%, #0f0f23 100%)",
+  },
+  {
+    key: "sunset",
+    name: "선셋",
+    description: "따뜻한 오렌지·핑크 노을.",
+    background: (_light, _accent) =>
+      _light
+        ? "radial-gradient(120% 110% at 18% 8%, #ffd9c2 0%, rgba(0,0,0,0) 55%), linear-gradient(160deg, #ffe4cc 0%, #ffd1d8 55%, #f7c6cc 100%)"
+        : "radial-gradient(120% 110% at 18% 8%, #5a3a4e 0%, rgba(0,0,0,0) 55%), linear-gradient(160deg, #3a1e2e 0%, #2a1428 55%, #1e1230 100%)",
+  },
+  {
+    key: "forest",
+    name: "포레스트",
+    description: "녹색 그늘, 차분한 산림 톤.",
+    background: (_light, _accent) =>
+      _light
+        ? "radial-gradient(120% 110% at 18% 8%, #d8e4d4 0%, rgba(0,0,0,0) 55%), linear-gradient(160deg, #dce6d4 0%, #c8d4c4 55%, #b6c4b2 100%)"
+        : "radial-gradient(120% 110% at 18% 8%, #1e3a2a 0%, rgba(0,0,0,0) 55%), linear-gradient(160deg, #14241a 0%, #0f1f15 55%, #0a1410 100%)",
+  },
+  {
+    key: "mono",
+    name: "모노",
+    description: "단색 · 가장 빠르고 정적.",
+    background: (_light, _accent) =>
+      _light
+        ? "linear-gradient(160deg, #f3f4f8 0%, #e6e9ef 55%, #dce0e8 100%)"
+        : "linear-gradient(160deg, #1e1e2e 0%, #181825 55%, #11111b 100%)",
+  },
+];
+
+/** 키 → 옵션 매핑. viewModel 이 wallpaperKey 로 색을 찾을 때 사용. */
+const WALLPAPER_BY_KEY: Record<WallpaperKey, WallpaperOption> = WALLPAPERS.reduce(
+  (acc, w) => {
+    acc[w.key] = w;
+    return acc;
+  },
+  {} as Record<WallpaperKey, WallpaperOption>,
+);
+
+/** 데스크톱 배경 그라디언트. 키·라이트 모드·강조색으로 결정(ADR 0062). */
+export function wallpaper(key: WallpaperKey, lightMode: boolean, accent: string): string {
+  return WALLPAPER_BY_KEY[key].background(lightMode, accent);
 }
 
 /** UI 설정 저장값(원본 문자열)에서 페인트 전 적용할 테마를 결정.

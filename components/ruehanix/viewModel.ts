@@ -8,7 +8,7 @@ import {
   LAPS,
   THEME_MODES,
 } from "@/lib/ruehanix/data";
-import { accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "@/lib/ruehanix/theme";
+import { WALLPAPERS, accentEff, catColors, effMode, hexA, toLatte, wallpaper } from "@/lib/ruehanix/theme";
 import { area, computeLayout, visibleIds } from "@/lib/ruehanix/layout";
 import { DESKTOP_DOCK_RESERVE, MOBILE_TOPBAR, isMobileWidth, mobileAppRect } from "@/lib/ruehanix/responsive";
 import { searchAll } from "@/lib/ruehanix/search";
@@ -393,6 +393,9 @@ export function buildVm(api: RuehanixApi) {
       { label: "Rounded corners", on: ui.rounded, track: togTrack(ui.rounded), knob: togKnob(ui.rounded), onClick: () => handlers.toggleUi("rounded") },
       { label: "Active border glow", on: ui.glow, track: togTrack(ui.glow), knob: togKnob(ui.glow), onClick: () => handlers.toggleUi("glow") },
     ],
+    wallpaperKey: ui.wallpaper,
+    wallpaperOpts: WALLPAPERS,
+    setWallpaperKey: handlers.setWallpaperKey,
   };
 
   // --- 음악 플레이어 ---
@@ -453,7 +456,7 @@ export function buildVm(api: RuehanixApi) {
 
   return {
     accent,
-    wallpaper: wallpaper(lightMode, accent),
+    wallpaper: wallpaper(ui.wallpaper, lightMode, accent),
     mod: { clock: sys.clock, cpu: sys.cpu + "%", ram: sys.ram + "%", batt: "87%" },
     booting: st.booting,
     bootLines,

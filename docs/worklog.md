@@ -1,3 +1,10 @@
+## 2026-07-24 — SettingsApp 한글화 + Wallpaper 탭 활성화
+- 브랜치: feat/settings-korean-wallpaper
+- 한 일: SETTINGS_TABS 라벨 7종 한국어화(일반/외관/창 규칙/단축키/디스플레이/배경화면/정보) + SettingsApp 본문 잔존 영어(Appearance/Accent color/Window gaps/Keybindings/About) 한국어로 통일. `lib/ruehanix/types.ts` 에 `WallpaperKey = "aurora" | "deep-space" | "sunset" | "forest" | "mono"` 와 `isWallpaperKey` 가드 추가, `UiState` 에 `wallpaper: WallpaperKey` 필드 도입. `lib/ruehanix/theme.ts` `WALLPAPERS: WallpaperOption[]` (한국어 name/description) export, `wallpaper(key, lightMode, accent): string` 로 시그니처 통합 — aurora 만 accent 기반 radial, 나머지 4 종은 정적 그라디언트(딥 스페이스: 보라/네이비, 선셋: 오렌지/핑크, 포레스트: 녹색 그늘, 모노: 단색). `lib/ruehanix/ui-storage.ts` DEFAULT_UI.wallpaper="aurora" + parseUiState 에 wallpaper 검증(잘못된 키/null → UiState 전체 무효). `useRuehanix.setWallpaperKey` 핸들러 + viewModel `set.wallpaperKey/Opts/setWallpaperKey` 노출. SettingsApp 에 `<WallpaperPanel>` 추가 — radiogroup 그리드에 카드 5개, 각 카드에 다크/라이트 미리보기 쌍(80×48 썸네일) + 이름/설명/✓선택 표시. 클릭/Enter/Space → setWallpaperKey + notify. 기존 `viewModel.ts:456` wallpaper 호출도 새 시그니처로 갱신.
+- 검증: typecheck 0 / eslint 0 errors (기존 2 warning 유지) / vitest 42 files, 319 tests 통과 (wallpaper 관련 신규/갱신 8 케이스 포함: ui-storage wallpaper round-trip·필수 누락 null·DEFAULT, theme aurora accent 반영·다른 4종 accent 무관·WALLPAPERS 5종·resolveEarlyTheme wallpaper 누락 기본값) / build 10/10 routes. 푸시 안 함.
+- 가정: `parseUiState` 가 wallpaper 까지 엄격 검증(누락/잘못 키 = 전체 UiState null → DEFAULT 폴백) — 인라인 head 스크립트 `resolveEarlyTheme` 도 동일 DEFAULT 로 떨어지므로 FOUC/드리프트 없음. 기존 사용자의 localStorage 값(ADR 0011 이전에 저장된 wallpaper 없는 6필드 UiState)은 첫 로드 시 DEFAULT 로 폴백 후 다음 어떤 setMode/setAccent/setGap 시 wallpaper 키가 포함된 새 직렬화로 갱신됨. accent 와 무관한 4 프리셋의 `background` 는 accent 인자를 무시하지만 시그니처는 통일(미래 재결합 여지).
+- 관련 결정: docs/decisions/0062-settings-korean-wallpaper.md
+
 ## 2026-07-24 — FilesApp 사이드바 chrome 정리 정정
 - 브랜치: main
 - 한 일: 이전 변경에서 잘못 숨긴 `components/ruehanix/RuehanixShell.tsx` 의 chrome title bar icon + name 을 복원하고 `justifyContent: "flex-end"` 를 제거. 실제 의도였던 `components/ruehanix/FilesApp.tsx` sidebar 상단 strip (`◇ files ⌘F` + 하단 border) 을 제거해 스크롤 영역을 `<aside>` 의 첫 child 로 변경. 기존 사이드바 row kbd chip 및 background 제거는 유지. ADR 0061 정정.

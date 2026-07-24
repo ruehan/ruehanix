@@ -47,6 +47,15 @@ export interface UiState {
   rounded: boolean;
   glow: boolean;
   transp: boolean;
+  wallpaper: WallpaperKey;
+}
+
+/** 셸 배경화면 프리셋. ADR 0062 — SettingsApp 의 배경화면 탭에서 선택. */
+export type WallpaperKey = "aurora" | "deep-space" | "sunset" | "forest" | "mono";
+
+/** WallpaperKey 타입 가드 — ui-storage 검증과 핸들러 입력 모두에서 사용. */
+export function isWallpaperKey(v: unknown): v is WallpaperKey {
+  return v === "aurora" || v === "deep-space" || v === "sunset" || v === "forest" || v === "mono";
 }
 
 /** 플레이리스트 한 곡. videoId는 YouTube 영상 ID(11자). */

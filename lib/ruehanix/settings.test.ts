@@ -13,17 +13,19 @@ describe("SETTINGS_TABS", () => {
     }
   });
 
-  it("appearance·keybindings·about 탭은 구현(ready) 상태", () => {
+  it("appearance·keybindings·wallpaper·about 탭은 구현(ready) 상태", () => {
     const byKey = Object.fromEntries(SETTINGS_TABS.map((t) => [t.key, t.ready]));
     expect(byKey.appearance).toBe(true);
     expect(byKey.keybindings).toBe(true);
+    expect(byKey.wallpaper).toBe(true);
     expect(byKey.about).toBe(true);
   });
 
   it("미구현 탭은 ready:false — 비활성 표시용", () => {
     const notReady = SETTINGS_TABS.filter((t) => !t.ready).map((t) => t.key);
-    // General·Window Rules·Displays·Wallpaper는 의도적으로 비활성
-    expect(notReady).toEqual(expect.arrayContaining(["general", "windowrules", "displays", "wallpaper"]));
+    // General·Window Rules·Displays는 의도적으로 비활성 (배경화면은 ADR 0062 로 활성화됨)
+    expect(notReady).toEqual(expect.arrayContaining(["general", "windowrules", "displays"]));
+    expect(notReady).not.toContain("wallpaper");
   });
 });
 

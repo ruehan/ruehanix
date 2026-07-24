@@ -1,4 +1,5 @@
 import type { ThemeMode, UiState } from "./types";
+import { isWallpaperKey } from "./types";
 
 /** UI 설정을 영속화하는 localStorage 키. */
 export const UI_STORAGE_KEY = "rh-ui";
@@ -17,6 +18,7 @@ export const DEFAULT_UI: UiState = {
   rounded: true,
   glow: true,
   transp: false,
+  wallpaper: "aurora",
 };
 
 /** 저장된 JSON 문자열 → UiState. 형식/범위가 어긋나면 null(저장값 무시, 기본값 사용). */
@@ -34,7 +36,8 @@ export function parseUiState(raw: string | null | undefined): UiState | null {
   const mode = typeof r.mode === "string" && (MODES as string[]).includes(r.mode) ? (r.mode as ThemeMode) : null;
   const accent = typeof r.accent === "string" && HEX.test(r.accent) ? r.accent : null;
   const gap = typeof r.gap === "number" && r.gap >= 0 && r.gap <= 28 ? Math.round(r.gap) : null;
-  if (mode === null || accent === null || gap === null) return null;
+  const wallpaper = isWallpaperKey(r.wallpaper) ? r.wallpaper : null;
+  if (mode === null || accent === null || gap === null || wallpaper === null) return null;
 
   return {
     mode,
@@ -43,6 +46,7 @@ export function parseUiState(raw: string | null | undefined): UiState | null {
     rounded: typeof r.rounded === "boolean" ? r.rounded : true,
     glow: typeof r.glow === "boolean" ? r.glow : true,
     transp: typeof r.transp === "boolean" ? r.transp : false,
+    wallpaper,
   };
 }
 

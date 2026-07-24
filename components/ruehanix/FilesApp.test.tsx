@@ -154,13 +154,14 @@ describe("FilesApp", () => {
     expect(openById["b"]).toHaveBeenCalledTimes(1);
   });
 
-  it("사이드바 카테고리 row 의 kbd chip 표시 (⌘1~⌘6)", () => {
+  it("사이드바 카테고리 row 는 kbd chip 미표시 (사이드바 noise 정리)", () => {
     const { fakeVm } = mkVm();
     const { container } = render(<FilesApp vm={fakeVm} />);
-    // 디자인 의도: 각 카테고리 row 의 단축키 표시
-    expect(container.textContent).toContain("⌘1");
-    expect(container.textContent).toContain("⌘2");
-    expect(container.textContent).toContain("⌘6");
+    // ADR 0061 — chrome title bar 의 단축키 자리는 keybind overlay(Super+/) 에 일원화.
+    // 사이드바 카테고리 row 의 ⌘1~⌘6 chip 은 제거.
+    expect(container.textContent).not.toContain("⌘1");
+    expect(container.textContent).not.toContain("⌘2");
+    expect(container.textContent).not.toContain("⌘6");
   });
 
   it("sticky 컬럼 헤더 표시 (name / category / date)", () => {
